@@ -1,0 +1,39 @@
+name: Anchor Tests
+
+on:
+  push:
+    branches: [ '**' ]
+#  pull_request:
+#    branches: [ '**' ]
+
+jobs:
+  test:
+    name: Run Anchor Tests in Docker
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Verify environment
+        run: |
+          echo "=== Environment variables ==="
+          env
+          echo "=== PATH ==="
+          echo $PATH
+          echo "=== Anchor version ==="
+          which anchor || echo "Anchor not found in PATH"
+          anchor --version || echo "Could not get anchor version"
+
+      - name: Run Anchor tests
+        run: |
+          docker run --rm -v ${{ github.workspace }}:/app pylejeune/solana-dev:latest \
+            bash -c "cd /app/backend/norug-fun && \
+            echo 'Container environment:' && \
+            env && \
+            echo 'PATH=' && echo $PATH && \
+            echo 'Anchor version:' && \
+            which anchor && \
+            anchor --version && \
+            echo 'Running tests...' && \
+            anchor test --skip-build"
