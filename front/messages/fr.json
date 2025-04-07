@@ -1,0 +1,10 @@
+{
+  "LocaleSwitcher": {
+    "label": "Langue",
+    "locale": "{locale, select, fr {FR} en {EN} other {Inconnu}}"
+  },
+  "Loading": {
+    "title": "NoRug.fun",
+    "message": "Chargement"
+  }
+}

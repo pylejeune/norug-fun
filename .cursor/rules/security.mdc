@@ -1,0 +1,17 @@
+---
+description: 
+globs: 
+---
+---
+description: Security guidelines for the project
+globs:
+  - "**"
+alwaysApply: true
+---
+
+# Security
+
+- Always **validate and sanitize** data coming from the user.
+- Use **secure environments** for storing secrets (e.g., `.env` files).
+- Implement measures to prevent XSS, CSRF, and SQL injection attacks in the backend.
+- For Solana interactions, ensure **transactions are properly signed** and validate instructions on the backend.
