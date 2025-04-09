@@ -1,0 +1,17 @@
+---
+description: 
+globs: 
+---
+---
+description: Rust program development guidelines for Solana with Anchor
+globs:
+  - "programs/**/*"   # Apply the rule only to files in the `programs/` directory and its subdirectories
+alwaysApply: false
+---
+
+# Solana Programs with Anchor
+
+- Use **Anchor** to develop Solana programs.
+- Separate instruction logic into the `instructions/` folder, and keep `state.rs` centralized for all state management.
+- Each program should have explicit error handling in `error.rs`.
+- Add unit tests for each instruction in the `/tests/` folder.

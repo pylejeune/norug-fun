@@ -1,0 +1,73 @@
+---
+description: 
+globs: 
+---
+---
+description: Project structure and file organization guidelines
+globs: 
+  alwaysApply: true
+---
+
+# Project Structure – `norug.fun`
+
+## Main Structure
+
+- Uses Turborepo with npm workspaces
+- Frontend dApp in `front/`
+- Solana smart contracts in `programs/`
+- i18n handled with `next-intl`
+- UI designed with TailwindCSS + custom cursors
+- Wallet integration via `AppWalletProvider`
+
+```tree
+.
+├── front/                    # Next.js 14 application (App Router)
+│   ├── .next/               # Build and cache files
+│   ├── app/
+│   │   ├── [locale]/        # Locale-specific routing and pages
+│   │   │   ├── layout.tsx
+│   │   │   ├── page.tsx
+│   │   │   └── globals.css
+│   │   └── i18n/
+│   │       ├── request.ts
+│   │       └── routing.ts
+│   ├── components/
+│   │   ├── ui/
+│   │   │   ├── Header.tsx
+│   │   │   └── LocaleSwitcher.tsx
+│   │   └── AppWalletProvider.tsx
+│   ├── public/
+│   │   ├── cursors/
+│   │   │   ├── default.png
+│   │   │   ├── hover.png
+│   │   │   └── text.png
+│   │   ├── fonts/
+│   │   │   ├── nacelle-regular.woff2
+│   │   │   ├── nacelle-italic.woff2
+│   │   │   ├── nacelle-semibold.woff2
+│   │   │   └── nacelle-semibolditalic.woff2
+│   │   └── images/
+│   │       └── logo.svg
+│   ├── messages/            # Translations
+│   │   ├── en.json
+│   │   └── fr.json
+│   ├── next.config.mjs
+│   ├── package.json
+│   └── tsconfig.json
+│
+├── programs/                # Solana smart contracts using Anchor
+│   ├── src/
+│   │   ├── instructions/
+│   │   │   ├── initialize.rs
+│   │   │   └── mod.rs
+│   │   ├── constants.rs
+│   │   ├── error.rs
+│   │   ├── lib.rs
+│   │   └── state.rs
+│   ├── tests/
+│   │   └── programs.ts
+│   ├── migrations/
+│   │   └── deploy.ts
+│   ├── Anchor.toml
+│   ├── Cargo.toml
+│   └── package.json
