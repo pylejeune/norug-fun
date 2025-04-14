@@ -18,5 +18,20 @@
     "createProposal": "Create a new proposal",
     "treasury": "Treasury",
     "tokenArchive": "Token Archive"
+  },
+  "ProposalForm": {
+    "title": "Create new Token Proposal",
+    "projectName": "Project Name",
+    "ticker": "Ticker",
+    "description": "Description",
+    "image": "Project Image",
+    "totalSupply": "Total Supply",
+    "creatorSupply": "Creator Supply: {value}%",
+    "supportersSupply": "Supporters Supply: {value}%",
+    "submit": "Create Proposal",
+    "dragOrClickToUpload": "Drag and drop an image here, or click to select",
+    "dropToUpload": "Drop the image here",
+    "dragOrClickToReplace": "Drag a new image or click to replace",
+    "imageFormat": "JPEG, PNG or GIF up to 5MB"
   }
 }

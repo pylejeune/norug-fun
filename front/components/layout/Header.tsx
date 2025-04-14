@@ -15,7 +15,7 @@ export default function Header() {
   return (
     <header className="w-full">
       <div className="mx-3 my-2 md:mx-6 md:my-4">
-        <div className="flex h-12 md:h-14 items-center justify-between gap-2 rounded-xl bg-gray-900/90 px-3 md:px-4 backdrop-blur-sm">
+        <div className="flex h-12 md:h-14 items-center justify-between gap-2 rounded-xl  px-3 md:px-4 backdrop-blur-sm">
           {isMobile && (
             <Link href="/" className="flex items-center">
               <Image
