@@ -89,13 +89,13 @@ export default function Home() {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto p-2 md:p-4 space-y-6">
+    <div className="w-full max-w-4xl mx-auto p-2 md:p-4 space-y-4 md:space-y-6">
       {/* Current Epoch Status */}
-      <div className="bg-gray-900/50 p-4 rounded-lg border border-gray-800">
-        <h2 className="text-lg md:text-xl font-semibold mb-3">
+      <div className="bg-gray-900/50 p-3 md:p-4 rounded-lg border border-gray-800">
+        <h2 className="text-lg md:text-xl font-semibold mb-2 md:mb-3">
           {t("currentEpoch")}
         </h2>
-        <div className="space-y-2">
+        <div className="space-y-1 md:space-y-2">
           <p className="text-sm md:text-base">
             {t("timeLeft")}: {formatTimeLeft(currentEpoch.end_time)}
           </p>
@@ -107,12 +107,12 @@ export default function Home() {
 
       {/* Proposals List */}
       <div>
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0 mb-3 md:mb-4">
           <h2 className="text-lg md:text-xl font-semibold">
             {t("proposalsList")}
           </h2>
           <select
-            className="bg-gray-800 border border-gray-700 rounded-md px-3 py-1 text-sm"
+            className="w-full sm:w-auto bg-gray-800 border border-gray-700 rounded-md px-3 py-1.5 text-sm"
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
           >
@@ -122,15 +122,15 @@ export default function Home() {
           </select>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-3 md:space-y-4">
           {sortedProposals.map((proposal) => (
             <div
               key={proposal.id}
-              className="bg-gray-900/50 p-4 rounded-lg border border-gray-800 hover:border-gray-600 transition-colors"
+              className="bg-gray-900/50 p-3 md:p-4 rounded-lg border border-gray-800 hover:border-gray-600 transition-colors"
             >
-              <div className="flex gap-4">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                 {/* Image */}
-                <div className="w-24 h-24 md:w-32 md:h-32 flex-shrink-0">
+                <div className="w-full sm:w-24 h-40 sm:h-24 md:w-32 md:h-32 flex-shrink-0">
                   {proposal.image_url ? (
                     <img
                       src={proposal.image_url}
@@ -138,24 +138,24 @@ export default function Home() {
                       className="w-full h-full object-cover rounded-lg"
                     />
                   ) : (
-                    <div className="w-full h-full bg-gray-800 rounded-lg flex items-center justify-center text-gray-600">
+                    <div className="w-full h-full bg-gray-800 rounded-lg flex items-center justify-center text-gray-600 text-sm">
                       {t("noImage")}
                     </div>
                   )}
                 </div>
 
                 {/* Content */}
-                <div className="flex-1">
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <h3 className="text-lg md:text-xl font-medium">
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-4 mb-2">
+                    <div className="w-full sm:w-auto">
+                      <h3 className="text-base md:text-lg font-medium truncate">
                         {proposal.name}
                       </h3>
                       <p className="text-sm font-mono text-gray-400">
                         ${proposal.ticker}
                       </p>
                     </div>
-                    <div className="text-right">
+                    <div className="w-full sm:w-auto text-left sm:text-right">
                       <p className="text-base md:text-lg font-medium text-green-500">
                         {t("solanaRaised", {
                           amount: proposal.solana_raised.toLocaleString(
@@ -172,10 +172,10 @@ export default function Home() {
                       </p>
                     </div>
                   </div>
-                  <p className="text-sm md:text-base text-gray-300 line-clamp-2">
+                  <p className="text-sm md:text-base text-gray-300 line-clamp-2 mb-2">
                     {proposal.description}
                   </p>
-                  <p className="text-xs text-gray-400 mt-2">
+                  <p className="text-xs text-gray-400">
                     {t("epochId")}: {proposal.epoch_id}
                   </p>
                 </div>
