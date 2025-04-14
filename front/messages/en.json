@@ -47,5 +47,17 @@
       "pending": "Pending",
       "ended": "Ended"
     }
+  },
+  "Home": {
+    "currentEpoch": "Current Epoch",
+    "timeLeft": "Time remaining",
+    "proposalCount": "{count, plural, =0 {No proposals} one {# proposal} other {# proposals}}",
+    "proposalsList": "Proposals",
+    "sortBySolana": "Sort by SOL raised",
+    "sortByName": "Sort by name",
+    "sortByDate": "Sort by date",
+    "solanaRaised": "{amount} SOL",
+    "epochId": "Epoch",
+    "noImage": "No image"
   }
 }
