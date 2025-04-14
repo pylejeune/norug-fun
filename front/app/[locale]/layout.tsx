@@ -1,13 +1,17 @@
 import AppWalletProvider from "@/components/AppWalletProvider";
-import Header from "@/components/ui/header";
+import { AltSidebar } from "@/components/layout/AltSidebar";
+import Footer from "@/components/layout/Footer";
+import Header from "@/components/layout/Header";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import type { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { Inter } from "next/font/google";
 import localFont from "next/font/local";
+import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
+import "../globals.css";
 import { routing } from "../i18n/routing";
-import "./globals.css";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -51,7 +55,6 @@ type Props = {
   params: Promise<{ locale: (typeof routing.locales)[number] }>;
 };
 export default async function RootLayout({ children, params }: Props) {
-  // Await the resolution of the params promise
   const { locale } = await params;
 
   // Check if the locale is valid
@@ -61,6 +64,11 @@ export default async function RootLayout({ children, params }: Props) {
 
   // Fetch the translation messages for the specified locale
   const messages = await getMessages({ locale });
+
+  // Cookie to store the state of the vertical navbar
+  const cookieStore = await cookies();
+  const defaultOpen = cookieStore.get("sidebar_state")?.value === "true";
+
   return (
     <html lang={locale}>
       <body
@@ -68,8 +76,16 @@ export default async function RootLayout({ children, params }: Props) {
       >
         <NextIntlClientProvider locale={locale} messages={messages}>
           <AppWalletProvider>
-            <Header />
-            {children}
+            <SidebarProvider defaultOpen={defaultOpen}>
+              <div className="flex h-screen w-full">
+                <AltSidebar />
+                <div className="flex-1 ">
+                  <Header />
+                  <main>{children}</main>
+                  <Footer />
+                </div>
+              </div>
+            </SidebarProvider>
           </AppWalletProvider>
         </NextIntlClientProvider>
       </body>
