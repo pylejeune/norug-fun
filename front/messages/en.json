@@ -76,5 +76,33 @@
       "newest": "Newest first",
       "oldest": "Oldest first"
     }
+  },
+  "Archive": {
+    "title": "Token Archive",
+    "viewMode": {
+      "myProposals": "My Proposals",
+      "supportedTokens": "Supported Tokens"
+    },
+    "sort": {
+      "byDate": "Sort by date",
+      "byName": "Sort by name",
+      "byVotes": "Sort by SOL raised",
+      "desc": "Highest first",
+      "asc": "Lowest first"
+    },
+    "solanaRaised": "{amount} SOL",
+    "minRequired": "Min. required: {amount} SOL",
+    "epochId": "Epoch",
+    "endDate": "End date",
+    "noImage": "No image",
+    "connectWallet": "Connect wallet to see your tokens",
+    "noProposals": "You haven't created any proposals yet",
+    "noSupportedTokens": "You haven't supported any tokens yet",
+    "yourSupport": "Your support: {amount} SOL",
+    "requiredAmount": "Required: {amount} SOL",
+    "status": {
+      "validated": "Validated",
+      "rejected": "Rejected"
+    }
   }
 }
