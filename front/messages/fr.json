@@ -33,5 +33,19 @@
     "dropToUpload": "Déposez l'image ici",
     "dragOrClickToReplace": "Glissez une nouvelle image ou cliquez pour remplacer",
     "imageFormat": "JPEG, PNG ou GIF jusqu'à 5MB"
+  },
+  "EpochManagement": {
+    "title": "Gestion des Epochs",
+    "startEpoch": "Démarrer un Nouvel Epoch",
+    "endEpoch": "Terminer l'Epoch",
+    "epochId": "ID de l'Epoch",
+    "startTime": "Date de début",
+    "endTime": "Date de fin",
+    "statusLabel": "Statut",
+    "statusType": {
+      "active": "Actif",
+      "pending": "En attente",
+      "ended": "Terminé"
+    }
   }
 }

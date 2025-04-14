@@ -33,5 +33,19 @@
     "dropToUpload": "Drop the image here",
     "dragOrClickToReplace": "Drag a new image or click to replace",
     "imageFormat": "JPEG, PNG or GIF up to 5MB"
+  },
+  "EpochManagement": {
+    "title": "Epoch Management",
+    "startEpoch": "Start New Epoch",
+    "endEpoch": "End Epoch",
+    "epochId": "Epoch ID",
+    "startTime": "Start Time",
+    "endTime": "End Time",
+    "statusLabel": "Status",
+    "statusType": {
+      "active": "Active",
+      "pending": "Pending",
+      "ended": "Ended"
+    }
   }
 }
