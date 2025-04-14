@@ -3,10 +3,21 @@
 import { useIsMobile } from "@/hooks/use-mobile";
 import logo from "@/public/images/logo.svg";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
 import LocaleSwitcher from "../ui/LocaleSwitcher";
+
+// Import the client component with dynamic import
+const ClientWalletMultiButton = dynamic(
+  () => import("../wallet/ClientWalletMultiButton"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="w-[180px] h-[48px] bg-gray-800 rounded-md animate-pulse" />
+    ),
+  }
+);
 
 export default function Header() {
   const { connected } = useWallet();
@@ -30,7 +41,7 @@ export default function Header() {
           <div className="flex items-center gap-2 ml-auto">
             <LocaleSwitcher />
             <div>
-              <WalletMultiButton />
+              <ClientWalletMultiButton />
             </div>
           </div>
         </div>

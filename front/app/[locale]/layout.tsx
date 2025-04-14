@@ -1,8 +1,8 @@
-import AppWalletProvider from "@/components/AppWalletProvider";
 import { AltSidebar } from "@/components/layout/AltSidebar";
 import Footer from "@/components/layout/Footer";
 import Header from "@/components/layout/Header";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import AppWalletProvider from "@/components/wallet/AppWalletProvider";
 import type { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";

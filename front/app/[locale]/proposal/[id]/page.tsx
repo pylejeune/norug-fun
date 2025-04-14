@@ -69,6 +69,11 @@ export default function ProposalDetailPage() {
     });
   };
 
+  // Fonction helper pour formater les grands nombres
+  const formatNumber = (number: number) => {
+    return number.toLocaleString(locale === "fr" ? "fr-FR" : "en-US");
+  };
+
   // TODO: Implement support action
   const handleSupport = async (e: React.FormEvent) => {
     console.log("TODO: Support with", supportAmount, "SOL");
@@ -220,32 +225,22 @@ export default function ProposalDetailPage() {
               <div className="bg-gray-900/50 p-3 rounded-lg">
                 <p className="text-sm text-gray-400 mb-1">{t("totalSupply")}</p>
                 <p className="text-lg">
-                  {proposal.total_supply.toLocaleString()}
+                  {formatNumber(proposal.total_supply)}
                 </p>
               </div>
               <div className="bg-gray-900/50 p-3 rounded-lg">
-                <p className="text-sm text-gray-400 mb-1">
-                  {t("creatorSupply")}
-                </p>
+                <p className="text-sm text-gray-400 mb-1">{t("creatorSupply")}</p>
                 <p className="text-lg">
-                  {proposal.creator_supply.toLocaleString()} (
-                  {(
-                    (proposal.creator_supply / proposal.total_supply) *
-                    100
-                  ).toFixed(1)}
+                  {formatNumber(proposal.creator_supply)} (
+                  {((proposal.creator_supply / proposal.total_supply) * 100).toFixed(1)}
                   %)
                 </p>
               </div>
               <div className="bg-gray-900/50 p-3 rounded-lg">
-                <p className="text-sm text-gray-400 mb-1">
-                  {t("supportersSupply")}
-                </p>
+                <p className="text-sm text-gray-400 mb-1">{t("supportersSupply")}</p>
                 <p className="text-lg">
-                  {proposal.supporters_supply.toLocaleString()} (
-                  {(
-                    (proposal.supporters_supply / proposal.total_supply) *
-                    100
-                  ).toFixed(1)}
+                  {formatNumber(proposal.supporters_supply)} (
+                  {((proposal.supporters_supply / proposal.total_supply) * 100).toFixed(1)}
                   %)
                 </p>
               </div>
