@@ -3,6 +3,7 @@
 import { format, formatDistanceToNow } from "date-fns";
 import { enUS, fr } from "date-fns/locale";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useMemo, useState } from "react";
 
@@ -35,7 +36,7 @@ export default function Home() {
 
   const [proposals, setProposals] = useState<Proposal[]>([
     {
-      id: "prop_1",
+      id: "token_1",
       name: "Project Alpha",
       ticker: "ALPHA",
       description:
@@ -122,15 +123,16 @@ export default function Home() {
           </select>
         </div>
 
-        <div className="space-y-3 md:space-y-4">
+        <div className="grid gap-3 md:gap-4">
           {sortedProposals.map((proposal) => (
-            <div
+            <Link
               key={proposal.id}
-              className="bg-gray-900/50 p-3 md:p-4 rounded-lg border border-gray-800 hover:border-gray-600 transition-colors"
+              href={`/${locale}/proposal/${proposal.id}`}
+              className="block bg-gray-900/50 p-3 md:p-4 rounded-lg border border-gray-800 hover:bg-gray-900/70 transition-colors"
             >
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                 {/* Image */}
-                <div className="w-full sm:w-24 h-40 sm:h-24 md:w-32 md:h-32 flex-shrink-0">
+                <div className="w-full sm:w-32 h-32 flex-shrink-0">
                   {proposal.image_url ? (
                     <img
                       src={proposal.image_url}
@@ -138,17 +140,17 @@ export default function Home() {
                       className="w-full h-full object-cover rounded-lg"
                     />
                   ) : (
-                    <div className="w-full h-full bg-gray-800 rounded-lg flex items-center justify-center text-gray-600 text-sm">
+                    <div className="w-full h-full bg-gray-800 rounded-lg flex items-center justify-center text-gray-600">
                       {t("noImage")}
                     </div>
                   )}
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-4 mb-2">
-                    <div className="w-full sm:w-auto">
-                      <h3 className="text-base md:text-lg font-medium truncate">
+                <div className="flex-1 min-w-0 space-y-2">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                    <div>
+                      <h3 className="text-lg font-medium truncate group-hover:text-blue-400">
                         {proposal.name}
                       </h3>
                       <p className="text-sm font-mono text-gray-400">
@@ -156,7 +158,7 @@ export default function Home() {
                       </p>
                     </div>
                     <div className="w-full sm:w-auto text-left sm:text-right">
-                      <p className="text-base md:text-lg font-medium text-green-500">
+                      <p className="text-lg font-medium text-green-500">
                         {t("solanaRaised", {
                           amount: proposal.solana_raised.toLocaleString(
                             locale,
@@ -167,20 +169,21 @@ export default function Home() {
                           ),
                         })}
                       </p>
-                      <p className="text-xs text-gray-400">
-                        {formatDate(proposal.created_at)}
-                      </p>
                     </div>
                   </div>
-                  <p className="text-sm md:text-base text-gray-300 line-clamp-2 mb-2">
+
+                  <p className="text-sm text-gray-300 line-clamp-2">
                     {proposal.description}
                   </p>
-                  <p className="text-xs text-gray-400">
-                    {t("epochId")}: {proposal.epoch_id}
-                  </p>
+
+                  <div className="flex flex-wrap gap-2 text-xs text-gray-400">
+                    <span className="bg-gray-800/50 px-2 py-1 rounded">
+                      {t("epochId")}: {proposal.epoch_id}
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>

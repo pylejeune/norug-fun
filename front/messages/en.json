@@ -103,6 +103,34 @@
     "status": {
       "validated": "Validated",
       "rejected": "Rejected"
-    }
+    },
+    "supportButton": "Support",
+    "connectToSupport": "Connect Wallet"
+  },
+  "ProposalDetail": {
+    "description": "Description",
+    "tokenomics": "Tokenomics",
+    "details": "Details",
+    "totalSupply": "Total Supply",
+    "creatorSupply": "Creator Supply",
+    "supportersSupply": "Supporters Supply",
+    "requiredAmount": "Required Amount",
+    "epochId": "Epoch",
+    "createdAt": "Created At",
+    "endDate": "End Date",
+    "creator": "Creator",
+    "solanaRaised": "{amount} SOL",
+    "yourSupport": "Your support: {amount} SOL",
+    "status": {
+      "active": "Active",
+      "validated": "Validated",
+      "rejected": "Rejected"
+    },
+    "supportButton": "Support Project",
+    "connectToSupport": "Connect Wallet to Support",
+    "noImage": "No image",
+    "supportAmount": "Support amount",
+    "currentRank": "Currently ranked #{rank} out of {total} proposals",
+    "backButton": "Back"
   }
 }

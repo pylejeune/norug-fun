@@ -103,6 +103,34 @@
     "status": {
       "validated": "Validé",
       "rejected": "Rejeté"
-    }
+    },
+    "supportButton": "Soutenir",
+    "connectToSupport": "Connectez-vous"
+  },
+  "ProposalDetail": {
+    "description": "Description",
+    "tokenomics": "Tokenomics",
+    "details": "Détails",
+    "totalSupply": "Offre Totale",
+    "creatorSupply": "Part Créateur",
+    "supportersSupply": "Part Supporters",
+    "requiredAmount": "Montant Requis",
+    "epochId": "Epoch",
+    "createdAt": "Créé le",
+    "endDate": "Date de fin",
+    "creator": "Créateur",
+    "solanaRaised": "{amount} SOL",
+    "yourSupport": "Votre support : {amount} SOL",
+    "status": {
+      "active": "En cours",
+      "validated": "Validé",
+      "rejected": "Rejeté"
+    },
+    "supportButton": "Soutenir le Projet",
+    "connectToSupport": "Connectez-vous pour Soutenir",
+    "noImage": "Pas d'image",
+    "supportAmount": "Montant du support",
+    "currentRank": "Actuellement #{rank} sur {total} propositions",
+    "backButton": "Retour"
   }
 }
