@@ -10,6 +10,7 @@ import {
   Vault,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useParams } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -30,32 +31,33 @@ import Link from "next/link";
 export function AltSidebar() {
   const t = useTranslations("Navigation");
   const { toggleSidebar, open, isMobile } = useSidebar();
+  const { locale } = useParams();
 
   // Navigation menu configuration
   const items = [
     {
       titleKey: "home",
-      url: "#",
+      url: `/${locale}`,
       icon: Home,
     },
     {
       titleKey: "manageEpoch",
-      url: "#",
+      url: `/${locale}/epoch`,
       icon: Hourglass,
     },
     {
       titleKey: "createProposal",
-      url: "#",
+      url: `/${locale}/create`,
       icon: CirclePlus,
     },
     {
       titleKey: "treasury",
-      url: "#",
+      url: `/${locale}/treasury`,
       icon: Vault,
     },
     {
       titleKey: "tokenArchive",
-      url: "#",
+      url: `/${locale}/archive`,
       icon: History,
     },
   ];
@@ -128,10 +130,10 @@ export function AltSidebar() {
                         tooltip={t(item.titleKey)}
                         className="h-8 md:h-12 text-sm md:text-base"
                       >
-                        <a href={item.url} className="gap-2 md:gap-3">
+                        <Link href={item.url} className="gap-2 md:gap-3">
                           <item.icon className="h-4 w-4 md:h-6 md:w-6 group-data-[state=collapsed]:h-8 group-data-[state=collapsed]:w-5 transition-all duration-200" />
                           <span>{t(item.titleKey)}</span>
-                        </a>
+                        </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   ))}
