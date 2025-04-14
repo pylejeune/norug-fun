@@ -59,5 +59,22 @@
     "solanaRaised": "{amount} SOL",
     "epochId": "Epoch",
     "noImage": "No image"
+  },
+  "Treasury": {
+    "title": "Treasury",
+    "description": "Overview of accumulated fees",
+    "totalFees": "{amount} SOL",
+    "amount": "{amount} SOL",
+    "timeRange": {
+      "day": "Last 24 hours",
+      "week": "Last week",
+      "month": "Last month",
+      "year": "Last year",
+      "all": "All time"
+    },
+    "sort": {
+      "newest": "Newest first",
+      "oldest": "Oldest first"
+    }
   }
 }

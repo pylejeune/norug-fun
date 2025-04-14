@@ -59,5 +59,22 @@
     "solanaRaised": "{amount} SOL",
     "epochId": "Epoch",
     "noImage": "Pas d'image"
+  },
+  "Treasury": {
+    "title": "Trésorerie",
+    "description": "Aperçu des frais accumulés",
+    "totalFees": "{amount} SOL",
+    "amount": "{amount} SOL",
+    "timeRange": {
+      "day": "Dernières 24h",
+      "week": "Dernière semaine",
+      "month": "Dernier mois",
+      "year": "Dernière année",
+      "all": "Tout"
+    },
+    "sort": {
+      "newest": "Plus récent",
+      "oldest": "Plus ancien"
+    }
   }
 }
