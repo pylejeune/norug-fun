@@ -20,13 +20,17 @@ pub fn handler(ctx: Context<EndEpoch>, epoch_id: u64) -> Result<()> {
         ErrorCode::EpochAlreadyInactive
     );
     
-    // Mettre à jour le statut de l'époque à inactive
+    // Récupérer l'heure actuelle
+    let current_time = Clock::get()?.unix_timestamp;
+    
+    // Mettre à jour le statut de l'époque à inactive et la date de fin
     epoch.status = EpochStatus::Closed;
+    epoch.end_time = current_time;
     
     // Émettre un événement pour la clôture de l'époque
     emit!(EpochEnded {
         epoch_id,
-        ended_at: Clock::get()?.unix_timestamp,
+        ended_at: current_time,
     });
     
     Ok(())
