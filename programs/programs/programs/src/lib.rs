@@ -80,4 +80,19 @@ pub mod programs {
 
         Ok(())
     }
+
+    pub fn get_epoch_state(
+        ctx: Context<GetEpochState>,
+        epoch_id: u64,
+    ) -> Result<()> {
+        // Vérifier que l'ID de l'époque correspond
+        require!(
+            ctx.accounts.epoch_management.epoch_id == epoch_id,
+            ErrorCode::EpochNotFound
+        );
+
+        // Aucune modification n'est nécessaire, nous retournons simplement Ok(())
+        // Les informations de l'époque seront accessibles via ctx.accounts.epoch_management
+        Ok(())
+    }
 }

@@ -11,6 +11,9 @@ pub enum ErrorCode {
     #[msg("La plage de temps de l'époque est invalide")]
     InvalidEpochTimeRange,
     
+    #[msg("L'époque n'a pas été trouvée")]
+    EpochNotFound,
+    
     #[msg("Erreur personnalisée")]
     CustomError,
 }

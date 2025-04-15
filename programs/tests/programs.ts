@@ -76,22 +76,6 @@ describe("programs", () => {
     expect(epoch.status).to.deep.equal({ active: {} });
   });
 
-  it("Vérifie l'état d'une époque existante", async () => {
-    // Utiliser l'époque déjà créée dans le test précédent
-    const epoch = await program.account.epochManagement.fetch(epochPda);
-    const epochId = epoch.epochId;
-    
-    console.log("État de l'époque existante:");
-    console.log(`- ID: ${epoch.epochId.toString()}`);
-    console.log(`- Start Time: ${new Date(epoch.startTime.toNumber() * 1000).toISOString()}`);
-    console.log(`- End Time: ${new Date(epoch.endTime.toNumber() * 1000).toISOString()}`);
-    console.log(`- Status: ${JSON.stringify(epoch.status)}`);
-
-    // Vérifier que l'époque existe et est active
-    expect(epoch.epochId.toString()).to.equal(epochId.toString());
-    expect(epoch.status).to.deep.equal({ active: {} });
-    expect(epoch.startTime.toNumber()).to.be.lessThan(epoch.endTime.toNumber());
-  });
 
   it("Crée une nouvelle proposition de token", async () => {
     // Récupérer l'époque pour obtenir l'epoch_id correct
@@ -304,64 +288,64 @@ describe("programs", () => {
     });
   });
 
-  it("Affiche les détails d'une époque spécifique par ID", async () => {
+
+  it("Utilise get_epoch_state pour afficher une époque existante en fonction de son ID", async () => {
     // Créer une nouvelle époque pour ce test
-    const newEpochId = generateRandomId();
-    const startTime = new anchor.BN(Math.floor(Date.now() / 1000));
-    const endTime = new anchor.BN(startTime.toNumber() + 86400); // 1 jour
+    const newEpochId = epochIdGeneral;
 
     const [newEpochPda] = PublicKey.findProgramAddressSync(
       [Buffer.from("epoch"), newEpochId.toArrayLike(Buffer, "le", 8)],
       program.programId
     );
 
-    // Créer l'époque
-    await program.methods
-      .startEpoch(newEpochId, startTime, endTime)
-      .accounts({
-        authority: provider.wallet.publicKey,
-        epochManagement: newEpochPda,
-        systemProgram: anchor.web3.SystemProgram.programId,
-      })
-      .rpc();
     
-    console.log(`\nNouvelle époque créée avec l'ID: ${newEpochId.toString()}`);
+    console.log(`\népoque existante avec l'ID: ${newEpochId.toString()}`);
     
-    // Récupérer tous les comptes de type EpochManagement
-    const allEpochs = await program.account.epochManagement.all();
-    
-    // Trouver l'époque avec l'ID spécifié
-    const targetEpoch = allEpochs.find(e => e.account.epochId.toString() === newEpochId.toString());
-    
-    if (!targetEpoch) {
-      console.log("Époque non trouvée");
-      expect.fail("L'époque devrait exister");
-    } else {
-      const account = targetEpoch.account;
-      console.log("\nDétails de l'époque trouvée:");
-      console.log(`- Adresse: ${targetEpoch.publicKey.toString()}`);
-      console.log(`- ID: ${account.epochId.toString()}`);
-      console.log(`- Start Time: ${new Date(account.startTime.toNumber() * 1000).toISOString()}`);
-      console.log(`- End Time: ${new Date(account.endTime.toNumber() * 1000).toISOString()}`);
-      console.log(`- Status: ${JSON.stringify(account.status)}`);
+    // Utiliser la fonction get_epoch_state pour récupérer l'état de l'époque
+    try {
+      await program.methods
+        .getEpochState(newEpochId)
+        .accounts({
+          epochManagement: newEpochPda,
+        })
+        .rpc();
+      
+      console.log("Fonction get_epoch_state exécutée avec succès");
+      
+      // Récupérer les informations de l'époque
+      const epoch = await program.account.epochManagement.fetch(newEpochPda);
+      
+      console.log("\nÉtat de l'époque récupéré via get_epoch_state:");
+      console.log(`- ID: ${epoch.epochId.toString()}`);
+      console.log(`- Start Time: ${new Date(epoch.startTime.toNumber() * 1000).toISOString()}`);
+      console.log(`- End Time: ${new Date(epoch.endTime.toNumber() * 1000).toISOString()}`);
+      console.log(`- Status: ${JSON.stringify(epoch.status)}`);
+      
+      // Vérifier que l'ID correspond
+      expect(epoch.epochId.toString()).to.equal(newEpochId.toString());
+      
+      // Vérifier que l'époque a un statut actif
+      expect(JSON.stringify(epoch.status)).to.equal(JSON.stringify({ active: {} }));
+      
+      // Vérifier que l'époque a une durée valide
+      expect(epoch.endTime.toNumber()).to.be.greaterThan(epoch.startTime.toNumber());
       
       // Vérifier si l'époque est actuellement active
       const currentTime = Math.floor(Date.now() / 1000);
-      const isCurrentlyActive = currentTime >= account.startTime.toNumber() && 
-                              currentTime <= account.endTime.toNumber();
+      const isCurrentlyActive = currentTime >= epoch.startTime.toNumber() && 
+                              currentTime <= epoch.endTime.toNumber();
       console.log(`- Actuellement active: ${isCurrentlyActive}`);
       
       // Afficher le temps restant
-      const timeRemaining = account.endTime.toNumber() - currentTime;
+      const timeRemaining = epoch.endTime.toNumber() - currentTime;
       const hoursRemaining = Math.floor(timeRemaining / 3600);
       const minutesRemaining = Math.floor((timeRemaining % 3600) / 60);
       console.log(`- Temps restant: ${hoursRemaining}h ${minutesRemaining}m`);
       
-      // Vérifier que l'ID correspond
-      expect(account.epochId.toString()).to.equal(newEpochId.toString());
-      
-      // Vérifier que l'époque a une durée valide
-      expect(account.endTime.toNumber()).to.be.greaterThan(account.startTime.toNumber());
+    } catch (error) {
+      console.error("Erreur lors de l'exécution de get_epoch_state:", error);
+      throw error;
     }
   });
+
 });
