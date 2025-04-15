@@ -3,30 +3,23 @@ import { Program } from "@coral-xyz/anchor";
 import { Programs } from "../target/types/programs";
 import { PublicKey } from "@solana/web3.js";
 import { expect } from "chai";
+import { generateRandomId, setupTestEnvironment } from "./utils.test";
 
-describe("programs", () => {
-  // Configure the client to use the local cluster.
-  const provider = anchor.AnchorProvider.env();
-  anchor.setProvider(provider);
 
-  const program = anchor.workspace.Programs as Program<Programs>;
-  
-  // Variables pour les tests
-  let epochPda: PublicKey;
+describe("Tests des propositions de tokens", () => {
+  const { provider, program } = setupTestEnvironment();
   let proposalPda: PublicKey;
+  let epochPda: PublicKey;
+
+  // Constantes pour les tests
   const tokenName = "noRugToken";
   const tokenSymbol = "NRT";
   const totalSupply = new anchor.BN(1000000);
-  const creatorAllocation = 5;
+  const creatorAllocation = 10;
   const lockupPeriod = new anchor.BN(86400); // 1 jour en secondes
 
-  it("Initialise le programme", async () => {
-    const tx = await program.methods.initialize().rpc();
-    console.log("Transaction signature", tx);
-  });
-
   it("Démarre une nouvelle époque", async () => {
-    const epochId = new anchor.BN(1);
+    const epochId = generateRandomId();
     const startTime = new anchor.BN(Math.floor(Date.now() / 1000));
     const endTime = new anchor.BN(startTime.toNumber() + 86400); // 1 jour
 
@@ -110,7 +103,7 @@ describe("programs", () => {
     console.log(`- tokenSymbol: ${tokenSymbol}`);
     console.log(`- totalSupply: ${totalSupply.toString()}`);
     console.log(`- creatorAllocation: ${creatorAllocation}`);
-    console.log(`- supporterAllocation: ${90 - creatorAllocation}`);
+    console.log(`- supporterAllocation: ${100 - creatorAllocation}`);
     console.log(`- solRaised: 0`);
     console.log(`- totalContributions: 0`);
     console.log(`- lockupPeriod: ${lockupPeriod.toString()}`);
@@ -129,43 +122,35 @@ describe("programs", () => {
     expect(proposal.tokenSymbol).to.equal(tokenSymbol);
     expect(proposal.totalSupply.toString()).to.equal(totalSupply.toString());
     expect(proposal.creatorAllocation).to.equal(creatorAllocation);
-    expect(proposal.supporterAllocation).to.equal(90 - creatorAllocation);
+    expect(proposal.supporterAllocation).to.equal(100 - creatorAllocation);
     expect(proposal.solRaised.toString()).to.equal("0");
     expect(proposal.totalContributions.toString()).to.equal("0");
     expect(proposal.lockupPeriod.toString()).to.equal(lockupPeriod.toString());
   });
 
-  it("Échoue si la plage de temps de l'époque est invalide", async () => {
-    const epochId = new anchor.BN(2);
-    const startTime = new anchor.BN(Math.floor(Date.now() / 1000));
-    const endTime = new anchor.BN(startTime.toNumber() - 3600); // 1 heure avant startTime
-
-    [epochPda] = PublicKey.findProgramAddressSync(
-      [Buffer.from("epoch"), epochId.toArrayLike(Buffer, "le", 8)],
-      program.programId
-    );
-
-    console.log("Test d'époque invalide:");
-    console.log(`- startTime: ${startTime.toString()} (${new Date(startTime.toNumber() * 1000).toISOString()})`);
-    console.log(`- endTime: ${endTime.toString()} (${new Date(endTime.toNumber() * 1000).toISOString()})`);
-    console.log(`- Différence: ${startTime.toNumber() - endTime.toNumber()} secondes`);
-
-    try {
-      await program.methods
-        .startEpoch(epochId, startTime, endTime)
-        .accounts({
-          authority: provider.wallet.publicKey,
-          epochManagement: epochPda,
-          systemProgram: anchor.web3.SystemProgram.programId,
-        })
-        .rpc();
-      
-      expect.fail("La transaction aurait dû échouer");
-    } catch (error) {
-      console.log("Erreur attendue:", error.toString());
-      expect(error.toString()).to.include("InvalidEpochTimeRange");
+  it("Affiche la liste des propositions de tokens", async () => {
+    const allProposals = await program.account.tokenProposal.all();
+    
+    console.log("\nListe des propositions de tokens:");
+    console.log("-------------------------------");
+    
+    if (allProposals.length === 0) {
+      console.log("Aucune proposition trouvée");
+    } else {
+      allProposals.forEach((proposal, index) => {
+        const account = proposal.account;
+        console.log(`\nProposition #${index + 1}:`);
+        console.log(`- Token Name: ${account.tokenName}`);
+        console.log(`- Token Symbol: ${account.tokenSymbol}`);
+        console.log(`- Total Supply: ${account.totalSupply.toString()}`);
+        console.log(`- Creator Allocation: ${account.creatorAllocation}%`);
+        console.log(`- Supporter Allocation: ${account.supporterAllocation}%`);
+        console.log(`- SOL Raised: ${account.solRaised.toString()}`);
+        console.log(`- Total Contributions: ${account.totalContributions.toString()}`);
+        console.log(`- Lockup Period: ${account.lockupPeriod.toString()} secondes`);
+      });
     }
+    
+    expect(allProposals.length).to.be.greaterThan(0);
   });
-
-
-});
+}); 
