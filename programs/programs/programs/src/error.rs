@@ -16,4 +16,11 @@ pub enum ErrorCode {
     
     #[msg("Erreur personnalisée")]
     CustomError,
+
+    #[msg("Invalid epoch ID")]
+    InvalidEpochId,
+
+    #[msg("Epoch already inactive")]
+    EpochAlreadyInactive,
 }
+

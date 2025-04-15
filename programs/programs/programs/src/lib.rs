@@ -5,7 +5,6 @@ pub mod state;
 
 use anchor_lang::prelude::*;
 
-
 pub use constants::*;
 pub use instructions::*;
 pub use state::*;
@@ -44,5 +43,11 @@ pub mod programs {
         epoch_id: u64,
     ) -> Result<()> {
         get_epoch_state::handler(ctx, epoch_id)
+    }
+
+
+    pub fn end_epoch(ctx: Context<EndEpoch>, epoch_id: u64) -> Result<()> {
+        // Vérifier que l'époque existe
+        end_epoch::handler(ctx, epoch_id)
     }
 }

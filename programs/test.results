@@ -1,0 +1,234 @@
+Deploying cluster: http://127.0.0.1:8899
+Upgrade authority: /Users/pylejeune/.config/solana/id.json
+Deploying program "programs"...
+Program path: /Users/pylejeune/Sites/norug2/programs/target/deploy/programs.so...
+Program Id: 89S48feUon6ffgtLzsnqoBVwdb1mxT4rmhRR5WnYefpA
+
+Signature: 5RMoT98nEhUXYSk6twqAk5fVCUmjvk8ypVym8R7tgDvybDZ97tL8JCxcmiNvwocW9TLdCvUQ3hqeEaCWhNHTUJRR
+
+Deploy success
+
+Found a 'test' script in the Anchor.toml. Running it as a test suite!
+
+Running test suite: "/Users/pylejeune/Sites/norug2/programs/Anchor.toml"
+
+yarn run v1.22.22
+$ /Users/pylejeune/Sites/norug2/programs/node_modules/.bin/ts-mocha -p ./tsconfig.json -t 1000000 'tests/**/*.ts'
+
+
+  Tests des époques
+
+ Creation epoch
+-------------------------
+
+Transaction signature 2e9ka9xUdLdUwzoQ1Lc6pS2sjbrZ2d4h5AWsXTiMKkePER9mdQ82ZiaS3Jcj9GBd2EW56g9vbt3sQ5ph6LLJjevL
+Valeurs attendues pour l'époque:
+- epochId: 5746626529064881718
+- startTime: 1744755579
+- endTime: 1744841979
+- status: { active: {} }
+Valeurs réelles de l'époque:
+- epochId: 5746626529064881718
+- startTime: 1744755579
+- endTime: 1744841979
+- status: {"active":{}}
+    ✔ Démarre une nouvelle époque (157ms)
+
+Test d'époque invalide:
+-------------------------
+
+- startTime: 1744755579 (2025-04-15T22:19:39.000Z)
+- endTime: 1744751979 (2025-04-15T21:19:39.000Z)
+- Différence: 3600 secondes
+Erreur attendue: AnchorError thrown in programs/programs/src/instructions/start_epoch.rs:37. Error Code: InvalidEpochTimeRange. Error Number: 6002. Error Message: La plage de temps de l'époque est invalide.
+    ✔ Échoue si la plage de temps de l'époque est invalide
+
+ Echec Epoch
+-------------------------
+
+Erreur attendue: Error: Account does not exist or has no data 5icDVySnS73S7vJYVxj1QFUqX4hbvMAq2UPDWt7x6s58
+    ✔ Échoue si l'époque n'existe pas
+
+Liste des époques actives:
+-------------------------
+
+
+Époque active #1:
+- Adresse: 3gRWjuAAdFa7zJXhMQGsRH3xNvC4ReqhrfwbwTPMda86
+- ID: 99764288375979925
+- Start Time: 2025-04-15T22:13:34.000Z
+- End Time: 2025-04-16T22:13:34.000Z
+- Actuellement active: true
+- Temps restant: 23h 53m
+
+Époque active #2:
+- Adresse: 3wFAMnNKXePXmLoqf2ZsTGUVgmmp2nNrPuxjkfv55LRn
+- ID: 9537114425505024338
+- Start Time: 2025-04-15T22:13:36.000Z
+- End Time: 2025-04-16T22:13:36.000Z
+- Actuellement active: true
+- Temps restant: 23h 53m
+
+Époque active #3:
+- Adresse: 4ya5XiB4qxSwpvD9pgX9qVqzQCmSnomcQuSyPttVMCv2
+- ID: 1122662646475414693
+- Start Time: 2025-04-15T22:13:05.000Z
+- End Time: 2025-04-16T22:13:05.000Z
+- Actuellement active: true
+- Temps restant: 23h 53m
+
+Époque active #4:
+- Adresse: 8gNzQWmQWJhDvpoVahyZRGVHrC1xtT8uYw4ywXoCdb9E
+- ID: 5746626529064881718
+- Start Time: 2025-04-15T22:19:39.000Z
+- End Time: 2025-04-16T22:19:39.000Z
+- Actuellement active: true
+- Temps restant: 24h 0m
+
+Époque active #5:
+- Adresse: EDsnAsMhf7RhDwnYFtTNcEWGryQuz7SHz5TFveYEBYdc
+- ID: 1252140380010803505
+- Start Time: 2025-04-15T22:13:07.000Z
+- End Time: 2025-04-16T22:13:07.000Z
+- Actuellement active: true
+- Temps restant: 23h 53m
+    ✔ Affiche la liste des époques actives
+
+ Etat d'une epoch
+-------------------------
+
+
+époque existante avec l'ID: 5746626529064881718
+
+État de l'époque récupéré via get_epoch_state:
+- ID: 5746626529064881718
+- Start Time: 2025-04-15T22:19:39.000Z
+- End Time: 2025-04-16T22:19:39.000Z
+- Status: {"active":{}}
+- Actuellement active: true
+- Temps restant: 24h 0m
+    ✔ Utilise get_epoch_state pour afficher une époque existante en fonction de son ID (441ms)
+
+ Cloture epoch
+-------------------------
+
+
+Époque créée avec l'ID: 15270467570492207697
+Époque clôturée avec succès
+- Nouveau statut: {"closed":{}}
+    ✔ Clôture une époque existante avec end_epoch (937ms)
+
+Test de clôture d'une époque déjà inactive (ID: 7029892963270051247)
+Erreur attendue: AnchorError thrown in programs/programs/src/instructions/end_epoch.rs:18. Error Code: EpochAlreadyInactive. Error Number: 6006. Error Message: Epoch already inactive.
+    ✔ Échoue si on essaie de clôturer une époque déjà closed
+
+Liste des époques avec statut closed:
+----------------------------------
+
+Époque closed #1:
+- Adresse: 2dUyfWwYynKBTExhk7X2tFJvma33RBKCBr4BEQTwxjUq
+- ID: 7029892963270051247
+- Start Time: 2025-04-15T22:13:06.000Z
+- End Time: 2025-04-16T22:13:06.000Z
+- Actuellement active: true
+- Temps écoulé depuis la fin: -24h -54m
+
+Époque closed #2:
+- Adresse: 86LvkhVFWF66M7kYQBnBVkGsrzVmwEDKBvvwhp96vRFB
+- ID: 5856893501290552501
+- Start Time: 2025-04-15T22:13:35.000Z
+- End Time: 2025-04-16T22:13:35.000Z
+- Actuellement active: true
+- Temps écoulé depuis la fin: -24h -54m
+
+Époque closed #3:
+- Adresse: GttayKxPgX39qZDWdfbxhxWTfTZyZqJpcPxmnK3LgYy4
+- ID: 15270467570492207697
+- Start Time: 2025-04-15T22:19:39.000Z
+- End Time: 2025-04-16T22:19:39.000Z
+- Actuellement active: true
+- Temps écoulé depuis la fin: -24h -60m
+    ✔ Affiche la liste des époques avec un statut closed
+
+  Tests des propositions de tokens
+Transaction signature 3YpK8XDH4sU7n4LGEk3L8vidWRmQg68hATa2x7AGmWaQssYFahLuWgBFoEeNWEZvB7rd4UQZC8ZDTxs3CRb8D3jq
+
+Creation nouvelle epoch:
+----------------------------------
+
+Valeurs attendues pour l'époque:
+- epochId: 12667014830676055039
+- startTime: 1744755580
+- endTime: 1744841980
+- status: { active: {} }
+Valeurs réelles de l'époque:
+- epochId: 12667014830676055039
+- startTime: 1744755580
+- endTime: 1744841980
+- status: {"active":{}}
+    ✔ Démarre une nouvelle époque (451ms)
+
+Test de création de proposition:
+----------------------------------
+
+- epochId utilisé: 12667014830676055039
+- tokenName: noRugToken
+Transaction signature 4tDcyL48Rz6v7dh6xyuiZnazyrnaAp68C3XqSzjRVYpXuXTNfFGoqnDZSX2vanxuW6B4ShDdVcbLpv52kwRrvpcb
+Valeurs attendues pour la proposition:
+- tokenName: noRugToken
+- tokenSymbol: NRT
+- totalSupply: 1000000
+- creatorAllocation: 10
+- supporterAllocation: 90
+- solRaised: 0
+- totalContributions: 0
+- lockupPeriod: 86400
+Valeurs réelles de la proposition:
+- tokenName: noRugToken
+- tokenSymbol: NRT
+- totalSupply: 1000000
+- creatorAllocation: 10
+- supporterAllocation: 90
+- solRaised: 0
+- totalContributions: 0
+- lockupPeriod: 86400
+    ✔ Crée une nouvelle proposition de token (479ms)
+
+Liste des propositions de tokens:
+-------------------------------
+
+Proposition #1:
+- Token Name: noRugToken
+- Token Symbol: NRT
+- Total Supply: 1000000
+- Creator Allocation: 10%
+- Supporter Allocation: 90%
+- SOL Raised: 0
+- Total Contributions: 0
+- Lockup Period: 86400 secondes
+
+Proposition #2:
+- Token Name: noRugToken
+- Token Symbol: NRT
+- Total Supply: 1000000
+- Creator Allocation: 10%
+- Supporter Allocation: 90%
+- SOL Raised: 0
+- Total Contributions: 0
+- Lockup Period: 86400 secondes
+
+Proposition #3:
+- Token Name: noRugToken
+- Token Symbol: NRT
+- Total Supply: 1000000
+- Creator Allocation: 10%
+- Supporter Allocation: 90%
+- SOL Raised: 0
+- Total Contributions: 0
+- Lockup Period: 86400 secondes
+    ✔ Affiche la liste des propositions de tokens
+
+
+  11 passing (3s)
+
+Done in 3.62s.

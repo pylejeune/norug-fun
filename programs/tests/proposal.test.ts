@@ -38,6 +38,8 @@ describe("Tests des propositions de tokens", () => {
       .rpc();
 
     console.log("Transaction signature", tx);
+    console.log("\nCreation nouvelle epoch:");
+    console.log("----------------------------------\n");
 
     // Vérifier que l'époque a été créée correctement
     const epoch = await program.account.epochManagement.fetch(epochPda);
@@ -74,7 +76,8 @@ describe("Tests des propositions de tokens", () => {
       program.programId
     );
 
-    console.log("Test de création de proposition:");
+    console.log("\nTest de création de proposition:");
+    console.log("----------------------------------\n");
     console.log(`- epochId utilisé: ${epochId.toString()}`);
     console.log(`- tokenName: ${tokenName}`);
 
