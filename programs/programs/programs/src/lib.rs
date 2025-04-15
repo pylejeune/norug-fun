@@ -42,6 +42,7 @@ pub mod programs {
         Ok(())
     }
 
+
     pub fn create_proposal(
         ctx: Context<CreateTokenProposal>,
         token_name: String,
@@ -71,7 +72,7 @@ pub mod programs {
         proposal.token_symbol = token_symbol;
         proposal.total_supply = total_supply;
         proposal.creator_allocation = creator_allocation;
-        proposal.supporter_allocation = 90 - creator_allocation; // Le reste va aux supporters
+        proposal.supporter_allocation = 100 - creator_allocation; // Le reste va aux supporters
         proposal.sol_raised = 0;
         proposal.total_contributions = 0;
         proposal.lockup_period = lockup_period;
