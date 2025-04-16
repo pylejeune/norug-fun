@@ -10,6 +10,7 @@ import { Inter } from "next/font/google";
 import localFont from "next/font/local";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
+import { Toaster } from "sonner";
 import "../globals.css";
 import { routing } from "../i18n/routing";
 
@@ -87,6 +88,7 @@ export default async function RootLayout({ children, params }: Props) {
               </div>
             </SidebarProvider>
           </AppWalletProvider>
+          <Toaster richColors position="top-right" />
         </NextIntlClientProvider>
       </body>
     </html>

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { enUS, fr } from "date-fns/locale";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 
@@ -44,28 +45,21 @@ export default function EpochPage() {
   };
 
   // TODO: Connect these handlers to Solana program
-  const handleStartEpoch = async () => {
-    console.log("Starting new epoch...");
-    // TODO: Call start_epoch instruction
-  };
-
   const handleEndEpoch = async (epochId: string) => {
     console.log("Ending epoch:", epochId);
     // TODO: Call end_epoch instruction
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto p-2 md:p-4">
-      <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6 md:mb-8">
-        <h1 className="text-xl md:text-2xl font-bold text-center md:text-left">
-          {t("title")}
-        </h1>
-        <Button
-          onClick={handleStartEpoch}
-          className="w-full md:w-auto border border-white hover:bg-gray-900"
+    <div className="w-full max-w-4xl mx-auto p-4 space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+        <h1 className="text-2xl font-bold">{t("title")}</h1>
+        <Link
+          href={`/${locale}/epoch/create`}
+          className="w-full sm:w-auto px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white transition-colors text-center"
         >
           {t("startEpoch")}
-        </Button>
+        </Link>
       </div>
 
       <div className="space-y-3 md:space-y-4">
