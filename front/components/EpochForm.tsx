@@ -1,5 +1,6 @@
 "use client";
 
+import { useProgram } from "@/context/ProgramContext";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
@@ -14,6 +15,7 @@ type EpochFormData = {
 export default function EpochForm() {
   const t = useTranslations("EpochForm");
   const router = useRouter();
+  const { startEpoch } = useProgram();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Partial<EpochFormData>>({});
 
@@ -111,22 +113,40 @@ export default function EpochForm() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
-    if (!validate()) return;
+    if (!validate()) {
+      console.log("❌ Form validation failed");
+      return;
+    }
 
     setIsSubmitting(true);
-    try {
-      // TODO: Implement epoch creation logic
-      console.log("Creating epoch with data:", formData);
+    console.log("📝 Submitting form with data:", formData);
 
+    try {
+      await startEpoch(
+        parseInt(formData.epochId),
+        formData.startTime,
+        formData.endTime
+      );
+
+      console.log("✅ Epoch created successfully");
       toast.success(t("epochCreated"));
+
       // Reset form
-      setFormData({ epochId: "", startTime: "", endTime: "" });
+      setFormData({
+        epochId: "",
+        startTime: "",
+        endTime: "",
+      });
       setErrors({});
-      // Redirect back after successful creation
+
+      console.log("🔙 Redirecting back");
       router.back();
-    } catch (error) {
-      console.error("Error creating epoch:", error);
-      toast.error(t("errorCreating"));
+    } catch (error: any) {
+      console.error("❌ Error in form submission:", {
+        error,
+        message: error.message,
+      });
+      toast.error(error.message || t("errorCreating"));
     } finally {
       setIsSubmitting(false);
     }
