@@ -45,9 +45,18 @@ pub mod programs {
         get_epoch_state::handler(ctx, epoch_id)
     }
 
-
-    pub fn end_epoch(ctx: Context<EndEpoch>, epoch_id: u64) -> Result<()> {
+    pub fn end_epoch(
+        ctx: Context<EndEpoch>,
+        epoch_id: u64,
+    ) -> Result<()> {
         // Vérifier que l'époque existe
         end_epoch::handler(ctx, epoch_id)
+    }
+
+    pub fn get_proposal_details(
+        ctx: Context<GetProposalDetails>,
+        proposal_id: u64,
+    ) -> Result<()> {
+        get_proposal_details::handler(ctx, proposal_id)
     }
 }

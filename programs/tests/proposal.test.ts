@@ -17,9 +17,10 @@ describe("Tests des propositions de tokens", () => {
   const totalSupply = new anchor.BN(1000000);
   const creatorAllocation = 10;
   const lockupPeriod = new anchor.BN(86400); // 1 jour en secondes
+  const epochIdGeneral = generateRandomId();
 
   it("Démarre une nouvelle époque", async () => {
-    const epochId = generateRandomId();
+    const epochId = epochIdGeneral;
     const startTime = new anchor.BN(Math.floor(Date.now() / 1000));
     const endTime = new anchor.BN(startTime.toNumber() + 86400); // 1 jour
 
@@ -78,6 +79,7 @@ describe("Tests des propositions de tokens", () => {
 
     console.log("\nTest de création de proposition:");
     console.log("----------------------------------\n");
+    console.log(`proposalPda: ${proposalPda.toString()}`);
     console.log(`- epochId utilisé: ${epochId.toString()}`);
     console.log(`- tokenName: ${tokenName}`);
 
@@ -156,4 +158,71 @@ describe("Tests des propositions de tokens", () => {
     
     expect(allProposals.length).to.be.greaterThan(0);
   });
+
+  it("Affiche les détails d'une proposition de token spécifique", async () => {
+    // Paramètres de recherche
+    const targetEpochId = epochIdGeneral; // L'époque que nous cherchons
+    const targetCreator = provider.wallet.publicKey; // Le créateur que nous cherchons
+    const targetTokenName = tokenName; // Le nom du token que nous cherchons
+
+    // Construire le PDA de la proposition que nous cherchons
+    [proposalPda] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("proposal"),
+        targetCreator.toBuffer(),
+        targetEpochId.toArrayLike(Buffer, "le", 8),
+        Buffer.from(targetTokenName),
+      ],
+      program.programId
+    );
+
+    console.log("\nRecherche de la proposition spécifique:");
+    console.log("--------------------------------");
+    console.log(`Époque recherchée: ${targetEpochId.toString()}`);
+    console.log(`Créateur recherché: ${targetCreator.toString()}`);
+    console.log(`Nom du token recherché: ${targetTokenName}`);
+    console.log(`Adresse de la proposition: ${proposalPda.toString()}`);
+
+    try {
+      // Récupérer la proposition spécifique
+      const proposal = await program.account.tokenProposal.fetch(proposalPda);
+      
+      console.log("\nDétails de la proposition trouvée:");
+      console.log("--------------------------------");
+      console.log(`ID de l'époque: ${proposal.epochId.toString()}`);
+      console.log(`Créateur: ${proposal.creator.toString()}`);
+      console.log(`Nom du token: ${proposal.tokenName}`);
+      console.log(`Symbole du token: ${proposal.tokenSymbol}`);
+      console.log(`Supply totale: ${proposal.totalSupply.toString()}`);
+      console.log(`Allocation créateur: ${proposal.creatorAllocation}%`);
+      console.log(`Allocation supporters: ${proposal.supporterAllocation}%`);
+      console.log(`SOL levés: ${proposal.solRaised.toString()}`);
+      console.log(`Contributions totales: ${proposal.totalContributions.toString()}`);
+      console.log(`Période de blocage: ${proposal.lockupPeriod.toString()} secondes`);
+      console.log(`Statut: ${JSON.stringify(proposal.status)}`);
+
+      // Vérifier que c'est bien la proposition que nous cherchons
+      expect(proposal.epochId.toString()).to.equal(targetEpochId.toString());
+      expect(proposal.creator.toString()).to.equal(targetCreator.toString());
+      expect(proposal.tokenName).to.equal(targetTokenName);
+
+      // Appeler getProposalDetails pour vérifier que tout fonctionne
+      const tx = await program.methods
+        .getProposalDetails(targetEpochId)
+        .accounts({
+          proposal: proposalPda,
+          systemProgram: anchor.web3.SystemProgram.programId,
+        })
+        .rpc();
+
+      console.log("\nTransaction getProposalDetails exécutée avec succès");
+      console.log(`Signature de la transaction: ${tx}`);
+    } catch (error) {
+      console.log("\nErreur lors de la récupération de la proposition:");
+      console.log(error);
+      throw error;
+    }
+  });
+
+
 }); 
