@@ -19,7 +19,8 @@ pub mod programs {
         initialize::handler(_ctx)
     }
 
-    pub fn start_epoch(ctx: Context<StartEpoch>,
+    pub fn start_epoch(
+        ctx: Context<StartEpoch>,
         epoch_id: u64,
         start_time: i64,
         end_time: i64,
@@ -36,6 +37,10 @@ pub mod programs {
         lockup_period: i64,
     ) -> Result<()> {
        create_token_proposal::handler(ctx, token_name, token_symbol, total_supply, creator_allocation, lockup_period)
+    }
+
+    pub fn support_proposal(ctx: Context<SupportProposal>, amount: u64) -> Result<()> {
+        instructions::support_proposal::handler(ctx, amount)
     }
 
     pub fn get_epoch_state(
