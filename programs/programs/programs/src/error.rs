@@ -22,5 +22,11 @@ pub enum ErrorCode {
 
     #[msg("Epoch already inactive")]
     EpochAlreadyInactive,
+
+    #[msg("Le créateur n'est pas autorisé à effectuer cette action")]
+    UnauthorizedCreator,
+
+    #[msg("La proposition n'est pas active")]
+    ProposalNotActive,
 }
 

@@ -224,5 +224,188 @@ describe("Tests des propositions de tokens", () => {
     }
   });
 
+  it("Met à jour une proposition de token existante", async () => {
+    // Récupérer l'époque pour obtenir l'epoch_id correct
+    const epoch = await program.account.epochManagement.fetch(epochPda);
+    const epochId = epoch.epochId;
+    
+    // Construire le PDA de la proposition
+    [proposalPda] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("proposal"),
+        provider.wallet.publicKey.toBuffer(),
+        epochId.toArrayLike(Buffer, "le", 8),
+        Buffer.from(tokenName),
+      ],
+      program.programId
+    );
+
+    console.log("\nTest de mise à jour de proposition:");
+    console.log("----------------------------------\n");
+    console.log(`proposalPda: ${proposalPda.toString()}`);
+    console.log(`- epochId utilisé: ${epochId.toString()}`);
+
+    // Nouvelles valeurs pour la mise à jour
+    const newTokenName = "noRugTokenUpdated";
+    const newTokenSymbol = "NRTU";
+    const newTotalSupply = new anchor.BN(2000000);
+    const newCreatorAllocation = 8;
+    const newLockupPeriod = new anchor.BN(172800); // 2 jours en secondes
+
+    // Mettre à jour la proposition
+    const tx = await program.methods
+      .updateProposal(
+        newTokenName,
+        newTokenSymbol,
+        newTotalSupply,
+        newCreatorAllocation,
+        newLockupPeriod
+      )
+      .accounts({
+        proposal: proposalPda,
+        creator: provider.wallet.publicKey,
+        epoch: epochPda,
+        systemProgram: anchor.web3.SystemProgram.programId,
+      })
+      .rpc();
+
+    console.log("Transaction signature", tx);
+
+    // Vérifier que la proposition a été mise à jour correctement
+    const updatedProposal = await program.account.tokenProposal.fetch(proposalPda);
+    console.log("Valeurs attendues pour la proposition mise à jour:");
+    console.log(`- tokenName: ${newTokenName}`);
+    console.log(`- tokenSymbol: ${newTokenSymbol}`);
+    console.log(`- totalSupply: ${newTotalSupply.toString()}`);
+    console.log(`- creatorAllocation: ${newCreatorAllocation}`);
+    console.log(`- supporterAllocation: ${100 - newCreatorAllocation}`);
+    console.log(`- lockupPeriod: ${newLockupPeriod.toString()}`);
+    
+    console.log("Valeurs réelles de la proposition mise à jour:");
+    console.log(`- tokenName: ${updatedProposal.tokenName}`);
+    console.log(`- tokenSymbol: ${updatedProposal.tokenSymbol}`);
+    console.log(`- totalSupply: ${updatedProposal.totalSupply.toString()}`);
+    console.log(`- creatorAllocation: ${updatedProposal.creatorAllocation}`);
+    console.log(`- supporterAllocation: ${updatedProposal.supporterAllocation}`);
+    console.log(`- lockupPeriod: ${updatedProposal.lockupPeriod.toString()}`);
+    
+    expect(updatedProposal.tokenName).to.equal(newTokenName);
+    expect(updatedProposal.tokenSymbol).to.equal(newTokenSymbol);
+    expect(updatedProposal.totalSupply.toString()).to.equal(newTotalSupply.toString());
+    expect(updatedProposal.creatorAllocation).to.equal(newCreatorAllocation);
+    expect(updatedProposal.supporterAllocation).to.equal(100 - newCreatorAllocation);
+    expect(updatedProposal.lockupPeriod.toString()).to.equal(newLockupPeriod.toString());
+  });
+
+  it("Tente de mettre à jour une proposition avec un créateur non autorisé", async () => {
+    // Créer un nouveau wallet pour simuler un utilisateur non autorisé
+    const unauthorizedWallet = anchor.web3.Keypair.generate();
+    
+    // Récupérer l'époque pour obtenir l'epoch_id correct
+    const epoch = await program.account.epochManagement.fetch(epochPda);
+    const epochId = epoch.epochId;
+    
+    // Construire le PDA de la proposition
+    [proposalPda] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("proposal"),
+        provider.wallet.publicKey.toBuffer(),
+        epochId.toArrayLike(Buffer, "le", 8),
+        Buffer.from(tokenName),
+      ],
+      program.programId
+    );
+
+    console.log("\nTest de mise à jour non autorisée:");
+    console.log("----------------------------------\n");
+    console.log(`proposalPda: ${proposalPda.toString()}`);
+    console.log(`- Créateur non autorisé: ${unauthorizedWallet.publicKey.toString()}`);
+
+    // Nouvelles valeurs pour la mise à jour
+    const newTokenName = "noRugTokenUnauthorized";
+    const newTokenSymbol = "NRTU";
+    const newTotalSupply = new anchor.BN(3000000);
+    const newCreatorAllocation = 5;
+    const newLockupPeriod = new anchor.BN(259200); // 3 jours en secondes
+
+    try {
+      // Tenter de mettre à jour la proposition avec un créateur non autorisé
+      await program.methods
+        .updateProposal(
+          newTokenName,
+          newTokenSymbol,
+          newTotalSupply,
+          newCreatorAllocation,
+          newLockupPeriod
+        )
+        .accounts({
+          proposal: proposalPda,
+          creator: unauthorizedWallet.publicKey,
+          epoch: epochPda,
+          systemProgram: anchor.web3.SystemProgram.programId,
+        })
+        .signers([unauthorizedWallet])
+        .rpc();
+      
+      // Si nous arrivons ici, le test a échoué car l'erreur attendue n'a pas été levée
+      expect.fail("La mise à jour aurait dû échouer avec un créateur non autorisé");
+    } catch (error) {
+      console.log("Erreur attendue:", error.message);
+      expect(error.message).to.include("Le créateur n'est pas autorisé à effectuer cette action");
+    }
+  });
+
+  it("Tente de mettre à jour une proposition avec une allocation de créateur trop élevée", async () => {
+    // Récupérer l'époque pour obtenir l'epoch_id correct
+    const epoch = await program.account.epochManagement.fetch(epochPda);
+    const epochId = epoch.epochId;
+    
+    // Construire le PDA de la proposition
+    [proposalPda] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("proposal"),
+        provider.wallet.publicKey.toBuffer(),
+        epochId.toArrayLike(Buffer, "le", 8),
+        Buffer.from(tokenName),
+      ],
+      program.programId
+    );
+
+    console.log("\nTest de mise à jour avec allocation trop élevée:");
+    console.log("----------------------------------\n");
+    console.log(`proposalPda: ${proposalPda.toString()}`);
+
+    // Nouvelles valeurs pour la mise à jour avec une allocation trop élevée
+    const newTokenName = "noRugTokenHighAllocation";
+    const newTokenSymbol = "NRTH";
+    const newTotalSupply = new anchor.BN(4000000);
+    const newCreatorAllocation = 15; // Allocation supérieure à 10%
+    const newLockupPeriod = new anchor.BN(345600); // 4 jours en secondes
+
+    try {
+      // Tenter de mettre à jour la proposition avec une allocation trop élevée
+      await program.methods
+        .updateProposal(
+          newTokenName,
+          newTokenSymbol,
+          newTotalSupply,
+          newCreatorAllocation,
+          newLockupPeriod
+        )
+        .accounts({
+          proposal: proposalPda,
+          creator: provider.wallet.publicKey,
+          epoch: epochPda,
+          systemProgram: anchor.web3.SystemProgram.programId,
+        })
+        .rpc();
+      
+      // Si nous arrivons ici, le test a échoué car l'erreur attendue n'a pas été levée
+      expect.fail("La mise à jour aurait dû échouer avec une allocation trop élevée");
+    } catch (error) {
+      console.log("Erreur attendue:", error.message);
+      expect(error.message).to.include("L'allocation du créateur ne peut pas dépasser 10%");
+    }
+  });
 
 }); 

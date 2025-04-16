@@ -59,4 +59,15 @@ pub mod programs {
     ) -> Result<()> {
         get_proposal_details::handler(ctx, proposal_id)
     }
+
+    pub fn update_proposal(
+        ctx: Context<UpdateProposal>,
+        token_name: Option<String>,
+        token_symbol: Option<String>,
+        total_supply: Option<u64>,
+        creator_allocation: Option<u8>,
+        lockup_period: Option<i64>,
+    ) -> Result<()> {
+        update_proposal::handler(ctx, token_name, token_symbol, total_supply, creator_allocation, lockup_period)
+    }
 }
