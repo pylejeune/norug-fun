@@ -17,10 +17,22 @@ pub enum ErrorCode {
     #[msg("Erreur personnalisée")]
     CustomError,
 
-    #[msg("Invalid epoch ID")]
+    #[msg("ID d'époque invalide")]
     InvalidEpochId,
 
-    #[msg("Epoch already inactive")]
+    #[msg("L'époque est déjà inactive")]
     EpochAlreadyInactive,
+
+    #[msg("La proposition n'est pas active")]
+    ProposalNotActive,
+
+    #[msg("La proposition n'appartient pas à l'époque spécifiée")]
+    ProposalEpochMismatch,
+
+    #[msg("Le montant doit être supérieur à zéro")]
+    AmountMustBeGreaterThanZero,
+
+    #[msg("Dépassement de capacité lors du calcul")]
+    Overflow,
 }
 

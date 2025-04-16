@@ -224,5 +224,86 @@ describe("Tests des propositions de tokens", () => {
     }
   });
 
+  // --- Nouveau test pour support_proposal ---
+  it("Supporte une proposition existante", async () => {
+    // Utiliser l'epoch et la proposition créées dans les tests précédents
+    // `epochPda` et `proposalPda` devraient être disponibles depuis les tests précédents
+    expect(epochPda).to.exist;
+    expect(proposalPda).to.exist;
+
+    const supporter = provider.wallet; // Utiliser le wallet du provider comme supporter
+    const supportAmount = new anchor.BN(anchor.web3.LAMPORTS_PER_SOL * 0.1); // Supporter avec 0.1 SOL
+
+    // Récupérer l'état initial de la proposition
+    const proposalBefore = await program.account.tokenProposal.fetch(proposalPda);
+    const initialSolRaised = proposalBefore.solRaised;
+    const initialContributions = proposalBefore.totalContributions;
+
+    // Récupérer les soldes initiaux
+    const supporterBalanceBefore = await provider.connection.getBalance(supporter.publicKey);
+    const proposalBalanceBefore = await provider.connection.getBalance(proposalPda);
+
+    // Calculer le PDA pour le compte UserProposalSupport
+    const [userSupportPda] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("support"),
+        proposalBefore.epochId.toArrayLike(Buffer, "le", 8), // Utiliser l'epochId de la proposition
+        supporter.publicKey.toBuffer(),
+        proposalPda.toBuffer(),
+      ],
+      program.programId
+    );
+
+    console.log("\nTest de support de proposition:");
+    console.log("----------------------------------\n");
+    console.log(`- Supporter: ${supporter.publicKey.toString()}`);
+    console.log(`- Proposition PDA: ${proposalPda.toString()}`);
+    console.log(`- Epoch PDA: ${epochPda.toString()}`);
+    console.log(`- Epoch ID: ${proposalBefore.epochId.toString()}`);
+    console.log(`- User Support PDA: ${userSupportPda.toString()}`);
+    console.log(`- Montant du support (lamports): ${supportAmount.toString()}`);
+    console.log(`- SOL levés avant: ${initialSolRaised.toString()}`);
+    console.log(`- Contributions avant: ${initialContributions.toString()}`);
+
+    // Appeler l'instruction supportProposal
+    const tx = await program.methods
+      .supportProposal(supportAmount)
+      .accounts({
+        user: supporter.publicKey,
+        epoch: epochPda, // Le compte de l'epoch active
+        proposal: proposalPda, // Le compte de la proposition active
+        userSupport: userSupportPda, // Le compte à créer
+        systemProgram: anchor.web3.SystemProgram.programId,
+      })
+      .rpc();
+
+    console.log("Transaction signature", tx);
+
+    // --- Vérifications --- 
+
+    // 1. Vérifier le compte UserProposalSupport créé
+    const userSupportAccount = await program.account.userProposalSupport.fetch(userSupportPda);
+    expect(userSupportAccount.epochId.toString()).to.equal(proposalBefore.epochId.toString());
+    expect(userSupportAccount.user.toString()).to.equal(supporter.publicKey.toString());
+    expect(userSupportAccount.proposal.toString()).to.equal(proposalPda.toString());
+    expect(userSupportAccount.amount.toString()).to.equal(supportAmount.toString());
+    console.log("Compte UserProposalSupport vérifié.");
+
+    // 2. Vérifier la mise à jour de la proposition
+    const proposalAfter = await program.account.tokenProposal.fetch(proposalPda);
+    const expectedSolRaised = initialSolRaised.add(supportAmount);
+    const expectedContributions = initialContributions.add(new anchor.BN(1));
+    expect(proposalAfter.solRaised.toString()).to.equal(expectedSolRaised.toString());
+    expect(proposalAfter.totalContributions.toString()).to.equal(expectedContributions.toString());
+    console.log(`SOL levés après: ${proposalAfter.solRaised.toString()} (attendu: ${expectedSolRaised.toString()})`);
+    console.log(`Contributions après: ${proposalAfter.totalContributions.toString()} (attendu: ${expectedContributions.toString()})`);
+
+    // 3. Vérifier les soldes (approximatif pour le supporter à cause des frais)
+    const supporterBalanceAfter = await provider.connection.getBalance(supporter.publicKey);
+    const proposalBalanceAfter = await provider.connection.getBalance(proposalPda);
+    expect(proposalBalanceAfter).to.equal(proposalBalanceBefore + supportAmount.toNumber()); // Le compte proposal reçoit exactement le montant
+    expect(supporterBalanceAfter).to.be.lessThan(supporterBalanceBefore - supportAmount.toNumber()); // Le supporter paie le montant + frais
+    console.log("Soldes SOL vérifiés.");
+  });
 
 }); 
