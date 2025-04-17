@@ -3,6 +3,7 @@ import Footer from "@/components/layout/Footer";
 import Header from "@/components/layout/Header";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import AppWalletProvider from "@/components/wallet/AppWalletProvider";
+import { ProgramProvider } from "@/context/ProgramContext";
 import type { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
@@ -10,6 +11,7 @@ import { Inter } from "next/font/google";
 import localFont from "next/font/local";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
+import { Toaster } from "sonner";
 import "../globals.css";
 import { routing } from "../i18n/routing";
 
@@ -76,17 +78,20 @@ export default async function RootLayout({ children, params }: Props) {
       >
         <NextIntlClientProvider locale={locale} messages={messages}>
           <AppWalletProvider>
-            <SidebarProvider defaultOpen={defaultOpen}>
-              <div className="flex h-screen w-full">
-                <AltSidebar />
-                <div className="flex-1 ">
-                  <Header />
-                  <main>{children}</main>
-                  <Footer />
+            <ProgramProvider>
+              <SidebarProvider defaultOpen={defaultOpen}>
+                <div className="flex h-screen w-full">
+                  <AltSidebar />
+                  <div className="flex-1 ">
+                    <Header />
+                    <main>{children}</main>
+                    <Footer />
+                  </div>
                 </div>
-              </div>
-            </SidebarProvider>
+              </SidebarProvider>
+            </ProgramProvider>
           </AppWalletProvider>
+          <Toaster richColors position="top-right" />
         </NextIntlClientProvider>
       </body>
     </html>
