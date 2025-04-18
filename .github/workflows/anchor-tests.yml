@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     
     container:
-      image: pylejeune/solana-dev:beta
+      image: pylejeune/solana-dev:rustc-stable
       # Ne pas utiliser --user root sauf si absolument nécessaire
       # car cela peut modifier l'environnement attendu
     
@@ -62,12 +62,6 @@ jobs:
         run: |
           yarn add ts-mocha@10.0.0 @types/mocha chai @types/chai
 
-#      - name: Start Solana test validator
-#        run: solana-test-validator &
-        
-#      - name: Wait for validator to start
-#        run: sleep 5
-
       - name: Version Rustc
         working-directory: programs
         run: |
@@ -87,10 +81,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-anchor-
 
-      - name: Build Anchor program
+      - name: Build Cargo sans test
         working-directory: programs
         run: |
-          anchor build
+          cargo build --release --no-default-features
 
       - name: Run Anchor tests
         shell: bash
