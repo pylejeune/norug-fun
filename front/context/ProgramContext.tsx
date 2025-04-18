@@ -124,7 +124,7 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
       console.log("📝 Available methods:", Object.keys(program.methods));
 
       // Start the epoch
-      const tx = await program.methods
+      const tx = await (program as Program).methods
         .startEpoch(
           new BN(epochId),
           new BN(startTimestamp),
@@ -193,7 +193,7 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
       console.log("🔑 Ending epoch with PDA:", epochManagementPDA.toBase58());
 
       // End the epoch
-      const tx = await program.methods
+      const tx = await (program as Program).methods
         .endEpoch(new BN(epochId))
         .accounts({
           epoch_management: epochManagementPDA,
