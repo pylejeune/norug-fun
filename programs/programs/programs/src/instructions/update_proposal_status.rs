@@ -31,15 +31,16 @@ pub struct UpdateProposalStatus<'info> {
 }
 
 pub fn handler(ctx: Context<UpdateProposalStatus>, new_status: ProposalStatus) -> Result<()> {
-    // La vérification de l'autorité est maintenant gérée par la contrainte ci-dessus.
+    // Vérifier que la proposition est actuellement active avant de la finaliser
+    require!(ctx.accounts.proposal.status == ProposalStatus::Active, ErrorCode::ProposalAlreadyFinalized);
 
+    // La vérification de l'autorité est gérée par la contrainte.
     // La vérification que new_status est Validated ou Rejected pourrait être ajoutée ici si nécessaire,
     // mais on suppose que le service off-chain envoie une valeur correcte.
-    // require!(new_status == ProposalStatus::Validated || new_status == ProposalStatus::Rejected, ErrorCode::InvalidProposalStatusUpdate);
 
     msg!("Updating proposal {} status from {:?} to {:?}", 
          ctx.accounts.proposal.key(), 
-         ctx.accounts.proposal.status, // Log l'ancien statut aussi
+         ctx.accounts.proposal.status, // Log l'ancien statut (devrait être Active)
          new_status);
     ctx.accounts.proposal.status = new_status;
 

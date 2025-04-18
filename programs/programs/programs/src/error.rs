@@ -47,5 +47,8 @@ pub enum ErrorCode {
 
     #[msg("Mise à jour du statut de la proposition invalide")]
     InvalidProposalStatusUpdate,
+
+    #[msg("La proposition a déjà un statut final (Validée ou Rejetée)")]
+    ProposalAlreadyFinalized,
 }
 
