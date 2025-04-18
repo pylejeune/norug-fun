@@ -81,10 +81,26 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-anchor-
 
-      - name: Build Cargo sans test
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly-2025-04-01
+          targets: wasm32-unknown-unknown  # si nécessaire
+      - run: rustup component add rustfmt
+
+      - name: Build Anchor program sans IDL
         working-directory: programs
         run: |
-          cargo build --release --no-default-features
+          RUSTUP_TOOLCHAIN=nightly-2025-04-01 \
+          anchor build
+
+      - name: Génération de l’IDL
+        working-directory: programs
+        run: |
+          pwd &&
+          RUSTUP_TOOLCHAIN=nightly-2025-04-01 \
+            anchor idl build --program-name programs\
+            -o target/idl/$GITHUB_REPOSITORY.json \
+            -t target/types/$GITHUB_REPOSITORY.ts
 
       - name: Run Anchor tests
         shell: bash
