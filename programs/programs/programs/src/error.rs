@@ -34,5 +34,18 @@ pub enum ErrorCode {
 
     #[msg("Dépassement de capacité lors du calcul")]
     Overflow,
+
+    // --- Nouveaux codes pour update_proposal_status --- 
+    #[msg("L'époque doit être fermée pour mettre à jour le statut de la proposition")]
+    EpochNotClosed,
+
+    #[msg("La proposition n'appartient pas à l'époque fournie")]
+    ProposalNotInEpoch,
+
+    #[msg("Le signataire n'est pas l'autorité autorisée")]
+    InvalidAuthority,
+
+    #[msg("Mise à jour du statut de la proposition invalide")]
+    InvalidProposalStatusUpdate,
 }
 
