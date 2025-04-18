@@ -45,8 +45,19 @@
     "statusType": {
       "active": "Actif",
       "pending": "En attente",
-      "ended": "Terminé"
-    }
+      "closed": "Terminé"
+    },
+    "loading": "Chargement des epochs...",
+    "connectWalletMessage": "Veuillez connecter votre wallet pour voir les epochs",
+    "connectWallet": "Connecter le Wallet",
+    "noEpochsMessage": "Aucun epoch trouvé. Démarrez votre premier epoch pour commencer !",
+    "startFirstEpoch": "Démarrer le Premier Epoch",
+    "sortById": "Trier par ID",
+    "sortByStart": "Trier par date de début",
+    "sortByEnd": "Trier par date de fin",
+    "endingEpoch": "Fin de l'epoch en cours...",
+    "endEpochSuccess": "Epoch terminé avec succès",
+    "endEpochError": "Échec de la fin de l'epoch"
   },
   "Home": {
     "currentEpoch": "Epoch en cours",
