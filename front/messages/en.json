@@ -15,9 +15,10 @@
   "Navigation": {
     "home": "Home",
     "manageEpoch": "Manage Epoch",
-    "createProposal": "Create a new proposal",
+    "createProposal": "Create Proposal",
     "treasury": "Treasury",
-    "tokenArchive": "Token Archive"
+    "tokenArchive": "Token Archive",
+    "howItWorks": "How It Works"
   },
   "ProposalForm": {
     "title": "Create new Token Proposal",

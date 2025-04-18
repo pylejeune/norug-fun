@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  BookOpenText,
   CirclePlus,
   History,
   Home,
@@ -59,6 +60,11 @@ export function AltSidebar() {
       titleKey: "tokenArchive",
       url: `/${locale}/archive`,
       icon: History,
+    },
+    {
+      titleKey: "howItWorks",
+      url: `/${locale}/howitworks`,
+      icon: BookOpenText,
     },
   ];
 

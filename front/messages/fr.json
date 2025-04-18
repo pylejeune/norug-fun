@@ -14,10 +14,11 @@
   },
   "Navigation": {
     "home": "Accueil",
-    "manageEpoch": "Gérer l'epoch",
-    "createProposal": "Créer une proposition",
+    "manageEpoch": "Gérer Époque",
+    "createProposal": "Créer Proposition",
     "treasury": "Trésorerie",
-    "tokenArchive": "Archive des tokens"
+    "tokenArchive": "Archive Tokens",
+    "howItWorks": "Comment ça marche"
   },
   "ProposalForm": {
     "title": "Créer une nouvelle proposition de token",
