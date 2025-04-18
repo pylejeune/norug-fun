@@ -1,14 +1,3 @@
----
-description: 
-globs: 
-alwaysApply: true
----
----
-description: Modèle standardisé pour les Pull Requests
-globs: ["**/.github/PULL_REQUEST_TEMPLATE.md"]
-alwaysApply: true
----
-
 # 📝 Titre de la Pull Request
 
 ## 📌 Description

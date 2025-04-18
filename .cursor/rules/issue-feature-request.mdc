@@ -1,0 +1,61 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Règles pour la soumission d'issues dans Cursor
+
+Ce fichier définit le format standard pour soumettre des demandes de fonctionnalités dans le projet Cursor.
+
+## Format de soumission
+
+Toutes les demandes de fonctionnalités doivent suivre la structure ci-dessous:
+
+```markdown
+## 📝 Description de la fonctionnalité
+Décrivez clairement et succinctement la fonctionnalité que vous souhaitez proposer. Expliquez en quoi elle serait bénéfique pour le projet ou les utilisateurs.
+
+## 🎯 Problème ou besoin
+Indiquez le problème ou le besoin spécifique que cette fonctionnalité résoudrait. Cela aidera à comprendre le contexte et l'importance de votre proposition.
+
+## 💡 Solution proposée
+Détaillez votre proposition de solution. Si possible, fournissez des exemples, des maquettes ou des scénarios d'utilisation pour illustrer votre idée.
+
+## 🔄 Alternatives envisagées
+Mentionnez d'autres solutions ou approches que vous avez considérées, et expliquez pourquoi vous proposez cette solution en particulier.
+
+## 📸 Captures d'écran ou maquettes
+Ajoutez ici des captures d'écran, des diagrammes ou des maquettes pour mieux illustrer votre proposition, si applicable.
+
+## 📚 Informations supplémentaires
+Fournissez toute autre information pertinente qui pourrait aider à évaluer ou à implémenter cette fonctionnalité.
+```
+
+## Consignes pour la soumission
+
+1. **Soyez précis et concis** - Décrivez clairement votre proposition sans détails superflus.
+2. **Fournissez du contexte** - Expliquez pourquoi cette fonctionnalité est importante et comment elle s'intègre à l'écosystème existant.
+3. **Soyez constructif** - Concentrez-vous sur la résolution de problèmes plutôt que sur les critiques.
+4. **Incluez des visuels** - Les captures d'écran ou maquettes facilitent la compréhension de votre proposition.
+5. **Pensez à l'implémentation** - Fournissez des indications sur la façon dont la fonctionnalité pourrait être développée.
+6. **Considérez les utilisateurs** - Expliquez comment votre proposition améliorerait l'expérience utilisateur.
+
+## Processus d'évaluation
+
+Les demandes de fonctionnalités seront évaluées selon les critères suivants:
+- Alignement avec la vision du projet
+- Valeur ajoutée pour les utilisateurs
+- Faisabilité technique
+- Effort d'implémentation requis
+- Priorité par rapport aux autres fonctionnalités en attente
+
+## Bonne pratique
+
+Avant de soumettre une nouvelle demande, vérifiez que:
+- La fonctionnalité n'a pas déjà été proposée
+- La fonctionnalité n'est pas déjà présente dans une version récente
+- Votre proposition est complète et suit le format requis
+
+---
+
+*Note: Ce format est obligatoire pour toutes les demandes de fonctionnalités. Les soumissions ne respectant pas ce format pourront être renvoyées pour révision.*
