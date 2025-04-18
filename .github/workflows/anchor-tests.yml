@@ -93,15 +93,6 @@ jobs:
           RUSTUP_TOOLCHAIN=nightly-2025-04-01 \
           anchor build
 
-      - name: Génération de l’IDL
-        working-directory: programs
-        run: |
-          pwd &&
-          RUSTUP_TOOLCHAIN=nightly-2025-04-01 \
-            anchor idl build --program-name programs\
-            -o target/idl/$GITHUB_REPOSITORY.json \
-            -t target/types/$GITHUB_REPOSITORY.ts
-
       - name: Run Anchor tests
         shell: bash
         working-directory: programs
