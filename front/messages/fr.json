@@ -14,10 +14,11 @@
   },
   "Navigation": {
     "home": "Accueil",
-    "manageEpoch": "Gérer l'epoch",
-    "createProposal": "Créer une proposition",
+    "manageEpoch": "Gérer Époque",
+    "createProposal": "Créer Proposition",
     "treasury": "Trésorerie",
-    "tokenArchive": "Archive des tokens"
+    "tokenArchive": "Archive Tokens",
+    "howItWorks": "Comment ça marche"
   },
   "ProposalForm": {
     "title": "Créer une nouvelle proposition de token",
@@ -162,5 +163,28 @@
     "startTimeTooFar": "La date de début ne peut pas être à plus de 2 ans dans le futur",
     "endTimeTooFar": "La date de fin ne peut pas être à plus de 2 ans dans le futur"
   },
-  "backButton": "Retour"
+  "backButton": "Retour",
+  "HowItWorksPage": {
+    "title": "NoRug.fun : Comment ça marche ?", 
+    "subtitle": "The trenches, with a helmet on.", 
+    "phase1Title": "Phase 1: The Founder Window", 
+    "founderCardTitle": "Devenez Founder...",
+    "founderCardP1": "Proposez une création de token et définissez (avec un <strong>max de 10%</strong>) :",
+    "founderCardL1": "Le pourcentage de la supply qui vous est airdrop.",
+    "founderCardL2": "La période de blocage pour votre part de la supply.",
+    "founderCardP2": "Les utilisateurs peuvent ensuite <strong>soutenir</strong> votre proposition en y <strong>investissant des SOL</strong>, comme une prévente.",
+    "founderCardP3": "Si elle atteint le <strong>top 10 des propositions</strong> : <strong>Félicitations !</strong> Votre token est <strong>créé</strong>, et vous recevez votre pourcentage de la supply.",
+    "founderCardP4": "Si elle n'a pas assez de succès : La proposition est rejetée.",
+    "founderButton": "Créez votre Proposition",
+    "coFounderCardTitle": "... ou co-Founder",
+    "coFounderCardP1": "Trouvez une proposition de création de token qui vous plaît et <strong>soutenez</strong>-la en <strong>investissant des SOL</strong>.",
+    "coFounderCardP2": "Si elle atteint le <strong>top 10 des propositions</strong> : <strong>Félicitations !</strong> Le token que vous avez soutenu est <strong>créé</strong>, et vous recevez une <strong>part de la supply</strong> proportionnelle aux SOL investis.",
+    "coFounderCardP3": "Si elle n'a pas assez de succès : <strong>Félicitations !</strong> Vous récupérez vos SOL <strong>en retour</strong> !",
+    "coFounderCardP4": "C'est ce qu'on appelle une situation <strong>GAGNANT/GAGNANT</strong>.",
+    "coFounderButton": "Investir dans les Propositions",
+    "phase2Title": "Phase 2 : Le Lancement",
+    "phase2P1": "NoRug.fun gère le <strong>mint</strong>, la <strong>distribution des tokens</strong> (au créateur et aux investisseurs), et crée le <strong>pool de liquidité</strong> avec les SOL levés via Meteora.",
+    "phase2P2": "Les investisseurs des propositions non sélectionnées peuvent <strong>récupérer leurs fonds</strong>.",
+    "phase2P3": "Tout le monde peut ensuite échanger ces tokens normalement."
+  }
 }

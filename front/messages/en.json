@@ -15,9 +15,10 @@
   "Navigation": {
     "home": "Home",
     "manageEpoch": "Manage Epoch",
-    "createProposal": "Create a new proposal",
+    "createProposal": "Create Proposal",
     "treasury": "Treasury",
-    "tokenArchive": "Token Archive"
+    "tokenArchive": "Token Archive",
+    "howItWorks": "How It Works"
   },
   "ProposalForm": {
     "title": "Create new Token Proposal",
@@ -162,5 +163,31 @@
     "startTimeTooFar": "Start time cannot be more than 2 years in the future",
     "endTimeTooFar": "End time cannot be more than 2 years in the future"
   },
-  "backButton": "Back"
+  "backButton": "Back",
+  "Wallet": {
+    "connect": "Connect Wallet"
+  },
+  "HowItWorksPage": {
+    "title": "How NoRug.fun Works",
+    "subtitle": "The trenches, with a helmet on.",
+    "phase1Title": "Phase 1: The Founder Window",
+    "founderCardTitle": "Be a Founder...",
+    "founderCardP1": "Propose a token creation and set (with a <strong>10% max</strong>):",
+    "founderCardL1": "The percentage of the supply airdropped to you.",
+    "founderCardL2": "The lockup period for your share of the supply.",
+    "founderCardP2": "Users can then <strong>support</strong> your proposal by <strong>investing SOL</strong> in it, similar to a presale.",
+    "founderCardP3": "If it reaches the <strong>top 10 proposals</strong>: <strong>Congrats!</strong> Your token is <strong>created</strong>, and you receive your percentage of the supply.",
+    "founderCardP4": "If it's not successful enough: The proposal is rejected.",
+    "founderButton": "Create your Proposal",
+    "coFounderCardTitle": "...or Be a Co-Founder.",
+    "coFounderCardP1": "Find a token creation proposal that appeals to you and <strong>support</strong> it by <strong>investing SOL</strong>.",
+    "coFounderCardP2": "If it reaches the <strong>top 10 proposals</strong>: <strong>Congrats!</strong> The token you supported is <strong>created</strong>, and you receive a <strong>share of the supply</strong> proportional to the SOL you invested.",
+    "coFounderCardP3": "If it's not successful enough: <strong>Congrats!</strong> You get your SOL <strong>back</strong>!",
+    "coFounderCardP4": "That's what we call a <strong>WIN/WIN</strong> situation.",
+    "coFounderButton": "Invest in Proposals",
+    "phase2Title": "Phase 2: The Launch",
+    "phase2P1": "NoRug.fun handles <strong>minting</strong>, <strong>token distribution</strong> (to the creator and investors), and creates the <strong>liquidity pool</strong> with the raised SOL through Meteora.",
+    "phase2P2": "Investors in non-selected proposals can <strong>reclaim their funds</strong>.",
+    "phase2P3": "Everyone can then trade these tokens as usual."
+  }
 }

@@ -11,6 +11,7 @@ import { Inter } from "next/font/google";
 import localFont from "next/font/local";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
+import { ThemeProvider } from "next-themes";
 import { Toaster } from "sonner";
 import "../globals.css";
 import { routing } from "../i18n/routing";
@@ -72,27 +73,33 @@ export default async function RootLayout({ children, params }: Props) {
   const defaultOpen = cookieStore.get("sidebar_state")?.value === "true";
 
   return (
-    <html lang={locale}>
+    <html lang={locale} suppressHydrationWarning>
       <body
-        className={`${inter.variable} ${nacelle.variable} bg-gray-950 font-inter text-base text-gray-200 antialiased`}
+        className={`${inter.variable} ${nacelle.variable} bg-background font-inter text-base text-foreground antialiased`}
       >
-        <NextIntlClientProvider locale={locale} messages={messages}>
-          <AppWalletProvider>
-            <ProgramProvider>
-              <SidebarProvider defaultOpen={defaultOpen}>
-                <div className="flex h-screen w-full">
-                  <AltSidebar />
-                  <div className="flex-1 ">
-                    <Header />
-                    <main>{children}</main>
-                    <Footer />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem={false}
+        >
+          <NextIntlClientProvider locale={locale} messages={messages}>
+            <AppWalletProvider>
+              <ProgramProvider>
+                <SidebarProvider defaultOpen={defaultOpen}>
+                  <div className="flex h-screen w-full">
+                    <AltSidebar />
+                    <div className="flex-1 ">
+                      <Header />
+                      <main>{children}</main>
+                      <Footer />
+                    </div>
                   </div>
-                </div>
-              </SidebarProvider>
-            </ProgramProvider>
-          </AppWalletProvider>
-          <Toaster richColors position="top-right" />
-        </NextIntlClientProvider>
+                </SidebarProvider>
+              </ProgramProvider>
+            </AppWalletProvider>
+            <Toaster richColors position="top-right" />
+          </NextIntlClientProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
