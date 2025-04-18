@@ -35,6 +35,8 @@ jobs:
           echo "=== Versions ==="
           anchor --version || true
           solana --version || true
+          rustc --version  || true
+          rustup --version || true
 
       - name: Generate Solana keypair
         run: |
@@ -62,17 +64,6 @@ jobs:
         run: |
           yarn add ts-mocha@10.0.0 @types/mocha chai @types/chai
 
-#      - name: Start Solana test validator
-#        run: solana-test-validator &
-        
-#      - name: Wait for validator to start
-#        run: sleep 5
-
-      - name: Version Rustc
-        working-directory: programs
-        run: |
-          rustc --version
-
       # Cache pour la compilation Anchor
       - name: Cache Anchor build
         uses: actions/cache@v3
@@ -87,13 +78,24 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-anchor-
 
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly-2025-04-01
+          targets: wasm32-unknown-unknown  # si nécessaire
+      - run: rustup component add rustfmt
+
       - name: Build Anchor program
         working-directory: programs
         run: |
+          rustc --version &&
+          anchor --version &&
+          RUSTUP_TOOLCHAIN=nightly-2025-04-01 \
           anchor build
 
       - name: Run Anchor tests
         shell: bash
         working-directory: programs
         run: |
+          rustc --version &&
+          anchor --version &&
           anchor test --skip-build
