@@ -1,6 +1,7 @@
 ---
 description: 
 globs: 
+alwaysApply: true
 ---
 ---
 description: Project structure and file organization guidelines

@@ -1,0 +1,54 @@
+# 📝 Titre de la Pull Request
+
+## 📌 Description
+
+- **Contexte** : Décrivez brièvement le contexte de cette PR.
+- **Problème résolu** : Expliquez le problème que cette PR adresse.
+- **Solution apportée** : Détaillez les modifications effectuées.
+
+## ✅ Type de changement
+
+Cochez les options pertinentes :
+
+- [ ] 🐛 Correction de bug
+- [ ] ✨ Nouvelle fonctionnalité
+- [ ] 🔧 Refactoring
+- [ ] 📝 Mise à jour de la documentation
+- [ ] 🚀 Amélioration des performances
+- [ ] ✅ Ajout de tests
+- [ ] 🔒 Amélioration de la sécurité
+- [ ] Autre (précisez) :
+
+## 🔍 Comment tester cette PR ?
+
+Fournissez des instructions pour tester les modifications :
+
+1. Étapes à suivre
+2. Résultats attendus
+
+## 📎 Liens associés
+
+- **Issues liées** : #NuméroIssue
+- **Documentation** : Lien vers la documentation pertinente
+- **Autres PRs** : Références croisées si applicable
+
+## 👥 Revue
+
+- **Relecteurs suggérés** : @NomUtilisateur
+- **Domaines concernés** : Liste des modules ou composants impactés
+
+## 🧪 Checklist
+
+- [ ] Le code compile sans erreur
+- [ ] Les tests unitaires passent
+- [ ] La documentation est à jour
+- [ ] Les dépendances sont à jour
+- [ ] La PR est prête pour la revue
+
+## 📸 Captures d'écran (si applicable)
+
+Ajoutez des captures d'écran pour illustrer les modifications visuelles.
+
+## 🗒️ Notes complémentaires
+
+Ajoutez toute information supplémentaire utile à la revue de cette PR.

@@ -1,6 +1,7 @@
 ---
 description: 
 globs: 
+alwaysApply: true
 ---
 ---
 description: Security guidelines for the project

@@ -1,6 +1,7 @@
 ---
 description: 
 globs: 
+alwaysApply: true
 ---
 ---
 description: Rules for data fetching

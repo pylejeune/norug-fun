@@ -1,6 +1,7 @@
 ---
 description: 
 globs: 
+alwaysApply: true
 ---
 ---
 description: UI component and styling guidelines using Shadcn UI, Radix UI, and Tailwind
