@@ -1,2 +1,5 @@
 test-ledger
 # IDL generated files
+
+# Crank service environment variables
+crank/.env
