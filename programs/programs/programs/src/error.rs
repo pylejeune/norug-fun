@@ -34,5 +34,11 @@ pub enum ErrorCode {
 
     #[msg("Dépassement de capacité lors du calcul")]
     Overflow,
+
+    #[msg("La proposition a déjà un statut final (Validée ou Rejetée)")]
+    ProposalAlreadyFinalized,
+
+    #[msg("L'époque a déjà été marquée comme traitée par le crank")]
+    EpochAlreadyProcessed,
 }
 

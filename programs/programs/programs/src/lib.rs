@@ -65,4 +65,11 @@ pub mod programs {
     ) -> Result<()> {
         get_proposal_details::handler(ctx, proposal_id)
     }
+
+    // --- Nouvelle instruction pour marquer une époque comme traitée ---
+    pub fn mark_epoch_processed(
+        ctx: Context<MarkEpochProcessed>,
+    ) -> Result<()> {
+        mark_epoch_processed::handler(ctx)
+    }
 }

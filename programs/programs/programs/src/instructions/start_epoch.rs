@@ -33,18 +33,24 @@ pub fn hanlder(
     start_time: i64,
     end_time: i64,
 ) -> Result<()> {
-    // Vérifier que start_time est inférieur à end_time
-    require!(
-        start_time < end_time,
-        ErrorCode::InvalidEpochTimeRange
-    );
+    // Vérifications initiales
+    require!(end_time > start_time, ErrorCode::InvalidEpochTimeRange);
+    // On pourrait ajouter une vérification que start_time n'est pas trop dans le passé
+    // ou que la durée n'est pas excessive.
 
-    // Initialiser l'époque
     let epoch = &mut ctx.accounts.epoch_management;
     epoch.epoch_id = epoch_id;
     epoch.start_time = start_time;
     epoch.end_time = end_time;
     epoch.status = EpochStatus::Active;
+    epoch.processed = false; // Initialise le nouveau flag à false
+
+    msg!(
+        "Epoch {} started. Start: {}, End: {}",
+        epoch_id,
+        start_time,
+        end_time
+    );
 
     Ok(())
 }
