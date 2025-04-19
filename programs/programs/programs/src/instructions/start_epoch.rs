@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 use crate::state::*;
-use crate::error::*;
+use crate::error::ErrorCode;
 
 #[derive(Accounts)]
 #[instruction(epoch_id: u64)] // If epoch_id is needed for PDA seeds
@@ -25,4 +25,27 @@ pub struct StartEpoch<'info> {
 // pub fn handler(ctx: Context<StartEpoch>, epoch_id: u64, start_time: i64, end_time: i64) -> Result<()> {
 //     // Set epoch_management fields (epoch_id, start_time, end_time, status = Active)
 //     Ok(())
-// } 
+
+// }
+
+pub fn hanlder(
+    ctx: Context<StartEpoch>,
+    epoch_id: u64,
+    start_time: i64,
+    end_time: i64,
+) -> Result<()> {
+    // Vérifier que start_time est inférieur à end_time
+    require!(
+        start_time < end_time,
+        ErrorCode::InvalidEpochTimeRange
+    );
+
+    // Initialiser l'époque
+    let epoch = &mut ctx.accounts.epoch_management;
+    epoch.epoch_id = epoch_id;
+    epoch.start_time = start_time;
+    epoch.end_time = end_time;
+    epoch.status = EpochStatus::Active;
+
+    Ok(())
+}

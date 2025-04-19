@@ -6,5 +6,185 @@
   "Loading": {
     "title": "NoRug.fun",
     "message": "Chargement"
+  },
+  "Footer": {
+    "copyright": "© NoRug.fun {year}",
+    "privacy": "politique de confidentialité",
+    "terms": "conditions d'utilisation"
+  },
+  "Navigation": {
+    "home": "Accueil",
+    "manageEpoch": "Gérer Époque",
+    "createProposal": "Créer Proposition",
+    "treasury": "Trésorerie",
+    "tokenArchive": "Archive Tokens",
+    "howItWorks": "Comment ça marche"
+  },
+  "ProposalForm": {
+    "title": "Créer une nouvelle proposition de token",
+    "projectName": "Nom du projet",
+    "ticker": "Symbole",
+    "description": "Description",
+    "image": "Image du projet",
+    "totalSupply": "Offre totale",
+    "creatorSupply": "Part du créateur : {value}%",
+    "supportersSupply": "Part des supporters : {value}%",
+    "submit": "Créer la proposition",
+    "dragOrClickToUpload": "Glissez et déposez une image ici, ou cliquez pour sélectionner",
+    "dropToUpload": "Déposez l'image ici",
+    "dragOrClickToReplace": "Glissez une nouvelle image ou cliquez pour remplacer",
+    "imageFormat": "JPEG, PNG ou GIF jusqu'à 5MB"
+  },
+  "EpochManagement": {
+    "title": "Gestion des Epochs",
+    "startEpoch": "Démarrer un Nouvel Epoch",
+    "endEpoch": "Terminer l'Epoch",
+    "epochId": "ID de l'Epoch",
+    "startTime": "Date de début",
+    "endTime": "Date de fin",
+    "statusLabel": "Statut",
+    "statusType": {
+      "active": "Actif",
+      "pending": "En attente",
+      "closed": "Terminé"
+    },
+    "loading": "Chargement des epochs...",
+    "connectWalletMessage": "Veuillez connecter votre wallet pour voir les epochs",
+    "connectWallet": "Connecter le Wallet",
+    "noEpochsMessage": "Aucun epoch trouvé. Démarrez votre premier epoch pour commencer !",
+    "startFirstEpoch": "Démarrer le Premier Epoch",
+    "sortById": "Trier par ID",
+    "sortByStart": "Trier par date de début",
+    "sortByEnd": "Trier par date de fin",
+    "endingEpoch": "Fin de l'epoch en cours...",
+    "endEpochSuccess": "Epoch terminé avec succès",
+    "endEpochError": "Échec de la fin de l'epoch"
+  },
+  "Home": {
+    "currentEpoch": "Epoch en cours",
+    "timeLeft": "Temps restant",
+    "proposalCount": "{count, plural, =0 {Aucune proposition} one {# proposition} other {# propositions}}",
+    "proposalsList": "Propositions",
+    "sortBySolana": "Trier par SOL levés",
+    "sortByName": "Trier par nom",
+    "sortByDate": "Trier par date",
+    "solanaRaised": "{amount} SOL",
+    "epochId": "Epoch",
+    "noImage": "Pas d'image"
+  },
+  "Treasury": {
+    "title": "Trésorerie",
+    "description": "Aperçu des frais accumulés",
+    "totalFees": "{amount} SOL",
+    "amount": "{amount} SOL",
+    "timeRange": {
+      "day": "Dernières 24h",
+      "week": "Dernière semaine",
+      "month": "Dernier mois",
+      "year": "Dernière année",
+      "all": "Tout"
+    },
+    "sort": {
+      "newest": "Plus récent",
+      "oldest": "Plus ancien"
+    }
+  },
+  "Archive": {
+    "title": "Archive des Tokens",
+    "viewMode": {
+      "myProposals": "Mes Propositions",
+      "supportedTokens": "Tokens Soutenus"
+    },
+    "sort": {
+      "byDate": "Trier par date",
+      "byName": "Trier par nom",
+      "byVotes": "Trier par SOL levés",
+      "desc": "Plus élevé",
+      "asc": "Plus faible"
+    },
+    "solanaRaised": "{amount} SOL",
+    "minRequired": "Min. requis : {amount} SOL",
+    "epochId": "Epoch",
+    "endDate": "Date de fin",
+    "noImage": "Pas d'image",
+    "connectWallet": "Connectez votre wallet pour voir vos tokens",
+    "noProposals": "Vous n'avez pas encore créé de propositions",
+    "noSupportedTokens": "Vous n'avez pas encore soutenu de tokens",
+    "yourSupport": "Votre support : {amount} SOL",
+    "requiredAmount": "Requis : {amount} SOL",
+    "status": {
+      "validated": "Validé",
+      "rejected": "Rejeté"
+    },
+    "supportButton": "Soutenir",
+    "connectToSupport": "Connectez-vous"
+  },
+  "ProposalDetail": {
+    "description": "Description",
+    "tokenomics": "Tokenomics",
+    "details": "Détails",
+    "totalSupply": "Offre Totale",
+    "creatorSupply": "Part Créateur",
+    "supportersSupply": "Part Supporters",
+    "requiredAmount": "Montant Requis",
+    "epochId": "Epoch",
+    "createdAt": "Créé le",
+    "endDate": "Date de fin",
+    "creator": "Créateur",
+    "solanaRaised": "{amount} SOL",
+    "yourSupport": "Votre support : {amount} SOL",
+    "status": {
+      "active": "En cours",
+      "validated": "Validé",
+      "rejected": "Rejeté"
+    },
+    "supportButton": "Soutenir le Projet",
+    "connectToSupport": "Connectez-vous pour Soutenir",
+    "noImage": "Pas d'image",
+    "supportAmount": "Montant du support",
+    "currentRank": "Actuellement #{rank} sur {total} propositions",
+    "backButton": "Retour"
+  },
+  "EpochForm": {
+    "title": "Créer un Nouvel Epoch",
+    "epochId": "ID de l'Epoch",
+    "startTime": "Heure de début",
+    "endTime": "Heure de fin",
+    "submit": "Créer l'Epoch",
+    "creating": "Création en cours...",
+    "epochCreated": "Nouvel epoch créé avec succès",
+    "errorCreating": "Erreur lors de la création de l'epoch",
+    "epochIdRequired": "Veuillez saisir un ID d'epoch",
+    "startTimeRequired": "Veuillez sélectionner une date de début",
+    "endTimeRequired": "Veuillez sélectionner une date de fin",
+    "endTimeAfterStart": "La date de fin doit être après la date de début",
+    "invalidDate": "Veuillez entrer une date valide",
+    "startTimeInPast": "La date de début ne peut pas être dans le passé",
+    "startTimeTooFar": "La date de début ne peut pas être à plus de 2 ans dans le futur",
+    "endTimeTooFar": "La date de fin ne peut pas être à plus de 2 ans dans le futur"
+  },
+  "backButton": "Retour",
+  "HowItWorksPage": {
+    "title": "NoRug.fun : Comment ça marche ?", 
+    "subtitle": "The trenches, with a helmet on.", 
+    "phase1Title": "Phase 1: The Founder Window", 
+    "founderCardTitle": "Devenez Founder...",
+    "founderCardP1": "Proposez une création de token et définissez (avec un <strong>max de 10%</strong>) :",
+    "founderCardL1": "Le pourcentage de la supply qui vous est airdrop.",
+    "founderCardL2": "La période de blocage pour votre part de la supply.",
+    "founderCardP2": "Les utilisateurs peuvent ensuite <strong>soutenir</strong> votre proposition en y <strong>investissant des SOL</strong>, comme une prévente.",
+    "founderCardP3": "Si elle atteint le <strong>top 10 des propositions</strong> : <strong>Félicitations !</strong> Votre token est <strong>créé</strong>, et vous recevez votre pourcentage de la supply.",
+    "founderCardP4": "Si elle n'a pas assez de succès : La proposition est rejetée.",
+    "founderButton": "Créez votre Proposition",
+    "coFounderCardTitle": "... ou co-Founder",
+    "coFounderCardP1": "Trouvez une proposition de création de token qui vous plaît et <strong>soutenez</strong>-la en <strong>investissant des SOL</strong>.",
+    "coFounderCardP2": "Si elle atteint le <strong>top 10 des propositions</strong> : <strong>Félicitations !</strong> Le token que vous avez soutenu est <strong>créé</strong>, et vous recevez une <strong>part de la supply</strong> proportionnelle aux SOL investis.",
+    "coFounderCardP3": "Si elle n'a pas assez de succès : <strong>Félicitations !</strong> Vous récupérez vos SOL <strong>en retour</strong> !",
+    "coFounderCardP4": "C'est ce qu'on appelle une situation <strong>GAGNANT/GAGNANT</strong>.",
+    "coFounderButton": "Investir dans les Propositions",
+    "phase2Title": "Phase 2 : Le Lancement",
+    "phase2P1": "NoRug.fun gère le <strong>mint</strong>, la <strong>distribution des tokens</strong> (au créateur et aux investisseurs), et crée le <strong>pool de liquidité</strong> avec les SOL levés via Meteora.",
+    "phase2P2": "Les investisseurs des propositions non sélectionnées peuvent <strong>récupérer leurs fonds</strong>.",
+    "phase2P3": "Tout le monde peut ensuite échanger ces tokens normalement."
   }
 }
