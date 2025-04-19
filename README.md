@@ -1,40 +1,79 @@
 # NoRug.fun
 
-## Context & Vision
+[![Participating in the Colosseum Breakout Hackathon](https://img.shields.io/badge/Colosseum-Breakout%20Hackathon-blue?logo=solana)](https://www.colosseum.org/breakout)
 
-- **Context**: The DeFi sector is rapidly evolving, but issues with transparency, security, and innovation still persist. Investors are looking for reliable, transparent solutions with innovative ways to earn.
+## Context & Motivation
 
-- **Vision**: Build a platform on Solana with two phases:
-  1. **Phase 1**: Test and community engagement through a token proposal interface ("be the dev").
-  2. **Phase 2**: Launch the most successful projects through a pool, similar to Meteora.
+The Solana ecosystem has seen significant buzz, notably with the rise of platforms like [Pump.fun](https://pump.fun/) that have drawn capital and attention to meme coins. However, this rapid growth comes with challenges.
 
-## Features
+Established platforms like Raydium, with its "Launchlab," have attempted to structure token launches, but concerns remain regarding distribution transparency, the excessive creation of tokens, and dynamics that can sometimes extract value from the ecosystem rather than strengthen it.
 
-- **Vault and Epoch Management**: A vault stores SOL invested in Phase 1. A smart contract manages the opening and closing of epochs and the distribution of funds based on proposal success.
-- **Launch Pool (Phase 2)**: The top-performing projects from Phase 1 are launched via a pool, where tokens are allocated and distributed to initial investors.
+**NoRug.fun** aims to offer a fairer, more transparent, and community-driven alternative for launching new tokens on Solana.
 
-- **Modularity**: The architecture is modular, allowing additional features to be added without impacting the core system.
+## Vision & How It Works
 
-- **Front-End APIs and Integrations**: Secure APIs connect the front-end to the smart contracts.
+Our vision is to create a platform where token ideas can be proposed and backed by the community before their official launch, ensuring a fair and secure mechanism.
 
-- **Monitoring and Reporting**: Real-time tools track transactions, fundraising progress, and pool performance.
+The process unfolds in two main phases:
 
-- **User Experience**: Intuitive interface with crypto wallet integrations (Phantom, Solflare) and interactive dashboards for tracking epochs, vaults, and pools.
+### Phase 1: The Founder Window
 
-- **Specific Features**:
-  - Dedicated pages for token proposals ("be the dev"/"founder window").
-  - Investment tracking, real-time alerts, and notifications.
+1.  **Proposal (Founder):**
+    *   A creator proposes a token idea.
+    *   They define the name, symbol, and total supply.
+    *   They set the percentage of the supply they will receive (max 10%) and a lock-up period for their own tokens.
+2.  **Support (Co-Founder):**
+    *   Users (co-founders) browse active proposals.
+    *   They can support a proposal by investing SOL into it.
+3.  **Selection:**
+    *   At the end of a defined period (epoch), proposals are ranked based on the SOL raised.
+    *   The **top 10 proposals** are selected to move to the next phase.
+
+### Phase 2: Launch & Market
+
+1.  **Creation & Distribution:**
+    *   For the 10 winning proposals, NoRug.fun automatically handles:
+        *   The token **mint**.
+        *   The **distribution** of tokens to the creator (according to their defined %) and to the co-founders (proportionally to their SOL investment).
+    *   The initial liquidity pool is created on a DEX (via Meteora) using the SOL raised during Phase 1.
+2.  **Reclaim:**
+    *   Users who invested in **non-selected** proposals (outside the Top 10) can **reclaim their full SOL investment**.
+3.  **Open Market:**
+    *   The newly launched tokens are now tradable on the secondary market like any other Solana token.
+
+## Key Features (Implemented or Planned)
+
+*   **Epoch Management:** Smart contract to manage proposal cycles (opening, closing).
+*   **Proposal & Support Accounts:** Secure on-chain structures to store proposal details and user investments.
+*   **Secure Vault:** Temporary storage of invested SOL via program-controlled PDAs.
+*   **Ranking & Finalization Logic:** Off-chain service (crank) to determine winners and update on-chain statuses via a secure authority.
+*   **Liquidity Management:** Planned integration with Meteora for pool creation.
+*   **Intuitive User Interface:** Front-end (Next.js) to propose, browse, support, and (soon) reclaim funds/tokens.
+*   **Wallet Integration:** Support for major Solana wallets (Phantom, Solflare via Wallet Adapter).
 
 ## Technologies 💻
 
-- **Solana**: Blockchain platform for decentralized applications.
-- **Anchor**: Framework for developing secure and modular Solana programs.
-- **Next.js**: React framework for building server-side rendered applications.
-- **ShadCN**: Design system for scalable UI components.
-- **React**: JavaScript library for building user interfaces.
-- **TypeScript**: Statically typed superset of JavaScript for enhanced maintainability.
-- **Next Intl**: Internationalization library for Next.js applications.
+*   **Solana**: High-performance blockchain.
+*   **Anchor**: Development framework for Solana programs (Rust).
+*   **Rust**: Language for on-chain development.
+*   **Next.js**: React framework for the front-end (App Router).
+*   **TypeScript**: Typed superset of JavaScript.
+*   **Tailwind CSS / Shadcn UI**: For styling and UI components.
+*   **Next Intl**: Internationalization.
+*   **(Backend Service - upcoming)**: Likely Node.js/TypeScript for the 'crank' service.
+
+## Installation & Local Setup
+
+*(Keep or adapt existing instructions here if present and correct)*
+
+1.  Clone the repository.
+2.  Install root dependencies (`npm install` or `yarn`).
+3.  Navigate to `programs/programs` and build the Anchor program (`anchor build`).
+4.  Deploy to a local validator (`anchor deploy`).
+5.  (If necessary) Run the initialization script (e.g., for `initialize_program_config`).
+6.  Navigate to `front` and install dependencies (`npm install` or `yarn`).
+7.  Run the front-end development server (`npm run dev` or `yarn dev`).
 
 ## Credits 👨‍💻
 
-**[Alexandre Bourdois](https://github.com/alexandre-bourdois)**, **[Alexandre Kermarec](https://github.com/alexlakarm)**, **[Pierre-Yves Lejeune](https://github.com/pylejeune)**: Creators of the project.
+**[Alexandre Bourdois](https://github.com/alexandre-bourdois)**, **[Alexandre Kermarec](https://github.com/alexlakarm)**, **[Pierre-Yves Lejeune](https://github.com/pylejeune)**: Project creators as part of the [Colosseum Breakout Hackathon](https://www.colosseum.org/breakout).
