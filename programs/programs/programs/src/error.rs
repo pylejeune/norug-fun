@@ -35,7 +35,7 @@ pub enum ErrorCode {
     #[msg("Dépassement de capacité lors du calcul")]
     Overflow,
 
-    // --- Nouveaux codes pour update_proposal_status --- 
+    // --- Codes pour update_proposal_status & mark_epoch_processed --- 
     #[msg("L'époque doit être fermée pour mettre à jour le statut de la proposition")]
     EpochNotClosed,
 
@@ -47,5 +47,11 @@ pub enum ErrorCode {
 
     #[msg("Mise à jour du statut de la proposition invalide")]
     InvalidProposalStatusUpdate,
+
+    #[msg("La proposition a déjà un statut final (Validée ou Rejetée)")]
+    ProposalAlreadyFinalized,
+
+    #[msg("L'époque a déjà été marquée comme traitée par le crank")]
+    EpochAlreadyProcessed,
 }
 

@@ -43,6 +43,7 @@ pub struct CreateTokenProposal<'info> {
 //     // Check creator_allocation <= 10%
 //     // Calculate supporter_allocation
 //     Ok(())
+
 // }
 
 pub fn handler(
@@ -82,3 +83,4 @@ pub fn handler(
 
     Ok(())
 }
+
