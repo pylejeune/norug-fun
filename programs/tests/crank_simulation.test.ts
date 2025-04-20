@@ -1,3 +1,7 @@
+console.log("\n\n=====================================");
+console.log(">>> Démarrage tests: crank_simulation.test.ts <<<");
+console.log("=====================================\n");
+
 // crank_simulation.test.ts
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";

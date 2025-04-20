@@ -1,3 +1,7 @@
+console.log("\n\n=====================================");
+console.log(">>> Démarrage tests: updateproposal.test.ts <<<");
+console.log("=====================================\n");
+
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { Programs } from "../target/types/programs";
