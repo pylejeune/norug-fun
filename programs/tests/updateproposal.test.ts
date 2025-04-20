@@ -1,9 +1,12 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { Programs } from "../target/types/programs";
-import { PublicKey } from "@solana/web3.js";
+import { PublicKey, Keypair, SystemProgram, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { expect } from "chai";
 import { generateRandomId, setupTestEnvironment } from "./utils.test";
+
+// Seed fixe pour l'autorité admin des tests
+const ADMIN_SEED = Uint8Array.from([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32]);
 
 describe("Tests de la mise à jour du statut des propositions", () => {
   const { provider, program } = setupTestEnvironment();
@@ -97,13 +100,21 @@ describe("Tests de la mise à jour du statut des propositions", () => {
   // --- End Helper Function ---
 
   before(async () => {
-    // Générer une nouvelle clé pour l'autorité admin pour ce test
-    adminAuthority = anchor.web3.Keypair.generate();
-    // Financer cette nouvelle autorité pour qu'elle puisse payer les frais
-    const lamports = 1 * anchor.web3.LAMPORTS_PER_SOL;
-    const signature = await provider.connection.requestAirdrop(adminAuthority.publicKey, lamports);
-    await provider.connection.confirmTransaction(signature, "confirmed");
-    console.log(`Admin authority ${adminAuthority.publicKey} funded.`);
+    // Générer l'autorité admin de manière déterministe
+    adminAuthority = Keypair.fromSeed(ADMIN_SEED); 
+    console.log(`Admin authority (deterministic): ${adminAuthority.publicKey}`);
+
+    // Financer cette autorité si nécessaire (une seule fois suffit)
+    const balance = await provider.connection.getBalance(adminAuthority.publicKey);
+    if (balance < 0.5 * LAMPORTS_PER_SOL) { // Financer si moins de 0.5 SOL
+        await provider.connection.confirmTransaction(
+            await provider.connection.requestAirdrop(adminAuthority.publicKey, 1 * LAMPORTS_PER_SOL),
+            "confirmed"
+        );
+        console.log(`Admin authority ${adminAuthority.publicKey} funded.`);
+    } else {
+        console.log(`Admin authority ${adminAuthority.publicKey} already funded.`);
+    }
 
     // Trouver l'adresse du PDA pour ProgramConfig
     [programConfigPda] = PublicKey.findProgramAddressSync(
@@ -153,7 +164,13 @@ describe("Tests de la mise à jour du statut des propositions", () => {
       console.log("L'initialisation a peut-être échoué car le compte existait déjà (normal si tests relancés).");
       // Re-vérifier que l'autorité est correcte dans ce cas
       const configAccount = await program.account.programConfig.fetch(programConfigPda);
-      expect(configAccount.adminAuthority.toString()).to.equal(adminAuthority.publicKey.toString());
+      // S'assurer que l'autorité on-chain correspond à celle générée de manière déterministe
+      if (!configAccount.adminAuthority.equals(adminAuthority.publicKey)) {
+          console.warn("L'autorité admin on-chain ne correspond pas ! Tentative de mise à jour (nécessite une instruction set_admin_authority).");
+          // Idéalement, appeler ici une instruction set_admin_authority si elle existait.
+          // Pour l'instant, on lance une erreur si l'autorité n'est pas la bonne après l'initialisation potentielle.
+          expect(configAccount.adminAuthority.equals(adminAuthority.publicKey), "L'autorité admin dans ProgramConfig ne correspond pas à la clé de test déterministe!").to.be.true;
+      }
     }
   });
 
