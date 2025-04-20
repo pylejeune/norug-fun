@@ -24,6 +24,21 @@ export type EpochState = {
   publicKey: PublicKey;
 };
 
+export type ProposalState = {
+  epochId: string;
+  creator: PublicKey;
+  tokenName: string;
+  tokenSymbol: string;
+  totalSupply: number;
+  creatorAllocation: number;
+  supporterAllocation: number;
+  solRaised: number;
+  totalContributions: number;
+  lockupPeriod: number;
+  status: "active" | "validated" | "rejected";
+  publicKey: PublicKey;
+};
+
 type ProgramContextType = {
   program: ProgramType | null;
   isConnected: boolean;
@@ -39,6 +54,15 @@ type ProgramContextType = {
   getEpochState: (epochId: number) => Promise<EpochState | null>;
   getAllEpochs: () => Promise<EpochState[]>;
   endEpoch: (epochId: number) => Promise<void>;
+  createProposal: (
+    epochId: string,
+    tokenName: string,
+    tokenSymbol: string,
+    totalSupply: number,
+    creatorAllocation: number,
+    lockupPeriod: number
+  ) => Promise<void>;
+  getAllProposals: () => Promise<ProposalState[]>;
 };
 
 const ProgramContext = createContext<ProgramContextType | null>(null);
@@ -214,6 +238,95 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const createProposal = async (
+    epochId: string,
+    tokenName: string,
+    tokenSymbol: string,
+    totalSupply: number,
+    creatorAllocation: number,
+    lockupPeriod: number
+  ) => {
+    if (!program || !isConnected || !wallet) {
+      throw new Error("Please connect your wallet first");
+    }
+
+    try {
+      // Récupérer l'epoch
+      const epochState = await getEpochState(parseInt(epochId));
+      if (!epochState) {
+        throw new Error("Epoch not found");
+      }
+
+      // Vérifier que l'epoch est active
+      if (!("active" in epochState.status)) {
+        throw new Error("Epoch is not active");
+      }
+
+      // Générer le PDA pour la proposition
+      const [proposalPDA] = PublicKey.findProgramAddressSync(
+        [
+          Buffer.from("proposal"),
+          wallet.publicKey.toBuffer(),
+          new BN(epochId).toArrayLike(Buffer, "le", 8),
+          Buffer.from(tokenName),
+        ],
+        program.programId
+      );
+
+      const tx = await (program as Program).methods
+        .createProposal(
+          tokenName,
+          tokenSymbol,
+          new BN(totalSupply),
+          creatorAllocation,
+          new BN(lockupPeriod)
+        )
+        .accounts({
+          creator: wallet.publicKey,
+          tokenProposal: proposalPDA,
+          epoch: epochState.publicKey,
+          systemProgram: SystemProgram.programId,
+        })
+        .rpc();
+
+      console.log("✅ Proposal created:", tx);
+      setSuccess("Proposal created successfully");
+    } catch (err: any) {
+      console.error("❌ Error creating proposal:", err);
+      setError(err.message);
+      throw err;
+    }
+  };
+
+  const getAllProposals = async (): Promise<ProposalState[]> => {
+    if (!program) return [];
+
+    try {
+      // Cast le program au bon type pour accéder à tokenProposal
+      const proposals = await (
+        program as Program<Programs>
+      ).account.tokenProposal.all();
+
+      return proposals.map((p: any) => ({
+        epochId: p.account.epochId.toString(),
+        creator: p.account.creator,
+        tokenName: p.account.tokenName,
+        tokenSymbol: p.account.tokenSymbol,
+        totalSupply: p.account.totalSupply.toNumber(),
+        creatorAllocation: p.account.creatorAllocation,
+        supporterAllocation: p.account.supporterAllocation,
+        solRaised: p.account.solRaised.toNumber(),
+        totalContributions: p.account.totalContributions.toNumber(),
+        lockupPeriod: p.account.lockupPeriod.toNumber(),
+        status: p.account.status,
+        publicKey: p.publicKey,
+      }));
+    } catch (err) {
+      console.error("Error fetching proposals:", err);
+      return [];
+    }
+  };
+
   const value = useMemo(
     () => ({
       program,
@@ -226,6 +339,8 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
       getEpochState,
       getAllEpochs,
       endEpoch,
+      createProposal,
+      getAllProposals,
     }),
     [program, isConnected, error, success]
   );

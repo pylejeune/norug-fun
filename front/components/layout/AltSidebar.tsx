@@ -48,7 +48,7 @@ export function AltSidebar() {
     },
     {
       titleKey: "createProposal",
-      url: `/${locale}/create`,
+      url: `/${locale}/proposal/create`,
       icon: CirclePlus,
     },
     {

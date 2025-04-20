@@ -1,192 +1,199 @@
 "use client";
 
-import { format, formatDistanceToNow } from "date-fns";
+import EpochSelector from "@/components/epoch/EpochSelector";
+import {
+  EpochState,
+  ProposalState,
+  useProgram,
+} from "@/context/ProgramContext";
+import { LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { format } from "date-fns";
 import { enUS, fr } from "date-fns/locale";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useMemo, useState } from "react";
-
-// TODO: Move to types file
-type Proposal = {
-  id: string;
-  name: string;
-  ticker: string;
-  description: string;
-  image_url: string | null;
-  epoch_id: string;
-  created_at: Date;
-  solana_raised: number;
-};
+import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 
 export default function Home() {
   const t = useTranslations("Home");
   const { locale } = useParams();
+  const { getAllProposals, getAllEpochs } = useProgram();
 
-  // TODO: Replace with real data from Solana program
-  const currentEpoch = {
-    id: "epoch_1",
-    start_time: new Date("2025-04-14T19:00:00"),
-    end_time: new Date("2025-04-15T18:59:59"),
-    status: "active" as const,
-  };
+  const [selectedEpochId, setSelectedEpochId] = useState<string>();
+  const [allProposals, setAllProposals] = useState<ProposalState[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [selectedEpochDetails, setSelectedEpochDetails] =
+    useState<EpochState | null>(null);
 
-  // Add sort type state
-  const [sortBy, setSortBy] = useState<"solana" | "name" | "date">("solana");
-
-  const [proposals, setProposals] = useState<Proposal[]>([
-    {
-      id: "token_1",
-      name: "Project Alpha",
-      ticker: "ALPHA",
-      description:
-        "A revolutionary DeFi protocol for sustainable yield farming",
-      image_url: "/tokenDemo/alpha.png", // Updated path
-      epoch_id: "epoch_1",
-      created_at: new Date("2025-04-14T19:00:00"),
-      solana_raised: 25.5,
-    },
-    {
-      id: "prop_2",
-      name: "Project Beta",
-      ticker: "BETA",
-      description: "Next-gen NFT marketplace with zero fees",
-      image_url: "/tokenDemo/beta.png", // Updated path
-      epoch_id: "epoch_1",
-      created_at: new Date("2025-04-14T19:05:25"),
-      solana_raised: 31.25,
-    },
-  ]);
-
-  // Sort proposals based on selected criteria
-  const sortedProposals = useMemo(() => {
-    return [...proposals].sort((a, b) => {
-      switch (sortBy) {
-        case "solana":
-          return b.solana_raised - a.solana_raised;
-        case "name":
-          return a.name.localeCompare(b.name);
-        case "date":
-          return b.created_at.getTime() - a.created_at.getTime();
-        default:
-          return 0;
+  // Load and select the first active epoch
+  useEffect(() => {
+    const initializeEpoch = async () => {
+      try {
+        const epochs = await getAllEpochs();
+        const activeEpochs = epochs.filter((epoch) => "active" in epoch.status);
+        if (activeEpochs.length > 0) {
+          setSelectedEpochId(activeEpochs[0].epochId);
+        }
+      } catch (error) {
+        console.error("Failed to fetch epochs:", error);
       }
-    });
-  }, [proposals, sortBy]);
+    };
 
-  // Format remaining time
-  const formatTimeLeft = (endTime: Date) => {
-    return formatDistanceToNow(endTime, {
-      locale: locale === "fr" ? fr : enUS,
-      addSuffix: true,
-    });
-  };
+    if (!selectedEpochId) {
+      initializeEpoch();
+    }
+  }, [getAllEpochs, selectedEpochId]);
 
-  // Format date with time
-  const formatDate = (date: Date) => {
-    return format(date, "PPpp", {
-      locale: locale === "fr" ? fr : enUS,
-    });
-  };
+  // Reload proposals when landing on the page
+  useEffect(() => {
+    const loadProposals = async () => {
+      setLoading(true);
+      try {
+        const proposals = await getAllProposals();
+        setAllProposals(proposals);
+      } catch (error) {
+        console.error("Failed to load proposals:", error);
+        toast.error(t("errorLoadingProposals"));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProposals();
+  }, [getAllProposals]);
+
+  // Load epoch details when one is selected
+  useEffect(() => {
+    const loadEpochDetails = async () => {
+      if (!selectedEpochId) return;
+      try {
+        const epochs = await getAllEpochs();
+        const epoch = epochs.find((e) => e.epochId === selectedEpochId);
+        if (epoch) {
+          setSelectedEpochDetails(epoch);
+        }
+      } catch (error) {
+        console.error("Failed to fetch epoch details:", error);
+      }
+    };
+
+    loadEpochDetails();
+  }, [selectedEpochId, getAllEpochs]);
+
+  // Filter proposals by epoch
+  const filteredProposals = useMemo(() => {
+    if (!selectedEpochId) return [];
+    return allProposals.filter((p) => p.epochId === selectedEpochId);
+  }, [selectedEpochId, allProposals]);
 
   return (
-    <div className="w-full max-w-4xl mx-auto p-2 md:p-4 space-y-4 md:space-y-6">
-      {/* Current Epoch Status */}
-      <div className="bg-gray-900/50 p-3 md:p-4 rounded-lg border border-gray-800">
-        <h2 className="text-lg md:text-xl font-semibold mb-2 md:mb-3">
-          {t("currentEpoch")}
-        </h2>
-        <div className="space-y-1 md:space-y-2">
-          <p className="text-sm md:text-base">
-            {t("timeLeft")}: {formatTimeLeft(currentEpoch.end_time)}
-          </p>
-          <p className="text-sm md:text-base">
-            {t("proposalCount", { count: proposals.length })}
-          </p>
-        </div>
-      </div>
+    <div className="container mx-auto px-4 py-8">
+      <EpochSelector
+        selectedEpochId={selectedEpochId}
+        onSelect={setSelectedEpochId}
+      />
 
-      {/* Proposals List */}
-      <div>
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0 mb-3 md:mb-4">
-          <h2 className="text-lg md:text-xl font-semibold">
-            {t("proposalsList")}
-          </h2>
-          <select
-            className="w-full sm:w-auto bg-gray-800 border border-gray-700 rounded-md px-3 py-1.5 text-sm"
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-          >
-            <option value="solana">{t("sortBySolana")}</option>
-            <option value="name">{t("sortByName")}</option>
-            <option value="date">{t("sortByDate")}</option>
-          </select>
-        </div>
+      {selectedEpochDetails && (
+        <div className="mt-6 mb-8 p-6 bg-gray-800/50 rounded-xl border border-gray-700">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="text-center">
+              <h3 className="text-sm text-gray-400 mb-1">{t("epochStart")}</h3>
+              <p className="text-lg font-semibold">
+                {format(
+                  new Date(selectedEpochDetails.startTime * 1000),
+                  "PPp",
+                  { locale: locale === "fr" ? fr : enUS }
+                )}
+              </p>
+            </div>
 
-        <div className="grid gap-3 md:gap-4">
-          {sortedProposals.map((proposal) => (
-            <Link
-              key={proposal.id}
-              href={`/${locale}/proposal/${proposal.id}`}
-              className="block bg-gray-900/50 p-3 md:p-4 rounded-lg border border-gray-800 hover:bg-gray-900/70 transition-colors"
+            <div className="text-center">
+              <h3 className="text-sm text-gray-400 mb-1">{t("epochEnd")}</h3>
+              <p className="text-lg font-semibold">
+                {format(new Date(selectedEpochDetails.endTime * 1000), "PPp", {
+                  locale: locale === "fr" ? fr : enUS,
+                })}
+              </p>
+            </div>
+
+            <div className="text-center">
+              <h3 className="text-sm text-gray-400 mb-1">
+                {t("proposalsCount")}
+              </h3>
+              <p className="text-lg font-semibold">
+                {t("proposalCount", { count: filteredProposals.length })}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {loading ? (
+        <div className="flex justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+        </div>
+      ) : filteredProposals.length > 0 ? (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {filteredProposals.map((proposal) => (
+            <div
+              key={proposal.publicKey.toString()}
+              className="bg-gray-800/50 rounded-xl overflow-hidden border border-gray-700 
+                hover:border-gray-500 transition-all duration-200 shadow-lg hover:shadow-xl
+                transform hover:-translate-y-1"
             >
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                {/* Image */}
-                <div className="w-full sm:w-32 h-32 flex-shrink-0">
-                  {proposal.image_url ? (
-                    <img
-                      src={proposal.image_url}
-                      alt={proposal.name}
-                      className="w-full h-full object-cover rounded-lg"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gray-800 rounded-lg flex items-center justify-center text-gray-600">
-                      {t("noImage")}
-                    </div>
-                  )}
-                </div>
+              {/* Image placeholder - à remplacer par l'image réelle */}
+              <div className="h-48 bg-gray-700 animate-pulse"></div>
 
-                {/* Content */}
-                <div className="flex-1 min-w-0 space-y-2">
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                    <div>
-                      <h3 className="text-lg font-medium truncate group-hover:text-blue-400">
-                        {proposal.name}
-                      </h3>
-                      <p className="text-sm font-mono text-gray-400">
-                        ${proposal.ticker}
-                      </p>
-                    </div>
-                    <div className="w-full sm:w-auto text-left sm:text-right">
-                      <p className="text-lg font-medium text-green-500">
-                        {t("solanaRaised", {
-                          amount: proposal.solana_raised.toLocaleString(
-                            locale,
-                            {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2,
-                            }
-                          ),
-                        })}
-                      </p>
-                    </div>
-                  </div>
-
-                  <p className="text-sm text-gray-300 line-clamp-2">
-                    {proposal.description}
-                  </p>
-
-                  <div className="flex flex-wrap gap-2 text-xs text-gray-400">
-                    <span className="bg-gray-800/50 px-2 py-1 rounded">
-                      {t("epochId")}: {proposal.epoch_id}
-                    </span>
+              <div className="p-6 space-y-4">
+                <div className="space-y-2">
+                  <h3 className="text-xl font-bold text-gray-100">
+                    {proposal.tokenName}
+                  </h3>
+                  <div className="flex justify-between items-center">
+                    <p className="text-sm text-gray-400">
+                      ${proposal.tokenSymbol}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {t("by")} {proposal.creator.toString().slice(0, 4)}...
+                      {proposal.creator.toString().slice(-4)}
+                    </p>
                   </div>
                 </div>
+
+                <div className="flex justify-between items-center text-sm text-gray-300">
+                  <span>
+                    {t("solanaRaised", {
+                      amount: (proposal.solRaised / LAMPORTS_PER_SOL).toFixed(
+                        2
+                      ),
+                    })}
+                  </span>
+                  <span className="text-gray-400">
+                    {t("totalContributions", {
+                      count: proposal.totalContributions,
+                    })}
+                  </span>
+                </div>
+
+                <Link
+                  href={`/${locale}/proposal/${proposal.publicKey.toString()}#support`}
+                  className="block w-full text-center px-4 py-2 bg-green-600 text-white rounded-lg
+                    hover:bg-green-700 transition-colors duration-200"
+                >
+                  {t("supportProject")}
+                </Link>
               </div>
-            </Link>
+            </div>
           ))}
         </div>
-      </div>
+      ) : (
+        <div className="text-center py-8 text-gray-400">
+          {selectedEpochId
+            ? t("noProposalsInEpoch")
+            : t("selectEpochToViewProposals")}
+        </div>
+      )}
     </div>
   );
 }

@@ -1,34 +1,135 @@
 "use client";
 
+import EpochSelector from "@/components/epoch/EpochSelector";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
+import { EpochState, useProgram } from "@/context/ProgramContext";
 import { useTranslations } from "next-intl";
-import { useCallback, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
+import { toast } from "sonner";
 
 export default function ProposalForm() {
   const t = useTranslations("ProposalForm");
-  // Form state
+  const { createProposal, getAllEpochs } = useProgram();
+  const router = useRouter();
+  const { locale } = useParams();
+  const [selectedEpochId, setSelectedEpochId] = useState<string>();
+  const [selectedEpochDetails, setSelectedEpochDetails] =
+    useState<EpochState | null>(null);
+
+  // Form state with default values
   const [formData, setFormData] = useState({
     name: "",
     ticker: "",
     description: "",
     image: null as File | null,
     totalSupply: "",
-    creatorSupply: 10, // Default 10%
-    supportersSupply: 10, // Default 10%
+    creatorAllocation: 5, // Default to 5%
+    supportersAllocation: 95, // Automatically calculated
+    lockupPeriod: 86400, // Default to 1 day in seconds
   });
 
-  // Handle form submission - will be connected to the program later
+  // Load epoch details when one is selected
+  useEffect(() => {
+    const loadEpochDetails = async () => {
+      if (!selectedEpochId) return;
+      try {
+        const epochs = await getAllEpochs();
+        const epoch = epochs.find((e) => e.epochId === selectedEpochId);
+        if (epoch) {
+          setSelectedEpochDetails(epoch);
+          // Update minimum lockup period to epoch end date
+          const epochEndDate = new Date(epoch.endTime * 1000);
+          if (
+            formData.lockupPeriod <
+            epochEndDate.getTime() - new Date().getTime()
+          ) {
+            setFormData((prev) => ({
+              ...prev,
+              lockupPeriod: epochEndDate.getTime() - new Date().getTime(),
+            }));
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch epoch details:", error);
+      }
+    };
+
+    loadEpochDetails();
+  }, [selectedEpochId, getAllEpochs]);
+
+  // Update supporters allocation when creator allocation changes
+  useEffect(() => {
+    setFormData((prev) => ({
+      ...prev,
+      supportersAllocation: 100 - prev.creatorAllocation,
+    }));
+  }, [formData.creatorAllocation]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Connect with Solana program
-    console.log("Form submitted:", formData);
+    console.log("Starting proposal creation...");
+    console.log("Form data:", {
+      epochId: selectedEpochId,
+      name: formData.name,
+      ticker: formData.ticker,
+      totalSupply: formData.totalSupply,
+      creatorAllocation: formData.creatorAllocation,
+      lockupPeriod: formData.lockupPeriod,
+    });
+
+    if (!selectedEpochId) {
+      toast.error(t("selectEpochFirst"));
+      return;
+    }
+
+    // Validate creator allocation
+    if (formData.creatorAllocation > 10) {
+      toast.error(t("creatorAllocationTooHigh"));
+      return;
+    }
+
+    // Validate total supply
+    if (
+      isNaN(Number(formData.totalSupply)) ||
+      Number(formData.totalSupply) <= 0
+    ) {
+      toast.error(t("invalidTotalSupply"));
+      return;
+    }
+
+    // Show loading toast
+    const loadingToast = toast.loading(t("submitting"));
+
+    try {
+      console.log("Calling program createProposal...");
+      await createProposal(
+        selectedEpochId,
+        formData.name,
+        formData.ticker,
+        parseInt(formData.totalSupply),
+        formData.creatorAllocation,
+        formData.lockupPeriod
+      );
+      console.log("Proposal created successfully!");
+
+      // Show success toast and redirect
+      toast.dismiss(loadingToast);
+      toast.success(t("proposalCreated"));
+      router.push(`/${locale}`);
+    } catch (error: any) {
+      console.error("Failed to create proposal:", error);
+      // Show error toast
+      toast.dismiss(loadingToast);
+      toast.error(error.message || t("errorCreating"));
+    }
   };
 
-  // Handle file drop
+  // Handle file upload
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
       setFormData((prev) => ({ ...prev, image: acceptedFiles[0] }));
@@ -49,6 +150,10 @@ export default function ProposalForm() {
         {t("title")}
       </h1>
       <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
+        <EpochSelector
+          selectedEpochId={selectedEpochId}
+          onSelect={setSelectedEpochId}
+        />
         {/* Project Name */}
         <div>
           <label
@@ -176,34 +281,55 @@ export default function ProposalForm() {
           />
         </div>
 
-        {/* Creator Supply Slider */}
+        {/* Creator Allocation Slider */}
         <div>
-          <label className="block text-xs md:text-sm font-medium mb-2 md:mb-4">
-            {t("creatorSupply", { value: formData.creatorSupply })}
+          <label className="block text-xs md:text-sm font-medium mb-2">
+            {t("creatorAllocation")}
           </label>
-          <Slider
-            value={[formData.creatorSupply]}
-            onValueChange={(value) =>
-              setFormData({ ...formData, creatorSupply: value[0] })
-            }
-            max={100}
-            step={1}
-          />
+          <div className="space-y-4">
+            <Slider
+              value={[formData.creatorAllocation]}
+              onValueChange={(value) =>
+                setFormData({ ...formData, creatorAllocation: value[0] })
+              }
+              max={10}
+              step={0.1}
+              className="my-4"
+            />
+            <div className="flex justify-between text-sm text-gray-400">
+              <p>
+                {t("creatorAllocationInfo", {
+                  value: formData.creatorAllocation.toFixed(1),
+                })}
+              </p>
+              <p>
+                {t("supportersAllocationInfo", {
+                  value: formData.supportersAllocation.toFixed(1),
+                })}
+              </p>
+            </div>
+          </div>
         </div>
 
-        {/* Supporters Supply Slider */}
+        {/* Lockup Period */}
         <div>
-          <label className="block text-xs md:text-sm font-medium mb-2 md:mb-4">
-            {t("supportersSupply", { value: formData.supportersSupply })}
+          <label className="block text-xs md:text-sm font-medium mb-2">
+            {t("lockupPeriod")}
           </label>
-          <Slider
-            value={[formData.supportersSupply]}
-            onValueChange={(value) =>
-              setFormData({ ...formData, supportersSupply: value[0] })
+          <select
+            value={formData.lockupPeriod}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                lockupPeriod: parseInt(e.target.value),
+              })
             }
-            max={100}
-            step={1}
-          />
+            className="w-full p-2 rounded bg-gray-800 border border-gray-700 text-gray-200"
+          >
+            <option value={86400}>{t("lockupPeriodDay")}</option>
+            <option value={604800}>{t("lockupPeriodWeek")}</option>
+            <option value={2592000}>{t("lockupPeriodMonth")}</option>
+          </select>
         </div>
 
         {/* Submit Button */}
