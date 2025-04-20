@@ -34,7 +34,7 @@ pub struct TokenProposal {
     pub status: ProposalStatus,       // Enum indicating the proposal status
 }
 
-#[derive(AnchorSerialize, AnchorDeserialize, Clone, PartialEq, Eq, InitSpace)]
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, PartialEq, Eq, InitSpace, Debug)] // Added Debug to allow logging the status using msg! with {:?}
 pub enum ProposalStatus {
     Active,
     Validated,
@@ -55,4 +55,13 @@ pub struct UserProposalSupport {
 pub struct Treasury {
     pub authority: Pubkey,     // Public key authorized to manage the treasury
     pub platform_fees: u64,    // Total platform fees collected in lamports
+}
+
+// --- Nouveau compte de configuration globale ---
+#[account]
+#[derive(InitSpace)]
+pub struct ProgramConfig {
+    // Clé publique de l'autorité autorisée à exécuter certaines instructions (ex: update_proposal_status)
+    pub admin_authority: Pubkey,
+    // On pourrait ajouter d'autres paramètres globaux ici si nécessaire
 }
