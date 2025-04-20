@@ -9,7 +9,7 @@ pub use constants::*;
 pub use instructions::*;
 pub use state::*;
 
-declare_id!("89S48feUon6ffgtLzsnqoBVwdb1mxT4rmhRR5WnYefpA");
+declare_id!("AShDD8HM1XMh3T2ynMrZvwGUBSbuWe6oAEcucrZswU4G");
 
 
 #[program]
@@ -64,5 +64,11 @@ pub mod programs {
         proposal_id: u64,
     ) -> Result<()> {
         get_proposal_details::handler(ctx, proposal_id)
+    }
+
+    pub fn check_epoch_end(
+        ctx: Context<CheckEpochEnd>,
+    ) -> Result<()> {
+        check_epoch_end::handler(ctx)
     }
 }

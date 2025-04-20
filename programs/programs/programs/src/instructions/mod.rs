@@ -5,6 +5,7 @@ pub mod get_proposal_details;
 pub mod initialize;
 pub mod start_epoch;
 pub mod support_proposal;
+pub mod check_epoch_end;
 
 
 pub use create_token_proposal::*;
@@ -14,4 +15,5 @@ pub use end_epoch::*;
 pub use get_proposal_details::*;
 pub use initialize::*;
 pub use support_proposal::*;
+pub use check_epoch_end::*;
 
