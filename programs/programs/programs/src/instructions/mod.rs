@@ -7,6 +7,8 @@ pub mod initialize_program_config;
 pub mod start_epoch;
 pub mod support_proposal;
 pub mod update_proposal_status;
+pub mod check_epoch_end;
+pub mod create_epoch_task;
 
 
 pub use create_token_proposal::*;
@@ -18,4 +20,6 @@ pub use initialize::*;
 pub use initialize_program_config::*;
 pub use support_proposal::*;
 pub use update_proposal_status::*;
+pub use check_epoch_end::*;
+pub use create_epoch_task::*;
 

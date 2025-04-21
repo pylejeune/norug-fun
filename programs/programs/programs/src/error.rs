@@ -50,5 +50,9 @@ pub enum ErrorCode {
 
     #[msg("La proposition a déjà un statut final (Validée ou Rejetée)")]
     ProposalAlreadyFinalized,
+    
+    // --- Nouveaux codes pour le scheduler ---
+    #[msg("Autorité de la tâche planifiée invalide")]
+    InvalidTaskAuthority,
 }
 
