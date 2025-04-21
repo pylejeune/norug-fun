@@ -28,7 +28,7 @@ pub struct TokenProposal {
     pub token_symbol: String,         // Token symbol
     pub total_supply: u64,            // Total token supply
     pub creator_allocation: u8,       // % of supply for the creator (max 10%)
-    pub supporter_allocation: u8,     // % of supply for supporters (calculated by norug)
+    pub supporter_allocation: u8,     // % for supporters = ceil((100 - creator_allocation) / 2)
     pub sol_raised: u64,              // SOL raised via UserProposalSupport
     pub total_contributions: u64,     // Number of supporters
     pub lockup_period: i64,           // Lock-up period in seconds during which the creator cannot sell
