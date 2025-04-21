@@ -4,7 +4,13 @@ import { getProgram } from "@/context/program";
 import { BN, Program } from "@coral-xyz/anchor";
 import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
 import { LAMPORTS_PER_SOL, PublicKey, SystemProgram } from "@solana/web3.js";
-import { createContext, useContext, useMemo, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+} from "react";
 import { Programs } from "./types/programs";
 
 export type { Programs };
@@ -58,11 +64,13 @@ type ProgramContextType = {
     epochId: string,
     tokenName: string,
     tokenSymbol: string,
+    description: string,
     totalSupply: number,
     creatorAllocation: number,
     lockupPeriod: number
   ) => Promise<void>;
   getAllProposals: () => Promise<ProposalState[]>;
+  getProposalDetails: (proposalId: string) => Promise<any>;
 };
 
 const ProgramContext = createContext<ProgramContextType | null>(null);
@@ -238,65 +246,70 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const createProposal = async (
-    epochId: string,
-    tokenName: string,
-    tokenSymbol: string,
-    totalSupply: number,
-    creatorAllocation: number,
-    lockupPeriod: number
-  ) => {
-    if (!program || !isConnected || !wallet) {
-      throw new Error("Please connect your wallet first");
-    }
-
-    try {
-      // Récupérer l'epoch
-      const epochState = await getEpochState(parseInt(epochId));
-      if (!epochState) {
-        throw new Error("Epoch not found");
+  const createProposal = useCallback(
+    async (
+      epochId: string,
+      tokenName: string,
+      tokenSymbol: string,
+      description: string,
+      totalSupply: number,
+      creatorAllocation: number,
+      lockupPeriod: number
+    ) => {
+      if (!program || !isConnected || !wallet) {
+        throw new Error("Please connect your wallet first");
       }
 
-      // Vérifier que l'epoch est active
-      if (!("active" in epochState.status)) {
-        throw new Error("Epoch is not active");
+      try {
+        // Récupérer l'epoch
+        const epochState = await getEpochState(parseInt(epochId));
+        if (!epochState) {
+          throw new Error("Epoch not found");
+        }
+
+        // Vérifier que l'epoch est active
+        if (!("active" in epochState.status)) {
+          throw new Error("Epoch is not active");
+        }
+
+        // Générer le PDA pour la proposition
+        const [proposalPDA] = PublicKey.findProgramAddressSync(
+          [
+            Buffer.from("proposal"),
+            wallet.publicKey.toBuffer(),
+            new BN(epochId).toArrayLike(Buffer, "le", 8),
+            Buffer.from(tokenName),
+          ],
+          program.programId
+        );
+
+        const tx = await (program as Program).methods
+          .createProposal(
+            tokenName,
+            tokenSymbol,
+            description,
+            new BN(totalSupply),
+            creatorAllocation,
+            new BN(lockupPeriod)
+          )
+          .accounts({
+            creator: wallet.publicKey,
+            tokenProposal: proposalPDA,
+            epoch: epochState.publicKey,
+            systemProgram: SystemProgram.programId,
+          })
+          .rpc();
+
+        console.log("✅ Proposal created:", tx);
+        setSuccess("Proposal created successfully");
+      } catch (err: any) {
+        console.error("❌ Error creating proposal:", err);
+        setError(err.message);
+        throw err;
       }
-
-      // Générer le PDA pour la proposition
-      const [proposalPDA] = PublicKey.findProgramAddressSync(
-        [
-          Buffer.from("proposal"),
-          wallet.publicKey.toBuffer(),
-          new BN(epochId).toArrayLike(Buffer, "le", 8),
-          Buffer.from(tokenName),
-        ],
-        program.programId
-      );
-
-      const tx = await (program as Program).methods
-        .createProposal(
-          tokenName,
-          tokenSymbol,
-          new BN(totalSupply),
-          creatorAllocation,
-          new BN(lockupPeriod)
-        )
-        .accounts({
-          creator: wallet.publicKey,
-          tokenProposal: proposalPDA,
-          epoch: epochState.publicKey,
-          systemProgram: SystemProgram.programId,
-        })
-        .rpc();
-
-      console.log("✅ Proposal created:", tx);
-      setSuccess("Proposal created successfully");
-    } catch (err: any) {
-      console.error("❌ Error creating proposal:", err);
-      setError(err.message);
-      throw err;
-    }
-  };
+    },
+    [program, isConnected, wallet]
+  );
 
   const getAllProposals = async (): Promise<ProposalState[]> => {
     if (!program) return [];
@@ -327,6 +340,39 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const getProposalDetails = useCallback(
+    async (proposalId: string) => {
+      if (!program) throw new Error("Program not initialized");
+
+      try {
+        console.log("Fetching proposal:", proposalId);
+        const proposal = await (
+          program as Program<Programs>
+        ).account.tokenProposal.fetch(new PublicKey(proposalId));
+
+        // Transformer les données pour correspondre au format attendu
+        return {
+          epochId: proposal.epochId.toString(),
+          creator: proposal.creator,
+          tokenName: proposal.tokenName,
+          tokenSymbol: proposal.tokenSymbol,
+          totalSupply: proposal.totalSupply.toNumber(),
+          creatorAllocation: proposal.creatorAllocation,
+          supporterAllocation: proposal.supporterAllocation,
+          solRaised: proposal.solRaised.toNumber(),
+          totalContributions: proposal.totalContributions.toNumber(),
+          lockupPeriod: proposal.lockupPeriod.toNumber(),
+          status: proposal.status,
+          publicKey: new PublicKey(proposalId),
+        };
+      } catch (error) {
+        console.error("Failed to fetch proposal details:", error);
+        throw error;
+      }
+    },
+    [program]
+  );
+
   const value = useMemo(
     () => ({
       program,
@@ -341,6 +387,7 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
       endEpoch,
       createProposal,
       getAllProposals,
+      getProposalDetails,
     }),
     [program, isConnected, error, success]
   );

@@ -163,7 +163,7 @@
     "solanaRaised": "{amount} SOL",
     "yourSupport": "Votre support : {amount} SOL",
     "status": {
-      "active": "En cours",
+      "active": "Actif",
       "validated": "Validé",
       "rejected": "Rejeté"
     },
@@ -172,7 +172,12 @@
     "noImage": "Pas d'image",
     "supportAmount": "Montant du support",
     "currentRank": "Actuellement #{rank} sur {total} propositions",
-    "backButton": "Retour"
+    "backButton": "Retour",
+    "creatorAllocation": "Allocation Créateur",
+    "supporterAllocation": "Allocation Supporters",
+    "errorLoadingProposal": "Erreur lors du chargement de la proposition",
+    "proposalNotFound": "Proposition introuvable",
+    "totalContributions": "{count, plural, =0 {Aucune contribution} one {# contribution} other {# contributions}}"
   },
   "EpochForm": {
     "title": "Créer un Nouvel Epoch",

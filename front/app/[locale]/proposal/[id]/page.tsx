@@ -1,36 +1,32 @@
 "use client";
 
+import { useProgram } from "@/context/ProgramContext";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { PublicKey } from "@solana/web3.js";
 import { format } from "date-fns";
 import { enUS, fr } from "date-fns/locale";
 import { ArrowLeftIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
-type ProposalStatus = "active" | "rejected" | "validated";
+type ProposalStatus = "active" | "validated" | "rejected";
 
 type DetailedProposal = {
   id: string;
   name: string;
   ticker: string;
-  description: string;
-  image_url: string | null;
   epoch_id: string;
-  created_at: Date;
-  ended_at: Date;
-  final_solana_raised: number;
-  creator_address: string;
-  is_user_proposal: boolean;
-  is_user_supported: boolean;
-  user_support_amount?: number;
+  solRaised: number;
+  creator: PublicKey;
+  totalSupply: number;
+  creatorAllocation: number;
+  supporterAllocation: number;
   status: ProposalStatus;
-  total_supply: number;
-  creator_supply: number;
-  supporters_supply: number;
-  is_active: boolean;
-  rank?: number;
-  total_proposals: number;
+  totalContributions: number;
+  lockupPeriod: number;
+  publicKey: PublicKey;
 };
 
 export default function ProposalDetailPage() {
@@ -39,34 +35,73 @@ export default function ProposalDetailPage() {
   const { publicKey } = useWallet();
   const router = useRouter();
   const [supportAmount, setSupportAmount] = useState<string>("");
+  const { getProposalDetails } = useProgram();
+  const [proposal, setProposal] = useState<DetailedProposal | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  // TODO: Fetch proposal details from Solana program
-  const [proposal] = useState<DetailedProposal>({
-    id: "token_1",
-    name: "Project Alpha",
-    ticker: "ALPHA",
-    description: "A revolutionary DeFi protocol for sustainable yield farming",
-    image_url: "/tokenDemo/alpha.png",
-    epoch_id: "epoch_1",
-    created_at: new Date("2025-04-14T19:00:00"),
-    ended_at: new Date("2025-04-15T18:59:59"),
-    final_solana_raised: 25.5,
-    creator_address: "abc123...",
-    is_user_proposal: false,
-    is_user_supported: false,
-    status: "active",
-    is_active: true,
-    total_supply: 1000000,
-    creator_supply: 200000,
-    supporters_supply: 800000,
-    rank: 12,
-    total_proposals: 25,
-  });
+  useEffect(() => {
+    const loadProposal = async () => {
+      try {
+        setLoading(true);
+        if (!id) {
+          toast.error(t("proposalNotFound"));
+          return;
+        }
 
-  const formatDate = (date: Date) => {
-    return format(date, "PPpp", {
-      locale: locale === "fr" ? fr : enUS,
-    });
+        // Attendre que le programme soit initialisé
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
+        const details = await getProposalDetails(id as string);
+        if (!details) {
+          toast.error(t("proposalNotFound"));
+          return;
+        }
+
+        console.log("Proposal details:", details);
+
+        const formattedProposal: DetailedProposal = {
+          id: id as string,
+          name: details.tokenName,
+          ticker: details.tokenSymbol,
+          epoch_id: details.epochId,
+          solRaised: details.solRaised,
+          creator: details.creator,
+          totalSupply: details.totalSupply,
+          creatorAllocation: details.creatorAllocation,
+          supporterAllocation: details.supporterAllocation,
+          status: details.status as ProposalStatus,
+          totalContributions: details.totalContributions,
+          lockupPeriod: details.lockupPeriod,
+          publicKey: details.publicKey,
+        };
+
+        setProposal(formattedProposal);
+      } catch (error) {
+        console.error("Failed to load proposal:", error);
+        if ((error as Error).message === "Program not initialized") {
+          // Réessayer après un délai
+          setTimeout(loadProposal, 1000);
+        } else {
+          toast.error(t("errorLoadingProposal"));
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProposal();
+  }, [id, getProposalDetails]);
+
+  const formatDate = (date: Date | undefined) => {
+    if (!date || isNaN(date.getTime())) return "-";
+    try {
+      return format(date, "PPpp", {
+        locale: locale === "fr" ? fr : enUS,
+      });
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return "-";
+    }
   };
 
   // Fonction helper pour formater les grands nombres
@@ -78,6 +113,30 @@ export default function ProposalDetailPage() {
   const handleSupport = async (e: React.FormEvent) => {
     console.log("TODO: Support with", supportAmount, "SOL");
   };
+
+  const getStatusString = (status: any): ProposalStatus => {
+    if (typeof status === "object") {
+      // Si c'est un objet, prendre la première clé
+      return Object.keys(status)[0] as ProposalStatus;
+    }
+    return status as ProposalStatus;
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+      </div>
+    );
+  }
+
+  if (!proposal) {
+    return (
+      <div className="text-center py-8 text-gray-400">
+        {t("proposalNotFound")}
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-4xl mx-auto p-2 md:p-4 space-y-4 md:space-y-6">
@@ -95,17 +154,9 @@ export default function ProposalDetailPage() {
         <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
           {/* Image Container */}
           <div className="w-full lg:w-1/3 max-w-sm mx-auto lg:mx-0">
-            {proposal.image_url ? (
-              <img
-                src={proposal.image_url}
-                alt={proposal.name}
-                className="w-full aspect-square object-cover rounded-lg"
-              />
-            ) : (
-              <div className="w-full aspect-square bg-gray-800 rounded-lg flex items-center justify-center text-gray-600">
-                {t("noImage")}
-              </div>
-            )}
+            <div className="w-full aspect-square bg-gray-800 rounded-lg flex items-center justify-center text-gray-600">
+              {t("noImage")}
+            </div>
           </div>
 
           {/* Info */}
@@ -124,125 +175,92 @@ export default function ProposalDetailPage() {
             <div className="flex flex-col items-center lg:items-start gap-2 mb-6">
               <p className="text-xl font-medium text-green-500">
                 {t("solanaRaised", {
-                  amount: proposal.final_solana_raised.toLocaleString(locale, {
+                  amount: proposal.solRaised.toLocaleString(locale, {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
                   }),
                 })}
               </p>
-              {proposal.is_user_supported && proposal.user_support_amount && (
-                <p className="text-base text-blue-400">
-                  {t("yourSupport", {
-                    amount: proposal.user_support_amount.toLocaleString(
-                      locale,
-                      {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      }
-                    ),
-                  })}
-                </p>
-              )}
               <p
                 className={`text-base font-medium ${
-                  proposal.status === "validated"
+                  getStatusString(proposal.status) === "validated"
                     ? "text-green-500"
-                    : proposal.status === "active"
+                    : getStatusString(proposal.status) === "active"
                     ? "text-blue-500"
                     : "text-red-500"
                 }`}
               >
-                {t(`status.${proposal.status}`)}
+                {t(`status.${getStatusString(proposal.status)}`)}
               </p>
             </div>
 
             {/* Support Form */}
-            {!proposal.is_user_proposal && proposal.is_active && (
-              <form
-                onSubmit={handleSupport}
-                className="space-y-3 max-w-md mx-auto lg:mx-0"
-              >
-                <div className="flex flex-col gap-2">
-                  <label
-                    htmlFor="supportAmount"
-                    className="block text-sm font-medium text-gray-400"
-                  >
-                    {t("supportAmount")}
-                  </label>
-                  <div className="flex gap-2">
-                    <div className="relative flex-1">
-                      <input
-                        type="number"
-                        id="supportAmount"
-                        value={supportAmount}
-                        onChange={(e) => setSupportAmount(e.target.value)}
-                        min="0"
-                        step="0.1"
-                        required
-                        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 pr-12 text-white"
-                        placeholder="0.0"
-                      />
-                      <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                        <span className="text-gray-400">SOL</span>
-                      </div>
-                    </div>
-                    <button
-                      type="submit"
-                      className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
-                      disabled={!publicKey || !supportAmount}
+            {publicKey &&
+              !publicKey.equals(proposal.creator) &&
+              proposal.status === "active" && (
+                <form
+                  onSubmit={handleSupport}
+                  className="space-y-3 max-w-md mx-auto lg:mx-0"
+                >
+                  <div className="flex flex-col gap-2">
+                    <label
+                      htmlFor="supportAmount"
+                      className="block text-sm font-medium text-gray-400"
                     >
-                      {publicKey ? t("supportButton") : t("connectToSupport")}
-                    </button>
+                      {t("supportAmount")}
+                    </label>
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <input
+                          type="number"
+                          id="supportAmount"
+                          value={supportAmount}
+                          onChange={(e) => setSupportAmount(e.target.value)}
+                          min="0"
+                          step="0.1"
+                          required
+                          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 pr-12 text-white"
+                          placeholder="0.0"
+                        />
+                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                          <span className="text-gray-400">SOL</span>
+                        </div>
+                      </div>
+                      <button
+                        type="submit"
+                        className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                        disabled={!publicKey || !supportAmount}
+                      >
+                        {publicKey ? t("supportButton") : t("connectToSupport")}
+                      </button>
+                    </div>
                   </div>
-                </div>
-                {proposal.rank && proposal.rank > 10 && (
-                  <p className="text-sm text-center lg:text-left text-gray-400">
-                    {t("currentRank", {
-                      rank: proposal.rank,
-                      total: proposal.total_proposals,
-                    })}
-                  </p>
-                )}
-              </form>
-            )}
+                </form>
+              )}
           </div>
         </div>
 
         {/* Details Sections */}
         <div className="mt-6 space-y-4">
-          {/* Description */}
-          <div className="bg-gray-800/50 p-4 rounded-lg">
-            <h2 className="text-lg font-medium mb-2">{t("description")}</h2>
-            <p className="text-gray-300 whitespace-pre-wrap">
-              {proposal.description}
-            </p>
-          </div>
-
           {/* Tokenomics */}
           <div className="bg-gray-800/50 p-4 rounded-lg">
             <h2 className="text-lg font-medium mb-4">{t("tokenomics")}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="bg-gray-900/50 p-3 rounded-lg">
                 <p className="text-sm text-gray-400 mb-1">{t("totalSupply")}</p>
-                <p className="text-lg">
-                  {formatNumber(proposal.total_supply)}
-                </p>
+                <p className="text-lg">{formatNumber(proposal.totalSupply)}</p>
               </div>
               <div className="bg-gray-900/50 p-3 rounded-lg">
-                <p className="text-sm text-gray-400 mb-1">{t("creatorSupply")}</p>
-                <p className="text-lg">
-                  {formatNumber(proposal.creator_supply)} (
-                  {((proposal.creator_supply / proposal.total_supply) * 100).toFixed(1)}
-                  %)
+                <p className="text-sm text-gray-400 mb-1">
+                  {t("creatorAllocation")}
                 </p>
+                <p className="text-lg">{proposal.creatorAllocation}%</p>
               </div>
               <div className="bg-gray-900/50 p-3 rounded-lg">
-                <p className="text-sm text-gray-400 mb-1">{t("supportersSupply")}</p>
-                <p className="text-lg">
-                  {formatNumber(proposal.supporters_supply)} (
-                  {((proposal.supporters_supply / proposal.total_supply) * 100).toFixed(1)}
-                  %)
+                <p className="text-sm text-gray-400 mb-1">
+                  {t("supporterAllocation")}
                 </p>
+                <p className="text-lg">{proposal.supporterAllocation}%</p>
               </div>
             </div>
           </div>
@@ -256,18 +274,18 @@ export default function ProposalDetailPage() {
                 <p>{proposal.epoch_id}</p>
               </div>
               <div className="bg-gray-900/50 p-3 rounded-lg">
-                <p className="text-sm text-gray-400 mb-1">{t("createdAt")}</p>
-                <p>{formatDate(proposal.created_at)}</p>
-              </div>
-              <div className="bg-gray-900/50 p-3 rounded-lg">
-                <p className="text-sm text-gray-400 mb-1">{t("endDate")}</p>
-                <p>{formatDate(proposal.ended_at)}</p>
-              </div>
-              <div className="bg-gray-900/50 p-3 rounded-lg">
                 <p className="text-sm text-gray-400 mb-1">{t("creator")}</p>
                 <p className="font-mono break-all">
-                  {proposal.creator_address}
+                  {proposal.creator.toBase58()}
                 </p>
+              </div>
+              <div className="bg-gray-900/50 p-3 rounded-lg">
+                <p className="text-sm text-gray-400 mb-1">
+                  {t("totalContributions", {
+                    count: proposal.totalContributions,
+                  })}
+                </p>
+                <p>{proposal.totalContributions}</p>
               </div>
             </div>
           </div>

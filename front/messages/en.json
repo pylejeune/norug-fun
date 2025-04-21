@@ -172,7 +172,12 @@
     "noImage": "No image",
     "supportAmount": "Support amount",
     "currentRank": "Currently ranked #{rank} out of {total} proposals",
-    "backButton": "Back"
+    "backButton": "Back",
+    "creatorAllocation": "Creator Allocation",
+    "supporterAllocation": "Supporter Allocation",
+    "errorLoadingProposal": "Error loading proposal",
+    "proposalNotFound": "Proposal not found",
+    "totalContributions": "{count, plural, =0 {No contributions} one {# contribution} other {# contributions}}"
   },
   "EpochForm": {
     "title": "Create New Epoch",

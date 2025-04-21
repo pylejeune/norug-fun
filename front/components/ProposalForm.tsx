@@ -111,6 +111,7 @@ export default function ProposalForm() {
         selectedEpochId,
         formData.name,
         formData.ticker,
+        formData.description,
         parseInt(formData.totalSupply),
         formData.creatorAllocation,
         formData.lockupPeriod
