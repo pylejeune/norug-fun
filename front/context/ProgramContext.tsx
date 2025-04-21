@@ -70,6 +70,7 @@ type ProgramContextType = {
   ) => Promise<void>;
   getAllProposals: () => Promise<ProposalState[]>;
   getProposalDetails: (proposalId: string) => Promise<any>;
+  supportProposal: (proposalId: string, amount: number) => Promise<void>;
 };
 
 const ProgramContext = createContext<ProgramContextType | null>(null);
@@ -356,7 +357,7 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
           totalSupply: proposal.totalSupply.toNumber(),
           creatorAllocation: proposal.creatorAllocation,
           supporterAllocation: proposal.supporterAllocation,
-          solRaised: proposal.solRaised.toNumber(),
+          solRaised: proposal.solRaised.toNumber() / LAMPORTS_PER_SOL,
           totalContributions: proposal.totalContributions.toNumber(),
           lockupPeriod: proposal.lockupPeriod.toNumber(),
           status: proposal.status,
@@ -368,6 +369,89 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
       }
     },
     [program]
+  );
+
+  const supportProposal = useCallback(
+    async (proposalId: string, amount: number) => {
+      if (!program || !isConnected || !wallet) {
+        throw new Error("Please connect your wallet first");
+      }
+
+      try {
+        // Récupérer les détails de la proposition
+        const proposal = await getProposalDetails(proposalId);
+        if (!proposal) {
+          throw new Error("Proposal not found");
+        }
+
+        // Vérifier si l'utilisateur a déjà supporté cette proposition
+        try {
+          const [userSupportPDA] = PublicKey.findProgramAddressSync(
+            [
+              Buffer.from("support"),
+              new BN(proposal.epochId).toArrayLike(Buffer, "le", 8),
+              wallet.publicKey.toBuffer(),
+              proposal.publicKey.toBuffer(),
+            ],
+            program.programId
+          );
+
+          await (
+            program as Program<Programs>
+          ).account.userProposalSupport.fetch(userSupportPDA);
+          // Si on arrive ici, le compte existe déjà
+          throw new Error("You have already supported this proposal");
+        } catch (err: any) {
+          // Si le compte n'existe pas, on continue
+          if (!err.message.includes("Account does not exist")) {
+            throw err;
+          }
+        }
+
+        // Récupérer l'état de l'epoch
+        const epochState = await getEpochState(parseInt(proposal.epochId));
+        if (!epochState) {
+          throw new Error("Epoch not found");
+        }
+
+        // Convertir le montant en lamports
+        const amountLamports = new BN(amount * LAMPORTS_PER_SOL);
+
+        // Générer le PDA pour le support utilisateur
+        const [userSupportPDA] = PublicKey.findProgramAddressSync(
+          [
+            Buffer.from("support"),
+            new BN(proposal.epochId).toArrayLike(Buffer, "le", 8),
+            wallet.publicKey.toBuffer(),
+            proposal.publicKey.toBuffer(),
+          ],
+          program.programId
+        );
+
+        // Exécuter l'instruction de support
+        const tx = await (program as Program).methods
+          .supportProposal(amountLamports)
+          .accounts({
+            user: wallet.publicKey,
+            epoch: epochState.publicKey,
+            proposal: proposal.publicKey,
+            userSupport: userSupportPDA,
+            systemProgram: SystemProgram.programId,
+          })
+          .rpc();
+
+        console.log("✅ Proposal supported:", tx);
+        setSuccess("Successfully supported proposal");
+
+        // Rafraîchir les détails de la proposition
+        await getProposalDetails(proposalId);
+      } catch (err: any) {
+        console.error("❌ Error supporting proposal:", err);
+        setError(err.message);
+        throw err;
+      }
+    },
+    [program, isConnected, wallet, getProposalDetails, getEpochState]
   );
 
   const value = useMemo(
@@ -385,6 +469,7 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
       createProposal,
       getAllProposals,
       getProposalDetails,
+      supportProposal,
     }),
     [program, isConnected, error, success]
   );

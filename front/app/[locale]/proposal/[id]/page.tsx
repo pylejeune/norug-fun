@@ -1,13 +1,11 @@
 "use client";
 
+import BackButton from "@/components/ui/BackButton";
 import { useProgram } from "@/context/ProgramContext";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey } from "@solana/web3.js";
-import { format } from "date-fns";
-import { enUS, fr } from "date-fns/locale";
-import { ArrowLeftIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -33,11 +31,11 @@ export default function ProposalDetailPage() {
   const t = useTranslations("ProposalDetail");
   const { locale, id } = useParams();
   const { publicKey } = useWallet();
-  const router = useRouter();
   const [supportAmount, setSupportAmount] = useState<string>("");
-  const { getProposalDetails } = useProgram();
+  const { getProposalDetails, supportProposal } = useProgram();
   const [proposal, setProposal] = useState<DetailedProposal | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const loadProposal = async () => {
@@ -92,26 +90,29 @@ export default function ProposalDetailPage() {
     loadProposal();
   }, [id, getProposalDetails]);
 
-  const formatDate = (date: Date | undefined) => {
-    if (!date || isNaN(date.getTime())) return "-";
-    try {
-      return format(date, "PPpp", {
-        locale: locale === "fr" ? fr : enUS,
-      });
-    } catch (error) {
-      console.error("Error formatting date:", error);
-      return "-";
-    }
-  };
-
   // Fonction helper pour formater les grands nombres
   const formatNumber = (number: number) => {
     return number.toLocaleString(locale === "fr" ? "fr-FR" : "en-US");
   };
 
-  // TODO: Implement support action
   const handleSupport = async (e: React.FormEvent) => {
-    console.log("TODO: Support with", supportAmount, "SOL");
+    e.preventDefault();
+    if (!proposal || !supportAmount) return;
+
+    try {
+      setIsSubmitting(true);
+      await supportProposal(
+        proposal.publicKey.toString(),
+        parseFloat(supportAmount)
+      );
+      toast.success(t("supportSuccess"));
+      setSupportAmount("");
+    } catch (error: any) {
+      console.error("Support failed:", error);
+      toast.error(error.message || t("supportError"));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const getStatusString = (status: any): ProposalStatus => {
@@ -141,13 +142,7 @@ export default function ProposalDetailPage() {
   return (
     <div className="w-full max-w-4xl mx-auto p-2 md:p-4 space-y-4 md:space-y-6">
       {/* Back Button */}
-      <button
-        onClick={() => router.back()}
-        className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
-      >
-        <ArrowLeftIcon className="w-4 h-4" />
-        <span>{t("backButton")}</span>
-      </button>
+      <BackButton />
 
       <div className="bg-gray-900/50 p-3 md:p-6 rounded-lg border border-gray-800">
         {/* Header */}
@@ -192,51 +187,60 @@ export default function ProposalDetailPage() {
               >
                 {t(`status.${getStatusString(proposal.status)}`)}
               </p>
-            </div>
 
-            {/* Support Form */}
-            {publicKey &&
-              !publicKey.equals(proposal.creator) &&
-              proposal.status === "active" && (
-                <form
-                  onSubmit={handleSupport}
-                  className="space-y-3 max-w-md mx-auto lg:mx-0"
-                >
-                  <div className="flex flex-col gap-2">
-                    <label
-                      htmlFor="supportAmount"
-                      className="block text-sm font-medium text-gray-400"
+              {/* Support Form */}
+              {publicKey ? (
+                getStatusString(proposal.status) !== "active" ? (
+                  <p className="text-sm text-gray-400">
+                    {t("proposalNotActive")}
+                  </p>
+                ) : (
+                  <div className="w-full max-w-sm mt-4">
+                    <form
+                      onSubmit={handleSupport}
+                      className="flex flex-col gap-3"
                     >
-                      {t("supportAmount")}
-                    </label>
-                    <div className="flex gap-2">
-                      <div className="relative flex-1">
+                      <div className="relative">
                         <input
                           type="number"
-                          id="supportAmount"
                           value={supportAmount}
                           onChange={(e) => setSupportAmount(e.target.value)}
-                          min="0"
-                          step="0.1"
+                          min="0.001"
+                          step="0.001"
                           required
-                          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 pr-12 text-white"
                           placeholder="0.0"
+                          className="w-full bg-gray-800/50 border border-gray-700 rounded-lg px-4 py-2 pr-12 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
-                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                          <span className="text-gray-400">SOL</span>
-                        </div>
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+                          SOL
+                        </span>
                       </div>
+                      <p className="text-xs text-gray-400">{t("minAmount")}</p>
                       <button
                         type="submit"
-                        className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
-                        disabled={!publicKey || !supportAmount}
+                        disabled={
+                          isSubmitting ||
+                          !supportAmount ||
+                          parseFloat(supportAmount) < 0.001
+                        }
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        {publicKey ? t("supportButton") : t("connectToSupport")}
+                        {isSubmitting ? t("supporting") : t("support")}
                       </button>
-                    </div>
+                    </form>
                   </div>
-                </form>
+                )
+              ) : (
+                <button
+                  onClick={() => {
+                    /* add wallet connect action */
+                  }}
+                  className="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors"
+                >
+                  {t("connectToSupport")}
+                </button>
               )}
+            </div>
           </div>
         </div>
 

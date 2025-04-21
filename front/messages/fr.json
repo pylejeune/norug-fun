@@ -172,7 +172,7 @@
     "supportButton": "Soutenir le Projet",
     "connectToSupport": "Connectez-vous pour Soutenir",
     "noImage": "Pas d'image",
-    "supportAmount": "Montant du support",
+    "supportAmount": "Montant du Support",
     "currentRank": "Actuellement #{rank} sur {total} propositions",
     "backButton": "Retour",
     "creatorAllocation": "Allocation Créateur",
@@ -181,7 +181,13 @@
     "proposalNotFound": "Proposition introuvable",
     "totalContributions": "{count, plural, =0 {Aucune contribution} one {# contribution} other {# contributions}}",
     "lockupPeriod": "Période de Blocage",
-    "days": "jours"
+    "days": "jours",
+    "support": "Soutenir le Projet",
+    "supporting": "En cours...",
+    "supportSuccess": "Projet soutenu avec succès",
+    "supportError": "Échec du support du projet",
+    "minAmount": "Le montant minimum est de 0.001 SOL",
+    "alreadySupported": "Vous avez déjà soutenu cette proposition"
   },
   "EpochForm": {
     "title": "Créer un Nouvel Epoch",

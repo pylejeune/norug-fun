@@ -77,7 +77,7 @@ export default function ProposalForm() {
   useEffect(() => {
     setFormData((prev) => ({
       ...prev,
-      supportersAllocation: 100 - prev.creatorAllocation,
+      supportersAllocation: 50 - prev.creatorAllocation,
     }));
   }, [formData.creatorAllocation]);
 
@@ -315,7 +315,7 @@ export default function ProposalForm() {
               </p>
               <p>
                 {t("supportersAllocationInfo", {
-                  value: formData.supportersAllocation.toFixed(1),
+                  value: (50 - formData.creatorAllocation).toFixed(1),
                 })}
               </p>
             </div>

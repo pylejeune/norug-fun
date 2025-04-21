@@ -172,7 +172,7 @@
     "supportButton": "Support Project",
     "connectToSupport": "Connect Wallet to Support",
     "noImage": "No image",
-    "supportAmount": "Support amount",
+    "supportAmount": "Support Amount",
     "currentRank": "Currently ranked #{rank} out of {total} proposals",
     "backButton": "Back",
     "creatorAllocation": "Creator Allocation",
@@ -181,7 +181,13 @@
     "proposalNotFound": "Proposal not found",
     "totalContributions": "{count, plural, =0 {No contributions} one {# contribution} other {# contributions}}",
     "lockupPeriod": "Lockup Period",
-    "days": "days"
+    "days": "days",
+    "support": "Support Project",
+    "supporting": "Supporting...",
+    "supportSuccess": "Successfully supported the project",
+    "supportError": "Failed to support the project",
+    "minAmount": "Minimum amount is 0.001 SOL",
+    "alreadySupported": "You have already supported this proposal"
   },
   "EpochForm": {
     "title": "Create New Epoch",
