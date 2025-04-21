@@ -9,8 +9,7 @@ pub use constants::*;
 pub use instructions::*;
 pub use state::*;
 
-declare_id!("89S48feUon6ffgtLzsnqoBVwdb1mxT4rmhRR5WnYefpA");
-
+declare_id!("4TLtv3BU2NwDmFUnbMChCQWc6ZXXRxjaSFXwwxHDU5Bz");
 
 #[program]
 pub mod programs {
@@ -63,7 +62,6 @@ pub mod programs {
         ctx: Context<EndEpoch>,
         epoch_id: u64,
     ) -> Result<()> {
-        // Vérifier que l'époque existe
         end_epoch::handler(ctx, epoch_id)
     }
 
@@ -81,10 +79,13 @@ pub mod programs {
         update_proposal_status::handler(ctx, new_status)
     }
 
-    // --- Nouvelle instruction pour marquer une époque comme traitée ---
     pub fn mark_epoch_processed(
         ctx: Context<MarkEpochProcessed>
     ) -> Result<()> {
         mark_epoch_processed::handler(ctx)
+    }
+
+    pub fn check_and_end_epochs(ctx: Context<CheckAndEndEpochs>) -> Result<()> {
+        instructions::check_and_end_epochs::handler(ctx)
     }
 }
