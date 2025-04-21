@@ -164,6 +164,7 @@ export default function ProposalForm() {
         <EpochSelector
           selectedEpochId={selectedEpochId}
           onSelect={setSelectedEpochId}
+          activeOnly
         />
         {/* Project Name */}
         <div>
@@ -315,7 +316,7 @@ export default function ProposalForm() {
               </p>
               <p>
                 {t("supportersAllocationInfo", {
-                  value: (50 - formData.creatorAllocation).toFixed(1),
+                  value: ((100 - formData.creatorAllocation) / 2).toFixed(1),
                 })}
               </p>
             </div>

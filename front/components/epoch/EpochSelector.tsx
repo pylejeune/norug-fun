@@ -1,29 +1,48 @@
 "use client";
 
 import { EpochState, useProgram } from "@/context/ProgramContext";
+import { format } from "date-fns";
+import { enUS, fr } from "date-fns/locale";
 import { useTranslations } from "next-intl";
+import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+
+type EpochSelectorProps = {
+  selectedEpochId?: string;
+  onSelect: (epochId: string) => void;
+  activeOnly?: boolean;
+  completedOnly?: boolean;
+};
 
 export default function EpochSelector({
   onSelect,
   selectedEpochId,
-}: {
-  onSelect: (epochId: string) => void;
-  selectedEpochId?: string;
-}) {
+  activeOnly,
+  completedOnly,
+}: EpochSelectorProps) {
   const t = useTranslations("EpochSelector");
   const { getAllEpochs } = useProgram();
   const [epochs, setEpochs] = useState<EpochState[]>([]);
   const [loading, setLoading] = useState(true);
+  const { locale } = useParams();
 
   useEffect(() => {
     const fetchEpochs = async () => {
       try {
         const allEpochs = await getAllEpochs();
-        const activeEpochs = allEpochs.filter(
-          (epoch) => "active" in epoch.status
-        );
-        setEpochs(activeEpochs);
+        let filteredEpochs = allEpochs;
+
+        if (activeOnly) {
+          filteredEpochs = allEpochs.filter(
+            (epoch) => "active" in epoch.status
+          );
+        } else if (completedOnly) {
+          filteredEpochs = allEpochs.filter(
+            (epoch) => "closed" in epoch.status
+          );
+        }
+
+        setEpochs(filteredEpochs);
       } catch (error) {
         console.error("Failed to fetch epochs:", error);
       } finally {
@@ -32,14 +51,14 @@ export default function EpochSelector({
     };
 
     fetchEpochs();
-  }, [getAllEpochs]);
+  }, [getAllEpochs, activeOnly, completedOnly]);
 
   if (loading) {
     return <div className="text-gray-400">{t("loading")}</div>;
   }
 
   return (
-    <div className="mb-4">
+    <div className="mb-4 transition-all duration-200">
       <label className="block text-sm font-medium mb-2 text-gray-200">
         {t("selectEpoch")}
       </label>
@@ -59,7 +78,15 @@ export default function EpochSelector({
             value={epoch.epochId}
             className="bg-gray-800 text-gray-200"
           >
-            {t("epochOption", { id: epoch.epochId })}
+            {t("epochOption", {
+              id: epoch.epochId,
+              startDate: format(new Date(epoch.startTime * 1000), "PP", {
+                locale: locale === "fr" ? fr : enUS,
+              }),
+              endDate: format(new Date(epoch.endTime * 1000), "PP", {
+                locale: locale === "fr" ? fr : enUS,
+              }),
+            })}
           </option>
         ))}
       </select>

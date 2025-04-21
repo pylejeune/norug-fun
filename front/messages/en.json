@@ -101,7 +101,14 @@
     "epochEnd": "Epoch End",
     "proposalsCount": "Active Proposals",
     "createdAgo": "Created {time}",
-    "by": "by"
+    "by": "by",
+    "activeProposals": "Active Proposals",
+    "previousEpochs": "Previous Epochs",
+    "topProposals": "Top Proposals",
+    "rank": "Rank #{rank}",
+    "qualifiedForPhase2": "Qualified for Phase 2",
+    "contributions": "{count, plural, =0 {No contributions} one {# contribution} other {# contributions}}",
+    "errorLoadingProposals": "Error loading proposals"
   },
   "Treasury": {
     "title": "Treasury",
@@ -236,8 +243,8 @@
   },
   "EpochSelector": {
     "loading": "Loading epochs...",
-    "selectEpoch": "Select Active Epoch",
+    "selectEpoch": "Select an epoch",
     "selectPlaceholder": "Choose an epoch",
-    "epochOption": "Epoch #{id}"
+    "epochOption": "Epoch #{id} ({startDate} - {endDate})"
   }
 }

@@ -101,7 +101,14 @@
     "epochEnd": "Fin de l'Epoch",
     "proposalsCount": "Propositions Actives",
     "createdAgo": "Créé {time}",
-    "by": "par"
+    "by": "par",
+    "activeProposals": "Propositions Actives",
+    "previousEpochs": "Epochs Précédentes",
+    "topProposals": "Meilleures Propositions",
+    "rank": "Rang #{rank}",
+    "qualifiedForPhase2": "Qualifié pour la Phase 2",
+    "contributions": "{count, plural, =0 {Aucune contribution} one {# contribution} other {# contributions}}",
+    "errorLoadingProposals": "Erreur lors du chargement des propositions"
   },
   "Treasury": {
     "title": "Trésorerie",
@@ -233,8 +240,8 @@
   },
   "EpochSelector": {
     "loading": "Chargement des epochs...",
-    "selectEpoch": "Sélectionner une Epoch Active",
+    "selectEpoch": "Sélectionner une epoch",
     "selectPlaceholder": "Choisir une epoch",
-    "epochOption": "Epoch #{id}"
+    "epochOption": "Epoch #{id} ({startDate} - {endDate})"
   }
 }

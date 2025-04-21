@@ -28,6 +28,7 @@ type DetailedProposal = {
 };
 
 export default function ProposalDetailPage() {
+  // Hooks and context
   const t = useTranslations("ProposalDetail");
   const { locale, id } = useParams();
   const { publicKey } = useWallet();
@@ -37,6 +38,7 @@ export default function ProposalDetailPage() {
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Load proposal details on mount
   useEffect(() => {
     const loadProposal = async () => {
       try {
@@ -46,7 +48,7 @@ export default function ProposalDetailPage() {
           return;
         }
 
-        // Attendre que le programme soit initialisé
+        // Wait for program initialization
         await new Promise((resolve) => setTimeout(resolve, 1000));
 
         const details = await getProposalDetails(id as string);
@@ -55,8 +57,7 @@ export default function ProposalDetailPage() {
           return;
         }
 
-        console.log("Proposal details:", details);
-
+        // Format proposal data
         const formattedProposal: DetailedProposal = {
           id: id as string,
           name: details.tokenName,
@@ -77,7 +78,7 @@ export default function ProposalDetailPage() {
       } catch (error) {
         console.error("Failed to load proposal:", error);
         if ((error as Error).message === "Program not initialized") {
-          // Réessayer après un délai
+          // Retry after delay if program not ready
           setTimeout(loadProposal, 1000);
         } else {
           toast.error(t("errorLoadingProposal"));
@@ -90,21 +91,19 @@ export default function ProposalDetailPage() {
     loadProposal();
   }, [id, getProposalDetails]);
 
-  // Fonction helper pour formater les grands nombres
+  // Helper function to format large numbers
   const formatNumber = (number: number) => {
     return number.toLocaleString(locale === "fr" ? "fr-FR" : "en-US");
   };
 
+  // Handle support form submission
   const handleSupport = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!proposal || !supportAmount) return;
 
     try {
       setIsSubmitting(true);
-      await supportProposal(
-        proposal.publicKey.toString(),
-        parseFloat(supportAmount)
-      );
+      await supportProposal(proposal.publicKey.toString(), parseFloat(supportAmount));
       toast.success(t("supportSuccess"));
       setSupportAmount("");
     } catch (error: any) {
@@ -115,14 +114,16 @@ export default function ProposalDetailPage() {
     }
   };
 
+  // Helper function to get status string
   const getStatusString = (status: any): ProposalStatus => {
     if (typeof status === "object") {
-      // Si c'est un objet, prendre la première clé
+      // If status is an object, take the first key
       return Object.keys(status)[0] as ProposalStatus;
     }
     return status as ProposalStatus;
   };
 
+  // Loading state
   if (loading) {
     return (
       <div className="flex justify-center py-8">
@@ -131,6 +132,7 @@ export default function ProposalDetailPage() {
     );
   }
 
+  // Not found state
   if (!proposal) {
     return (
       <div className="text-center py-8 text-gray-400">
