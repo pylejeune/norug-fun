@@ -80,16 +80,21 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: nightly-2025-04-01
+          toolchain: $RUSTUP_TOOLCHAIN
           targets: wasm32-unknown-unknown  # si nécessaire
       - run: rustup component add rustfmt
+
+      - name: Change version anchor
+        working-directory: programs
+        run: |
+          avm use $ANCHOR_VERSION && anchor --version
 
       - name: Build Anchor program
         working-directory: programs
         run: |
           rustc --version &&
           anchor --version &&
-          RUSTUP_TOOLCHAIN=nightly-2025-04-01 \
+          RUSTUP_TOOLCHAIN=$RUSTUP_TOOLCHAIN \
           anchor build
 
       - name: Run Anchor tests
