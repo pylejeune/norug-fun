@@ -20,11 +20,11 @@ pub mod programs {
     pub fn initialize_program_config(
         ctx: Context<InitializeProgramConfig>,
         admin_authority: Pubkey,
-    ) -> Result<()> {
+    ) -> anchor_lang::prelude::Result<()> {
         initialize_program_config::handler(ctx, admin_authority)
     }
 
-    pub fn initialize(_ctx: Context<Initialize>) -> Result<()> {
+    pub fn initialize(_ctx: Context<Initialize>) -> anchor_lang::prelude::Result<()> {
         initialize::handler(_ctx)
     }
 
@@ -33,7 +33,7 @@ pub mod programs {
         epoch_id: u64,
         start_time: i64,
         end_time: i64,
-    ) -> Result<()>{
+    ) -> anchor_lang::prelude::Result<()>{
         start_epoch::hanlder(ctx, epoch_id, start_time, end_time)
     }
 
@@ -44,47 +44,46 @@ pub mod programs {
         total_supply: u64,
         creator_allocation: u8,
         lockup_period: i64,
-    ) -> Result<()> {
-       create_token_proposal::handler(ctx, token_name, token_symbol, total_supply, creator_allocation, lockup_period)
+    ) -> anchor_lang::prelude::Result<()> {
+        create_token_proposal::handler(ctx, token_name, token_symbol, total_supply, creator_allocation, lockup_period)
     }
 
-    pub fn support_proposal(ctx: Context<SupportProposal>, amount: u64) -> Result<()> {
-        instructions::support_proposal::handler(ctx, amount)
+    pub fn support_proposal(ctx: Context<SupportProposal>, epoch_id: u64, amount: u64) -> anchor_lang::prelude::Result<()> {
+        instructions::support_proposal::handler(ctx, epoch_id, amount)
     }
 
     pub fn get_epoch_state(
         ctx: Context<GetEpochState>,
         epoch_id: u64,
-    ) -> Result<()> {
+    ) -> anchor_lang::prelude::Result<()> {
         get_epoch_state::handler(ctx, epoch_id)
     }
 
     pub fn end_epoch(
         ctx: Context<EndEpoch>,
         epoch_id: u64,
-    ) -> Result<()> {
-        // Vérifier que l'époque existe
+    ) -> anchor_lang::prelude::Result<()> {
         end_epoch::handler(ctx, epoch_id)
     }
 
     pub fn get_proposal_details(
         ctx: Context<GetProposalDetails>,
         proposal_id: u64,
-    ) -> Result<()> {
+    ) -> anchor_lang::prelude::Result<()> {
         get_proposal_details::handler(ctx, proposal_id)
     }
 
     pub fn update_proposal_status(
         ctx: Context<UpdateProposalStatus>,
         new_status: ProposalStatus,
-    ) -> Result<()> {
+    ) -> anchor_lang::prelude::Result<()> {
         update_proposal_status::handler(ctx, new_status)
     }
 
     // --- Nouvelle instruction pour marquer une époque comme traitée ---
     pub fn mark_epoch_processed(
         ctx: Context<MarkEpochProcessed>
-    ) -> Result<()> {
+    ) -> anchor_lang::prelude::Result<()> {
         mark_epoch_processed::handler(ctx)
     }
 }
