@@ -64,7 +64,6 @@ type ProgramContextType = {
     epochId: string,
     tokenName: string,
     tokenSymbol: string,
-    description: string,
     totalSupply: number,
     creatorAllocation: number,
     lockupPeriod: number
@@ -251,7 +250,6 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
       epochId: string,
       tokenName: string,
       tokenSymbol: string,
-      description: string,
       totalSupply: number,
       creatorAllocation: number,
       lockupPeriod: number
@@ -287,7 +285,6 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
           .createProposal(
             tokenName,
             tokenSymbol,
-            description,
             new BN(totalSupply),
             creatorAllocation,
             new BN(lockupPeriod)

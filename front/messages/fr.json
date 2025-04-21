@@ -38,7 +38,7 @@
     "submitting": "Création de la proposition...",
     "proposalCreated": "Proposition créée avec succès !",
     "errorCreating": "Erreur lors de la création de la proposition",
-    "lockupPeriod": "Date de déblocage des tokens",
+    "lockupPeriod": "Période de Blocage",
     "lockupPeriodDay": "1 jour",
     "lockupPeriodWeek": "1 semaine",
     "lockupPeriodMonth": "1 mois",
@@ -52,7 +52,9 @@
     "unlockAfterWeek": "1 semaine après la fin de l'epoch",
     "unlockAfterMonth": "1 mois après la fin de l'epoch",
     "unlockAfterThreeMonths": "3 mois après la fin de l'epoch",
-    "selectEpochForUnlock": "Sélectionnez une epoch pour définir la date de déblocage"
+    "selectEpochForUnlock": "Sélectionnez une epoch pour définir la date de déblocage",
+    "days": "jours",
+    "lockupPeriodHelp": "Période pendant laquelle les tokens du créateur seront bloqués"
   },
   "EpochManagement": {
     "title": "Gestion des Epochs",
@@ -177,7 +179,9 @@
     "supporterAllocation": "Allocation Supporters",
     "errorLoadingProposal": "Erreur lors du chargement de la proposition",
     "proposalNotFound": "Proposition introuvable",
-    "totalContributions": "{count, plural, =0 {Aucune contribution} one {# contribution} other {# contributions}}"
+    "totalContributions": "{count, plural, =0 {Aucune contribution} one {# contribution} other {# contributions}}",
+    "lockupPeriod": "Période de Blocage",
+    "days": "jours"
   },
   "EpochForm": {
     "title": "Créer un Nouvel Epoch",

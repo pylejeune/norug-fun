@@ -38,7 +38,7 @@
     "submitting": "Creating proposal...",
     "proposalCreated": "Proposal created successfully!",
     "errorCreating": "Error creating proposal",
-    "lockupPeriod": "Token unlock date",
+    "lockupPeriod": "Lockup Period",
     "lockupPeriodDay": "1 day",
     "lockupPeriodWeek": "1 week",
     "lockupPeriodMonth": "1 month",
@@ -52,7 +52,9 @@
     "unlockAfterWeek": "1 week after epoch end",
     "unlockAfterMonth": "1 month after epoch end",
     "unlockAfterThreeMonths": "3 months after epoch end",
-    "selectEpochForUnlock": "Select an epoch to set unlock date"
+    "selectEpochForUnlock": "Select an epoch to set unlock date",
+    "days": "days",
+    "lockupPeriodHelp": "Period during which the creator's tokens will be locked"
   },
   "EpochManagement": {
     "title": "Epoch Management",
@@ -177,7 +179,9 @@
     "supporterAllocation": "Supporter Allocation",
     "errorLoadingProposal": "Error loading proposal",
     "proposalNotFound": "Proposal not found",
-    "totalContributions": "{count, plural, =0 {No contributions} one {# contribution} other {# contributions}}"
+    "totalContributions": "{count, plural, =0 {No contributions} one {# contribution} other {# contributions}}",
+    "lockupPeriod": "Lockup Period",
+    "days": "days"
   },
   "EpochForm": {
     "title": "Create New Epoch",

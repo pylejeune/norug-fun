@@ -12,6 +12,17 @@ import { useCallback, useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "sonner";
 
+type FormData = {
+  name: string;
+  ticker: string;
+  description: string;
+  image: File | null;
+  totalSupply: string;
+  creatorAllocation: number;
+  supportersAllocation: number;
+  lockupPeriod: number;
+};
+
 export default function ProposalForm() {
   const t = useTranslations("ProposalForm");
   const { createProposal, getAllEpochs } = useProgram();
@@ -22,15 +33,15 @@ export default function ProposalForm() {
     useState<EpochState | null>(null);
 
   // Form state with default values
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     name: "",
     ticker: "",
     description: "",
-    image: null as File | null,
+    image: null,
     totalSupply: "",
-    creatorAllocation: 5, // Default to 5%
-    supportersAllocation: 95, // Automatically calculated
-    lockupPeriod: 86400, // Default to 1 day in seconds
+    creatorAllocation: 0,
+    supportersAllocation: 100,
+    lockupPeriod: 86400,
   });
 
   // Load epoch details when one is selected
@@ -111,7 +122,6 @@ export default function ProposalForm() {
         selectedEpochId,
         formData.name,
         formData.ticker,
-        formData.description,
         parseInt(formData.totalSupply),
         formData.creatorAllocation,
         formData.lockupPeriod
@@ -314,23 +324,33 @@ export default function ProposalForm() {
 
         {/* Lockup Period */}
         <div>
-          <label className="block text-xs md:text-sm font-medium mb-2">
+          <label
+            htmlFor="lockupPeriod"
+            className="block text-sm font-medium text-gray-300 mb-2"
+          >
             {t("lockupPeriod")}
           </label>
-          <select
-            value={formData.lockupPeriod}
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                lockupPeriod: parseInt(e.target.value),
-              })
-            }
-            className="w-full p-2 rounded bg-gray-800 border border-gray-700 text-gray-200"
-          >
-            <option value={86400}>{t("lockupPeriodDay")}</option>
-            <option value={604800}>{t("lockupPeriodWeek")}</option>
-            <option value={2592000}>{t("lockupPeriodMonth")}</option>
-          </select>
+          <div className="flex items-center gap-2">
+            <input
+              type="number"
+              id="lockupPeriod"
+              name="lockupPeriod"
+              value={Math.floor(formData.lockupPeriod / 86400)}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  lockupPeriod:
+                    Math.max(1, Math.floor(Number(e.target.value))) * 86400,
+                })
+              }
+              min="1"
+              step="1"
+              className="block w-full rounded-md bg-gray-800 border-gray-600 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              required
+            />
+            <span className="text-gray-400">{t("days")}</span>
+          </div>
+          <p className="mt-1 text-sm text-gray-400">{t("lockupPeriodHelp")}</p>
         </div>
 
         {/* Submit Button */}

@@ -287,6 +287,14 @@ export default function ProposalDetailPage() {
                 </p>
                 <p>{proposal.totalContributions}</p>
               </div>
+              <div className="bg-gray-900/50 p-3 rounded-lg">
+                <p className="text-sm text-gray-400 mb-1">
+                  {t("lockupPeriod")}
+                </p>
+                <p>
+                  {(proposal.lockupPeriod / 86400).toFixed(0)} {t("days")}
+                </p>
+              </div>
             </div>
           </div>
         </div>
