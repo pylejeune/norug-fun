@@ -2,12 +2,27 @@ use anchor_lang::prelude::*;
 
 #[error_code]
 pub enum ErrorCode {
-    #[msg("L'allocation du créateur ne peut pas dépasser 10%")]
+    #[msg("Generic error")]
+    GenericError,
+    #[msg("The epoch ID does not match")]
+    EpochMismatch,
+    #[msg("The token name is too long")]
+    TokenNameTooLong,
+    #[msg("The token symbol is too long")]
+    TokenSymbolTooLong,
+    #[msg("Creator allocation cannot exceed 10%")]
     CreatorAllocationTooHigh,
-    
-    #[msg("L'époque n'est pas active")]
+    #[msg("Lockup period cannot be negative")]
+    NegativeLockupPeriod,
+    #[msg("Proposal is not active and cannot be supported")]
+    ProposalNotActive,
+    #[msg("Epoch is not active")]
     EpochNotActive,
-    
+    #[msg("Epoch has not ended yet")]
+    EpochNotEnded,
+    #[msg("Only the admin authority can perform this action")]
+    InvalidAuthority,
+
     #[msg("La plage de temps de l'époque est invalide")]
     InvalidEpochTimeRange,
     
@@ -23,9 +38,6 @@ pub enum ErrorCode {
     #[msg("L'époque est déjà inactive")]
     EpochAlreadyInactive,
 
-    #[msg("La proposition n'est pas active")]
-    ProposalNotActive,
-
     #[msg("La proposition n'appartient pas à l'époque spécifiée")]
     ProposalEpochMismatch,
 
@@ -35,20 +47,23 @@ pub enum ErrorCode {
     #[msg("Dépassement de capacité lors du calcul")]
     Overflow,
 
-    // --- Nouveaux codes pour update_proposal_status --- 
+    // --- Codes pour update_proposal_status & mark_epoch_processed --- 
     #[msg("L'époque doit être fermée pour mettre à jour le statut de la proposition")]
     EpochNotClosed,
 
     #[msg("La proposition n'appartient pas à l'époque fournie")]
     ProposalNotInEpoch,
 
-    #[msg("Le signataire n'est pas l'autorité autorisée")]
-    InvalidAuthority,
-
     #[msg("Mise à jour du statut de la proposition invalide")]
     InvalidProposalStatusUpdate,
 
     #[msg("La proposition a déjà un statut final (Validée ou Rejetée)")]
     ProposalAlreadyFinalized,
+
+    #[msg("L'époque a déjà été marquée comme traitée par le crank")]
+    EpochAlreadyProcessed,
+
+    #[msg("Unauthorized: Only the admin can perform this action.")]
+    Unauthorized,
 }
 

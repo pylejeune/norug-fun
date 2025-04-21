@@ -80,4 +80,11 @@ pub mod programs {
     ) -> Result<()> {
         update_proposal_status::handler(ctx, new_status)
     }
+
+    // --- Nouvelle instruction pour marquer une époque comme traitée ---
+    pub fn mark_epoch_processed(
+        ctx: Context<MarkEpochProcessed>
+    ) -> Result<()> {
+        mark_epoch_processed::handler(ctx)
+    }
 }

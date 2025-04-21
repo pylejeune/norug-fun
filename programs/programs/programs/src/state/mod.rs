@@ -7,6 +7,7 @@ pub struct EpochManagement {
     pub start_time: i64,              // Epoch start timestamp
     pub end_time: i64,                // Epoch end timestamp
     pub status: EpochStatus,          // Enum indicating the epoch status
+    pub processed: bool,              // Indicates if the epoch has been processed
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, PartialEq, Eq, InitSpace)]

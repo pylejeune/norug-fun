@@ -2,7 +2,11 @@
 
 [![Participating in the Colosseum Breakout Hackathon](https://img.shields.io/badge/Colosseum-Breakout%20Hackathon-blue?logo=solana)](https://www.colosseum.org/breakout)
 
-## Context & Motivation
+<p align="center">
+  <img src="./front/public/images/noruglogo.png" width="200" alt="NoRug.fun Logo">
+</p>
+
+## 🎯 Context & Motivation
 
 The Solana ecosystem has seen significant buzz, notably with the rise of platforms like [Pump.fun](https://pump.fun/) that have drawn capital and attention to meme coins. However, this rapid growth comes with challenges.
 
@@ -10,7 +14,7 @@ Established platforms like Raydium, with its "Launchlab," have attempted to stru
 
 **NoRug.fun** aims to offer a fairer, more transparent, and community-driven alternative for launching new tokens on Solana.
 
-## Vision & How It Works
+## 💡 Vision & How It Works
 
 Our vision is to create a platform where token ideas can be proposed and backed by the community before their official launch, ensuring a fair and secure mechanism.
 
@@ -41,7 +45,7 @@ The process unfolds in two main phases:
 3.  **Open Market:**
     *   The newly launched tokens are now tradable on the secondary market like any other Solana token.
 
-## Key Features (Implemented or Planned)
+## ✨ Key Features (Implemented or Planned)
 
 *   **Epoch Management:** Smart contract to manage proposal cycles (opening, closing).
 *   **Proposal & Support Accounts:** Secure on-chain structures to store proposal details and user investments.
@@ -50,8 +54,9 @@ The process unfolds in two main phases:
 *   **Liquidity Management:** Planned integration with Meteora for pool creation.
 *   **Intuitive User Interface:** Front-end (Next.js) to propose, browse, support, and (soon) reclaim funds/tokens.
 *   **Wallet Integration:** Support for major Solana wallets (Phantom, Solflare via Wallet Adapter).
+*   **(Backend Service - upcoming)**: Likely Node.js/TypeScript for the 'crank' service.
 
-## Technologies 💻
+## 🛠️ Technologies 💻
 
 *   **Solana**: High-performance blockchain.
 *   **Anchor**: Development framework for Solana programs (Rust).
@@ -60,9 +65,8 @@ The process unfolds in two main phases:
 *   **TypeScript**: Typed superset of JavaScript.
 *   **Tailwind CSS / Shadcn UI**: For styling and UI components.
 *   **Next Intl**: Internationalization.
-*   **(Backend Service - upcoming)**: Likely Node.js/TypeScript for the 'crank' service.
 
-## Installation & Local Setup
+## 🛠️ Installation & Local Setup
 
 *(Keep or adapt existing instructions here if present and correct)*
 
