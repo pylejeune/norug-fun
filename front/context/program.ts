@@ -20,26 +20,18 @@ console.log(
 
 export function getProgram(
   connection: Connection,
-  wallet: AnchorWallet | null | undefined
+  wallet?: AnchorWallet | null
 ) {
-  if (!wallet) {
-    console.log("💡 No wallet connected yet");
-    return null;
-  }
-
   try {
-    const provider = new AnchorProvider(connection, wallet, {
-      preflightCommitment: "processed",
-    });
-
-    // Pass Program ID from IDL
-    const program = new Program(idl as any, provider);
-
-    // Log available instructions for debugging
-    console.log(
-      "📝 Available instructions:",
-      idl.instructions.map((ix) => ix.name)
+    const provider = new AnchorProvider(
+      connection,
+      wallet ?? ({} as AnchorWallet), // allow "read-only" mode
+      {
+        preflightCommitment: "processed",
+      }
     );
+
+    const program = new Program(idl as any, provider);
 
     return program;
   } catch (error: any) {
