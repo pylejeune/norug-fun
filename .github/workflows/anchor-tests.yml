@@ -1,5 +1,6 @@
 name: Anchor Tests
-
+env:
+  GIT_RUSTUP_TOOLCHAIN: nightly-2025-04-01
 on:
   push:
     branches: [ '**' ]
@@ -12,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     
     container:
-      image: pylejeune/solana-dev:beta
+      image: pylejeune/solana-dev:anchor-0.31.1
       # Ne pas utiliser --user root sauf si absolument nécessaire
       # car cela peut modifier l'environnement attendu
     
@@ -64,6 +65,11 @@ jobs:
         run: |
           yarn add ts-mocha@10.0.0 @types/mocha chai @types/chai
 
+      - name: Anchor 0.31.1
+        working-directory: programs
+        run: |
+          avm install 0.31.1 && avm use 0.31.1
+
       # Cache pour la compilation Anchor
       - name: Cache Anchor build
         uses: actions/cache@v3
@@ -80,7 +86,7 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: nightly-2025-04-01
+          toolchain: $GIT_RUSTUP_TOOLCHAIN
           targets: wasm32-unknown-unknown  # si nécessaire
       - run: rustup component add rustfmt
 
@@ -89,7 +95,7 @@ jobs:
         run: |
           rustc --version &&
           anchor --version &&
-          RUSTUP_TOOLCHAIN=nightly-2025-04-01 \
+          RUSTUP_TOOLCHAIN=$GIT_RUSTUP_TOOLCHAIN \
           anchor build
 
       - name: Run Anchor tests
@@ -99,3 +105,33 @@ jobs:
           rustc --version &&
           anchor --version &&
           anchor test --skip-build
+
+      - name: Build & Deploy Anchor program
+        working-directory: programs
+        id: anchor_deploy
+        run: |
+          # Déploie et capture la sortie
+          DEPLOY_OUT=$(anchor deploy --provider.cluster devnet 2>&1)
+          echo "$DEPLOY_OUT"
+          # Extrait la programId depuis la ligne "Program Id: <ID>"
+          PROGRAM_ID=$(echo "$DEPLOY_OUT" | grep 'Program Id' | awk '{print $3}')
+          # Expose la valeur pour les étapes suivantes
+          echo "program_id=$PROGRAM_ID" >> "$GITHUB_OUTPUT"
+    
+      - name: Afficher la programId
+        run: |
+          echo "▶️ Program ID déployé : ${{ steps.anchor_deploy.outputs.program_id }}"
+
+          - name: Mettre à jour la variable d'environnement sur Vercel
+          run: |
+            curl -X POST "https://api.vercel.com/v10/projects/${{ env.VERCEL_PROJECT_NAME }}/env?upsert=true" \
+              -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}" \
+              -H "Content-Type: application/json" \
+              -d '{
+                "key": "PROGRAM_ID",
+                "value": "${{ steps.anchor_deploy.outputs.program_id }}",
+                "type": "encrypted",
+                "target": ["production", "preview"]
+              }'
+          env:
+            VERCEL_PROJECT_NAME: norug-fun
