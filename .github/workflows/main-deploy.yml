@@ -1,14 +1,12 @@
-name: Anchor Tests Others branches
+name: Anchor Tests Main branch
 
 on:
   push:
-    branches: [ '**' ]
-    branches-ignore:
-      - 'main'
+    branches: [ main ]
 
 jobs:
   test:
-    name: Run Anchor Tests in Docker
+    name: Run Anchor Deploy in Docker
     runs-on: ubuntu-latest
     
     container:
@@ -39,7 +37,6 @@ jobs:
             exit 1
           fi
 
-
       - name: Update Anchor.toml with ANCHOR_RPC value
         run: |
           echo "Updating Anchor.toml with ANCHOR_RPC=$ANCHOR_RPC"
@@ -49,49 +46,10 @@ jobs:
           echo "Updated Anchor.toml content:"
           cat programs/Anchor.toml
 
-      - name: Verify container environment
-        shell: bash
-        run: |
-          echo "=== Current user ==="
-          id
-          echo "=== Working directory ==="
-          pwd
-          ls -la
-          echo "=== Environment variables ==="
-          env | sort
-          echo "=== Installed tools ==="
-          which anchor solana cargo
-          echo "=== Versions ==="
-          anchor --version || true
-          solana --version || true
-          rustc --version  || true
-          rustup --version || true
-
       - name: Generate Solana keypair
         run: |
           mkdir -p ~/.config/solana
           solana-keygen new --no-bip39-passphrase --force --outfile ~/.config/solana/id.json
-
-      - name: Cache Yarn dependencies
-        uses: actions/cache@v3
-        with:
-          path: |
-            node_modules
-            */*/node_modules
-            ~/.cache/yarn
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
-
-      - name: Install modules
-        working-directory: front
-        run: |
-          yarn install --frozen-lockfile
-
-      - name: Install ts-mocha on programs
-        working-directory: programs
-        run: |
-          yarn add ts-mocha@10.0.0 @types/mocha chai @types/chai
 
       # Cache pour la compilation Anchor
       - name: Cache Anchor build
@@ -120,11 +78,3 @@ jobs:
           anchor --version &&
           RUSTUP_TOOLCHAIN=nightly-2025-04-01 \
           anchor build
-
-      - name: Run Anchor tests
-        shell: bash
-        working-directory: programs
-        run: |
-          rustc --version &&
-          anchor --version &&
-          anchor test --skip-build
