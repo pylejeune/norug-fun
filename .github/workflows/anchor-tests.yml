@@ -30,7 +30,6 @@ jobs:
             echo "ANCHOR_RPC=localnet" >> $GITHUB_ENV
             echo "Using localnet cluster for other branches"
           fi
-          echo "ANCHOR_RPC is set to $ANCHOR_RPC"
       
       - name: Verify ANCHOR_RPC is set
         run: |
@@ -39,6 +38,16 @@ jobs:
             echo "ANCHOR_RPC is not set!"
             exit 1
           fi
+
+
+      - name: Update Anchor.toml with ANCHOR_RPC value
+        run: |
+          echo "Updating Anchor.toml with ANCHOR_RPC=$ANCHOR_RPC"
+          # Utiliser sed pour remplacer la valeur de cluster dans Anchor.toml
+          sed -i "s/cluster = \".*\"/cluster = \"$ANCHOR_RPC\"/" programs/Anchor.toml
+          # Afficher le contenu modifié pour vérification
+          echo "Updated Anchor.toml content:"
+          cat programs/Anchor.toml
 
       - name: Verify container environment
         shell: bash
@@ -106,10 +115,7 @@ jobs:
 
       - name: Build Anchor program
         working-directory: programs
-        env:
-          ANCHOR_RPC: ${{ env.ANCHOR_RPC }}
         run: |
-          echo "Building with ANCHOR_RPC=$ANCHOR_RPC"
           rustc --version &&
           anchor --version &&
           RUSTUP_TOOLCHAIN=nightly-2025-04-01 \
@@ -118,10 +124,7 @@ jobs:
       - name: Run Anchor tests
         shell: bash
         working-directory: programs
-        env:
-          ANCHOR_RPC: ${{ env.ANCHOR_RPC }}
         run: |
-          echo "Testing with ANCHOR_RPC=$ANCHOR_RPC"
           rustc --version &&
           anchor --version &&
           anchor test --skip-build
