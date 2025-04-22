@@ -1,3 +1,6 @@
+#![allow(unexpected_cfgs)]
+#![allow(ambiguous_glob_reexports)]
+
 pub mod constants;
 pub mod error;
 pub mod instructions;
