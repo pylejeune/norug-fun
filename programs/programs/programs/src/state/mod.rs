@@ -25,7 +25,11 @@ pub struct TokenProposal {
     #[max_len(32)]
     pub token_name: String,           // Token name
     #[max_len(8)]
-    pub token_symbol: String,         // Token symbol
+    pub token_symbol: String,  
+    #[max_len(512)]
+    pub description : String,       // Token symbol
+    #[max_len(256)]
+    pub image_url: Option<String>,    // URL d'une image illustrative (optionnel)
     pub total_supply: u64,            // Total token supply
     pub creator_allocation: u8,       // % of supply for the creator (max 10%)
     pub supporter_allocation: u8,     // % for supporters = ceil((100 - creator_allocation) / 2)
