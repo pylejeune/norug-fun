@@ -1,3 +1,6 @@
+#![allow(unexpected_cfgs)]
+#![allow(ambiguous_glob_reexports)]
+
 pub mod constants;
 pub mod error;
 pub mod instructions;
@@ -41,11 +44,13 @@ pub mod programs {
         ctx: Context<CreateTokenProposal>,
         token_name: String,
         token_symbol: String,
+        description: String,
+        image_url: Option<String>,
         total_supply: u64,
         creator_allocation: u8,
         lockup_period: i64,
     ) -> Result<()> {
-       create_token_proposal::handler(ctx, token_name, token_symbol, total_supply, creator_allocation, lockup_period)
+       create_token_proposal::handler(ctx, token_name, token_symbol, description, image_url, total_supply, creator_allocation, lockup_period)
     }
 
     pub fn support_proposal(ctx: Context<SupportProposal>, amount: u64) -> Result<()> {

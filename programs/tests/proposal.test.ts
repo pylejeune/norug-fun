@@ -73,6 +73,8 @@ describe("Tests des propositions de tokens", () => {
     
     // Définir l'allocation créateur pour ce test
     const creatorAllocation = 10; 
+    const description = "Ceci est la description test pour noRugToken.";
+    const imageUrl = null; // Tester Option::None
 
     [proposalPda] = PublicKey.findProgramAddressSync(
       [
@@ -94,6 +96,8 @@ describe("Tests des propositions de tokens", () => {
       .createProposal(
         tokenName,
         tokenSymbol,
+        description,
+        imageUrl,
         totalSupply,
         creatorAllocation,
         lockupPeriod
@@ -122,6 +126,10 @@ describe("Tests des propositions de tokens", () => {
     expect(proposal.supporterAllocation).to.equal(expectedSupporterAllocation);
     // ------------------------------------------------------
 
+    console.log("\nVérifications pour les nouveaux champs:");
+    expect(proposal.description).to.equal(description);
+    expect(proposal.imageUrl).to.be.null;
+
     console.log("\nValeurs attendues pour la proposition:");
     console.log(`- tokenName: ${tokenName}`);
     console.log(`- tokenSymbol: ${tokenSymbol}`);
@@ -131,6 +139,8 @@ describe("Tests des propositions de tokens", () => {
     console.log(`- solRaised: 0`);
     console.log(`- totalContributions: 0`);
     console.log(`- lockupPeriod: ${lockupPeriod.toString()}`);
+    console.log(`- description: ${description}`);
+    console.log(`- imageUrl: ${imageUrl}`);
     
     console.log("Valeurs réelles de la proposition:");
     console.log(`- tokenName: ${proposal.tokenName}`);
@@ -141,6 +151,8 @@ describe("Tests des propositions de tokens", () => {
     console.log(`- solRaised: ${proposal.solRaised.toString()}`);
     console.log(`- totalContributions: ${proposal.totalContributions.toString()}`);
     console.log(`- lockupPeriod: ${proposal.lockupPeriod.toString()}`);
+    console.log(`- description: ${proposal.description}`);
+    console.log(`- imageUrl: ${proposal.imageUrl}`);
     
     expect(proposal.tokenName).to.equal(tokenName);
     expect(proposal.tokenSymbol).to.equal(tokenSymbol);
@@ -150,6 +162,8 @@ describe("Tests des propositions de tokens", () => {
     expect(proposal.solRaised.toString()).to.equal("0");
     expect(proposal.totalContributions.toString()).to.equal("0");
     expect(proposal.lockupPeriod.toString()).to.equal(lockupPeriod.toString());
+    expect(proposal.description).to.equal(description);
+    expect(proposal.imageUrl).to.be.null;
   });
 
   it("Affiche la liste des propositions de tokens", async () => {
@@ -218,12 +232,16 @@ describe("Tests des propositions de tokens", () => {
       console.log(`SOL levés: ${proposal.solRaised.toString()}`);
       console.log(`Contributions totales: ${proposal.totalContributions.toString()}`);
       console.log(`Période de blocage: ${proposal.lockupPeriod.toString()} secondes`);
+      console.log(`Description: ${proposal.description}`);
+      console.log(`Image URL: ${proposal.imageUrl}`);
       console.log(`Statut: ${JSON.stringify(proposal.status)}`);
 
       // Vérifier que c'est bien la proposition que nous cherchons
       expect(proposal.epochId.toString()).to.equal(targetEpochId.toString());
       expect(proposal.creator.toString()).to.equal(targetCreator.toString());
       expect(proposal.tokenName).to.equal(targetTokenName);
+      expect(proposal.description).to.equal("Ceci est la description test pour noRugToken.");
+      expect(proposal.imageUrl).to.be.null;
 
       // Appeler getProposalDetails pour vérifier que tout fonctionne
       const tx = await program.methods
