@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     
     container:
-      image: pylejeune/solana-dev:anchor-0.31.1
+      image: pylejeune/solana-dev:beta
       # Ne pas utiliser --user root sauf si absolument nécessaire
       # car cela peut modifier l'environnement attendu
     
