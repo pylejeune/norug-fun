@@ -100,7 +100,19 @@ describe("Simulation du traitement d'époque par le Crank", () => {
         );
         proposalsData.push({ pda, initialSupport, name: tokenName });
 
-        await program.methods.createProposal(tokenName, tokenSymbol, new anchor.BN(1000), 5, new anchor.BN(0))
+        // Ajout de description et imageUrl
+        const description = `Description for ${tokenName}`;
+        const imageUrl = null; // ou une URL de test si besoin
+
+        await program.methods.createProposal(
+            tokenName, 
+            tokenSymbol, 
+            description, // Ajout argument
+            imageUrl,    // Ajout argument
+            new anchor.BN(1000), 
+            5, 
+            new anchor.BN(0)
+            )
             .accounts({ creator: provider.wallet.publicKey, tokenProposal: pda, epoch: epochPda, systemProgram: SystemProgram.programId })
             .rpc();
     }
