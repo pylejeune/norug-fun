@@ -6,10 +6,10 @@ import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { format } from "date-fns";
 import { enUS, fr } from "date-fns/locale";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import Link from "next/link";
 
 // TODO: Move to types file
 type SortOrder = "asc" | "desc";
@@ -175,10 +175,10 @@ export default function MyPage() {
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                   {/* Image */}
                   <div className="w-full sm:w-32 h-32 flex-shrink-0">
-                    {proposal.image_url ? (
+                    {proposal.imageUrl ? (
                       <img
-                        src={proposal.image_url}
-                        alt={proposal.name}
+                        src={proposal.imageUrl}
+                        alt={proposal.tokenName}
                         className="w-full h-full object-cover rounded-lg"
                       />
                     ) : (
@@ -201,7 +201,8 @@ export default function MyPage() {
                       </div>
                       <div className="w-full sm:w-auto flex flex-col items-start sm:items-end gap-1">
                         <p className="text-lg font-medium text-green-500">
-                          {(proposal.solRaised / LAMPORTS_PER_SOL).toFixed(2)} SOL
+                          {(proposal.solRaised / LAMPORTS_PER_SOL).toFixed(2)}{" "}
+                          SOL
                         </p>
                         {proposal.userSupportAmount && (
                           <p className="text-sm text-blue-400">
@@ -224,6 +225,14 @@ export default function MyPage() {
                       </div>
                     </div>
 
+                    {/* Description */}
+                    {proposal.description && (
+                      <p className="text-sm text-gray-400 line-clamp-2">
+                        {proposal.description}
+                      </p>
+                    )}
+
+                    {/* Additional Info */}
                     <div className="flex flex-wrap gap-2 text-xs text-gray-400">
                       <span className="bg-gray-800/50 px-2 py-1 rounded">
                         {t("epochId")}: {proposal.epochId}

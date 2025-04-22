@@ -21,6 +21,7 @@ type FormData = {
   creatorAllocation: number;
   supportersAllocation: number;
   lockupPeriod: number;
+  epochId: string;
 };
 
 export default function ProposalForm() {
@@ -42,6 +43,7 @@ export default function ProposalForm() {
     creatorAllocation: 0,
     supportersAllocation: 100,
     lockupPeriod: 86400,
+    epochId: "",
   });
 
   // Load epoch details when one is selected
@@ -83,11 +85,11 @@ export default function ProposalForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Starting proposal creation...");
-    console.log("Form data:", {
+    console.log("Starting proposal creation with data:", {
       epochId: selectedEpochId,
       name: formData.name,
       ticker: formData.ticker,
+      description: formData.description,
       totalSupply: formData.totalSupply,
       creatorAllocation: formData.creatorAllocation,
       lockupPeriod: formData.lockupPeriod,
@@ -117,24 +119,30 @@ export default function ProposalForm() {
     const loadingToast = toast.loading(t("submitting"));
 
     try {
-      console.log("Calling program createProposal...");
+      console.log(
+        "Calling createProposal with description:",
+        formData.description
+      );
       await createProposal(
         selectedEpochId,
         formData.name,
         formData.ticker,
+        formData.description,
         parseInt(formData.totalSupply),
         formData.creatorAllocation,
         formData.lockupPeriod
       );
-      console.log("Proposal created successfully!");
 
-      // Show success toast and redirect
+      console.log(
+        "Proposal created successfully with description:",
+        formData.description
+      );
       toast.dismiss(loadingToast);
       toast.success(t("proposalCreated"));
       router.push(`/${locale}`);
     } catch (error: any) {
       console.error("Failed to create proposal:", error);
-      // Show error toast
+      console.log("Description that failed:", formData.description);
       toast.dismiss(loadingToast);
       toast.error(error.message || t("errorCreating"));
     }
