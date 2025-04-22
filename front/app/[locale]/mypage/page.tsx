@@ -9,6 +9,7 @@ import { useTranslations } from "next-intl";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import Link from "next/link";
 
 // TODO: Move to types file
 type SortOrder = "asc" | "desc";
@@ -165,70 +166,73 @@ export default function MyPage() {
       ) : (
         <div className="grid gap-3 md:gap-4">
           {sortedProposals.map((proposal) => (
-            <div
+            <Link
               key={proposal.publicKey.toString()}
-              className="bg-gray-900/50 p-3 md:p-4 rounded-lg border border-gray-800 hover:bg-gray-900/70 transition-colors"
+              href={`/${locale}/proposal/${proposal.publicKey.toString()}`}
+              className="block"
             >
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                {/* Image */}
-                <div className="w-full sm:w-32 h-32 flex-shrink-0">
-                  {proposal.image_url ? (
-                    <img
-                      src={proposal.image_url}
-                      alt={proposal.name}
-                      className="w-full h-full object-cover rounded-lg"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gray-800 rounded-lg flex items-center justify-center text-gray-600">
-                      {t("noImage")}
-                    </div>
-                  )}
-                </div>
-
-                {/* Content */}
-                <div className="flex-1 min-w-0 space-y-2">
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                    <div>
-                      <h3 className="text-lg font-medium truncate">
-                        {proposal.tokenName}
-                      </h3>
-                      <p className="text-sm font-mono text-gray-400">
-                        ${proposal.tokenSymbol}
-                      </p>
-                    </div>
-                    <div className="w-full sm:w-auto flex flex-col items-start sm:items-end gap-1">
-                      <p className="text-lg font-medium text-green-500">
-                        {(proposal.solRaised / LAMPORTS_PER_SOL).toFixed(2)} SOL
-                      </p>
-                      {proposal.userSupportAmount && (
-                        <p className="text-sm text-blue-400">
-                          {t("yourSupport", {
-                            amount: proposal.userSupportAmount.toFixed(2),
-                          })}
-                        </p>
-                      )}
-                      <p
-                        className={`text-sm font-medium ${
-                          getStatusString(proposal.status) === "validated"
-                            ? "text-green-500"
-                            : getStatusString(proposal.status) === "active"
-                            ? "text-blue-500"
-                            : "text-red-500"
-                        }`}
-                      >
-                        {t(`status.${getStatusString(proposal.status)}`)}
-                      </p>
-                    </div>
+              <div className="bg-gray-900/50 p-3 md:p-4 rounded-lg border border-gray-800 hover:bg-gray-900/70 transition-colors">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                  {/* Image */}
+                  <div className="w-full sm:w-32 h-32 flex-shrink-0">
+                    {proposal.image_url ? (
+                      <img
+                        src={proposal.image_url}
+                        alt={proposal.name}
+                        className="w-full h-full object-cover rounded-lg"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gray-800 rounded-lg flex items-center justify-center text-gray-600">
+                        {t("noImage")}
+                      </div>
+                    )}
                   </div>
 
-                  <div className="flex flex-wrap gap-2 text-xs text-gray-400">
-                    <span className="bg-gray-800/50 px-2 py-1 rounded">
-                      {t("epochId")}: {proposal.epochId}
-                    </span>
+                  {/* Content */}
+                  <div className="flex-1 min-w-0 space-y-2">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                      <div>
+                        <h3 className="text-lg font-medium truncate">
+                          {proposal.tokenName}
+                        </h3>
+                        <p className="text-sm font-mono text-gray-400">
+                          ${proposal.tokenSymbol}
+                        </p>
+                      </div>
+                      <div className="w-full sm:w-auto flex flex-col items-start sm:items-end gap-1">
+                        <p className="text-lg font-medium text-green-500">
+                          {(proposal.solRaised / LAMPORTS_PER_SOL).toFixed(2)} SOL
+                        </p>
+                        {proposal.userSupportAmount && (
+                          <p className="text-sm text-blue-400">
+                            {t("yourSupport", {
+                              amount: proposal.userSupportAmount.toFixed(2),
+                            })}
+                          </p>
+                        )}
+                        <p
+                          className={`text-sm font-medium ${
+                            getStatusString(proposal.status) === "validated"
+                              ? "text-green-500"
+                              : getStatusString(proposal.status) === "active"
+                              ? "text-blue-500"
+                              : "text-red-500"
+                          }`}
+                        >
+                          {t(`status.${getStatusString(proposal.status)}`)}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2 text-xs text-gray-400">
+                      <span className="bg-gray-800/50 px-2 py-1 rounded">
+                        {t("epochId")}: {proposal.epochId}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       )}
