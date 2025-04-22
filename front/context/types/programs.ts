@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/programs.json`.
  */
 export type Programs = {
-  "address": "4ExYLppEEnLNgcV7xRwJKAKnCBSDpdF9DpphxS63kHJs",
+  "address": "86QpEXmdGM4ScUZQk15RsrkFR7M3tn86CJLQeXQv4N9A",
   "metadata": {
     "name": "programs",
     "version": "0.1.0",
@@ -81,6 +81,16 @@ export type Programs = {
         {
           "name": "tokenSymbol",
           "type": "string"
+        },
+        {
+          "name": "description",
+          "type": "string"
+        },
+        {
+          "name": "imageUrl",
+          "type": {
+            "option": "string"
+          }
         },
         {
           "name": "totalSupply",
@@ -264,6 +274,49 @@ export type Programs = {
           "type": "pubkey"
         }
       ]
+    },
+    {
+      "name": "markEpochProcessed",
+      "discriminator": [
+        210,
+        48,
+        251,
+        209,
+        224,
+        55,
+        71,
+        59
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "programConfig",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "epochManagement",
+          "writable": true
+        }
+      ],
+      "args": []
     },
     {
       "name": "startEpoch",
@@ -520,83 +573,123 @@ export type Programs = {
   "errors": [
     {
       "code": 6000,
-      "name": "creatorAllocationTooHigh",
-      "msg": "L'allocation du créateur ne peut pas dépasser 10%"
+      "name": "genericError",
+      "msg": "Generic error"
     },
     {
       "code": 6001,
-      "name": "epochNotActive",
-      "msg": "L'époque n'est pas active"
+      "name": "epochMismatch",
+      "msg": "The epoch ID does not match"
     },
     {
       "code": 6002,
+      "name": "tokenNameTooLong",
+      "msg": "The token name is too long"
+    },
+    {
+      "code": 6003,
+      "name": "tokenSymbolTooLong",
+      "msg": "The token symbol is too long"
+    },
+    {
+      "code": 6004,
+      "name": "creatorAllocationTooHigh",
+      "msg": "Creator allocation cannot exceed 10%"
+    },
+    {
+      "code": 6005,
+      "name": "negativeLockupPeriod",
+      "msg": "Lockup period cannot be negative"
+    },
+    {
+      "code": 6006,
+      "name": "proposalNotActive",
+      "msg": "Proposal is not active and cannot be supported"
+    },
+    {
+      "code": 6007,
+      "name": "epochNotActive",
+      "msg": "Epoch is not active"
+    },
+    {
+      "code": 6008,
+      "name": "epochNotEnded",
+      "msg": "Epoch has not ended yet"
+    },
+    {
+      "code": 6009,
+      "name": "invalidAuthority",
+      "msg": "Only the admin authority can perform this action"
+    },
+    {
+      "code": 6010,
       "name": "invalidEpochTimeRange",
       "msg": "La plage de temps de l'époque est invalide"
     },
     {
-      "code": 6003,
+      "code": 6011,
       "name": "epochNotFound",
       "msg": "L'époque n'a pas été trouvée"
     },
     {
-      "code": 6004,
+      "code": 6012,
       "name": "customError",
       "msg": "Erreur personnalisée"
     },
     {
-      "code": 6005,
+      "code": 6013,
       "name": "invalidEpochId",
       "msg": "ID d'époque invalide"
     },
     {
-      "code": 6006,
+      "code": 6014,
       "name": "epochAlreadyInactive",
       "msg": "L'époque est déjà inactive"
     },
     {
-      "code": 6007,
-      "name": "proposalNotActive",
-      "msg": "La proposition n'est pas active"
-    },
-    {
-      "code": 6008,
+      "code": 6015,
       "name": "proposalEpochMismatch",
       "msg": "La proposition n'appartient pas à l'époque spécifiée"
     },
     {
-      "code": 6009,
+      "code": 6016,
       "name": "amountMustBeGreaterThanZero",
       "msg": "Le montant doit être supérieur à zéro"
     },
     {
-      "code": 6010,
+      "code": 6017,
       "name": "overflow",
       "msg": "Dépassement de capacité lors du calcul"
     },
     {
-      "code": 6011,
+      "code": 6018,
       "name": "epochNotClosed",
       "msg": "L'époque doit être fermée pour mettre à jour le statut de la proposition"
     },
     {
-      "code": 6012,
+      "code": 6019,
       "name": "proposalNotInEpoch",
       "msg": "La proposition n'appartient pas à l'époque fournie"
     },
     {
-      "code": 6013,
-      "name": "invalidAuthority",
-      "msg": "Le signataire n'est pas l'autorité autorisée"
-    },
-    {
-      "code": 6014,
+      "code": 6020,
       "name": "invalidProposalStatusUpdate",
       "msg": "Mise à jour du statut de la proposition invalide"
     },
     {
-      "code": 6015,
+      "code": 6021,
       "name": "proposalAlreadyFinalized",
       "msg": "La proposition a déjà un statut final (Validée ou Rejetée)"
+    },
+    {
+      "code": 6022,
+      "name": "epochAlreadyProcessed",
+      "msg": "L'époque a déjà été marquée comme traitée par le crank"
+    },
+    {
+      "code": 6023,
+      "name": "unauthorized",
+      "msg": "Unauthorized: Only the admin can perform this action."
     }
   ],
   "types": [
@@ -640,6 +733,10 @@ export type Programs = {
                 "name": "epochStatus"
               }
             }
+          },
+          {
+            "name": "processed",
+            "type": "bool"
           }
         ]
       }
@@ -693,6 +790,16 @@ export type Programs = {
           {
             "name": "tokenSymbol",
             "type": "string"
+          },
+          {
+            "name": "description",
+            "type": "string"
+          },
+          {
+            "name": "imageUrl",
+            "type": {
+              "option": "string"
+            }
           },
           {
             "name": "totalSupply",
@@ -766,6 +873,16 @@ export type Programs = {
           {
             "name": "tokenSymbol",
             "type": "string"
+          },
+          {
+            "name": "description",
+            "type": "string"
+          },
+          {
+            "name": "imageUrl",
+            "type": {
+              "option": "string"
+            }
           },
           {
             "name": "totalSupply",

@@ -64,6 +64,7 @@ type ProgramContextType = {
     epochId: string,
     tokenName: string,
     tokenSymbol: string,
+    description: string,
     totalSupply: number,
     creatorAllocation: number,
     lockupPeriod: number
@@ -255,6 +256,7 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
       epochId: string,
       tokenName: string,
       tokenSymbol: string,
+      description: string,
       totalSupply: number,
       creatorAllocation: number,
       lockupPeriod: number
@@ -264,6 +266,16 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
       }
 
       try {
+        console.log("Creating proposal with params:", {
+          epochId,
+          tokenName,
+          tokenSymbol,
+          description,
+          totalSupply,
+          creatorAllocation,
+          lockupPeriod,
+        });
+
         // Get epoch
         const epochState = await getEpochState(parseInt(epochId));
         if (!epochState) {
@@ -290,27 +302,31 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
           .createProposal(
             tokenName,
             tokenSymbol,
+            description,
+            null,
             new BN(totalSupply),
             creatorAllocation,
             new BN(lockupPeriod)
           )
           .accounts({
             creator: wallet.publicKey,
-            tokenProposal: proposalPDA,
+            token_proposal: proposalPDA,
             epoch: epochState.publicKey,
-            systemProgram: SystemProgram.programId,
+            system_program: SystemProgram.programId,
           })
           .rpc();
 
-        console.log("✅ Proposal created:", tx);
+        console.log("✅ Proposal created with tx:", tx);
+        console.log("Description saved:", description);
         setSuccess("Proposal created successfully");
       } catch (err: any) {
         console.error("❌ Error creating proposal:", err);
+        console.log("Description that failed:", description);
         setError(err.message);
         throw err;
       }
     },
-    [program, isConnected, wallet]
+    [program, isConnected, wallet, getEpochState]
   );
 
   const getAllProposals = async (): Promise<ProposalState[]> => {
@@ -352,12 +368,16 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
           program as Program<Programs>
         ).account.tokenProposal.fetch(new PublicKey(proposalId));
 
+        console.log("Raw proposal data:", proposal); // Debug log
+
         // Transformer les données pour correspondre au format attendu
         return {
           epochId: proposal.epochId.toString(),
           creator: proposal.creator,
           tokenName: proposal.tokenName,
           tokenSymbol: proposal.tokenSymbol,
+          description: proposal.description,
+          imageUrl: proposal.imageUrl,
           totalSupply: proposal.totalSupply.toNumber(),
           creatorAllocation: proposal.creatorAllocation,
           supporterAllocation: proposal.supporterAllocation,
@@ -440,7 +460,7 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
             epoch: epochState.publicKey,
             proposal: proposal.publicKey,
             userSupport: userSupportPDA,
-            systemProgram: SystemProgram.programId,
+            system_program: SystemProgram.programId,
           })
           .rpc();
 

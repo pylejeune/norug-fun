@@ -15,6 +15,8 @@ type DetailedProposal = {
   id: string;
   name: string;
   ticker: string;
+  description: string;
+  imageUrl?: string;
   epoch_id: string;
   solRaised: number;
   creator: PublicKey;
@@ -62,6 +64,8 @@ export default function ProposalDetailPage() {
           id: id as string,
           name: details.tokenName,
           ticker: details.tokenSymbol,
+          description: details.description,
+          imageUrl: details.imageUrl,
           epoch_id: details.epochId,
           solRaised: details.solRaised,
           creator: details.creator,
@@ -103,7 +107,10 @@ export default function ProposalDetailPage() {
 
     try {
       setIsSubmitting(true);
-      await supportProposal(proposal.publicKey.toString(), parseFloat(supportAmount));
+      await supportProposal(
+        proposal.publicKey.toString(),
+        parseFloat(supportAmount)
+      );
       toast.success(t("supportSuccess"));
       setSupportAmount("");
     } catch (error: any) {
@@ -151,9 +158,17 @@ export default function ProposalDetailPage() {
         <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
           {/* Image Container */}
           <div className="w-full lg:w-1/3 max-w-sm mx-auto lg:mx-0">
-            <div className="w-full aspect-square bg-gray-800 rounded-lg flex items-center justify-center text-gray-600">
-              {t("noImage")}
-            </div>
+            {proposal.imageUrl ? (
+              <img
+                src={proposal.imageUrl}
+                alt={proposal.name}
+                className="w-full aspect-square object-cover rounded-lg"
+              />
+            ) : (
+              <div className="w-full aspect-square bg-gray-800 rounded-lg flex items-center justify-center text-gray-600">
+                {t("noImage")}
+              </div>
+            )}
           </div>
 
           {/* Info */}
@@ -246,8 +261,14 @@ export default function ProposalDetailPage() {
           </div>
         </div>
 
-        {/* Details Sections */}
         <div className="mt-6 space-y-4">
+          <div className="bg-gray-800/50 p-4 rounded-lg">
+            <h2 className="text-lg font-medium mb-4">{t("description")}</h2>
+            <p className="text-gray-300 whitespace-pre-wrap">
+              {proposal.description}
+            </p>
+          </div>
+
           {/* Tokenomics */}
           <div className="bg-gray-800/50 p-4 rounded-lg">
             <h2 className="text-lg font-medium mb-4">{t("tokenomics")}</h2>
