@@ -50,6 +50,8 @@ pub fn handler(
     ctx: Context<CreateTokenProposal>,
     token_name: String,
     token_symbol: String,
+    description: String,
+    image_url: Option<String>,
     total_supply: u64,
     creator_allocation: u8,
     lockup_period: i64,
@@ -73,9 +75,13 @@ pub fn handler(
     proposal.creator = ctx.accounts.creator.key();
     proposal.token_name = token_name;
     proposal.token_symbol = token_symbol;
+    proposal.description = description;
+    proposal.image_url = image_url;
     proposal.total_supply = total_supply;
     proposal.creator_allocation = creator_allocation;
-    proposal.supporter_allocation = 100 - creator_allocation; // Le reste va aux supporters
+    // Calculer la part restante et l'allocation des supporters (arrondi supérieur)
+    let remaining_allocation = 100u8.saturating_sub(creator_allocation);
+    proposal.supporter_allocation = remaining_allocation.saturating_add(1) / 2;
     proposal.sol_raised = 0;
     proposal.total_contributions = 0;
     proposal.lockup_period = lockup_period;

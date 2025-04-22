@@ -1,3 +1,7 @@
+console.log("\n\n=====================================");
+console.log(">>> Démarrage tests: proposal.test.ts <<<");
+console.log("=====================================\n");
+
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { Programs } from "../target/types/programs";
@@ -67,6 +71,11 @@ describe("Tests des propositions de tokens", () => {
     const epoch = await program.account.epochManagement.fetch(epochPda);
     const epochId = epoch.epochId;
     
+    // Définir l'allocation créateur pour ce test
+    const creatorAllocation = 10; 
+    const description = "Ceci est la description test pour noRugToken.";
+    const imageUrl = null; // Tester Option::None
+
     [proposalPda] = PublicKey.findProgramAddressSync(
       [
         Buffer.from("proposal"),
@@ -87,6 +96,8 @@ describe("Tests des propositions de tokens", () => {
       .createProposal(
         tokenName,
         tokenSymbol,
+        description,
+        imageUrl,
         totalSupply,
         creatorAllocation,
         lockupPeriod
@@ -103,15 +114,33 @@ describe("Tests des propositions de tokens", () => {
 
     // Vérifier que la proposition a été créée correctement
     const proposal = await program.account.tokenProposal.fetch(proposalPda);
-    console.log("Valeurs attendues pour la proposition:");
+
+    // --- Vérification du calcul de supporter_allocation --- 
+    const remainingAllocation = 100 - creatorAllocation;
+    const expectedSupporterAllocation = Math.ceil(remainingAllocation / 2); // Calcul attendu
+    console.log("\nVérification Allocation Supporter:");
+    console.log(`- Creator Allocation: ${creatorAllocation}%`);
+    console.log(`- Remaining Allocation: ${remainingAllocation}%`);
+    console.log(`- Expected Supporter Allocation (ceil(remaining/2)): ${expectedSupporterAllocation}%`);
+    console.log(`- Actual Supporter Allocation: ${proposal.supporterAllocation}%`);
+    expect(proposal.supporterAllocation).to.equal(expectedSupporterAllocation);
+    // ------------------------------------------------------
+
+    console.log("\nVérifications pour les nouveaux champs:");
+    expect(proposal.description).to.equal(description);
+    expect(proposal.imageUrl).to.be.null;
+
+    console.log("\nValeurs attendues pour la proposition:");
     console.log(`- tokenName: ${tokenName}`);
     console.log(`- tokenSymbol: ${tokenSymbol}`);
     console.log(`- totalSupply: ${totalSupply.toString()}`);
     console.log(`- creatorAllocation: ${creatorAllocation}`);
-    console.log(`- supporterAllocation: ${100 - creatorAllocation}`);
+    console.log(`- supporterAllocation: ${expectedSupporterAllocation}`);
     console.log(`- solRaised: 0`);
     console.log(`- totalContributions: 0`);
     console.log(`- lockupPeriod: ${lockupPeriod.toString()}`);
+    console.log(`- description: ${description}`);
+    console.log(`- imageUrl: ${imageUrl}`);
     
     console.log("Valeurs réelles de la proposition:");
     console.log(`- tokenName: ${proposal.tokenName}`);
@@ -122,15 +151,19 @@ describe("Tests des propositions de tokens", () => {
     console.log(`- solRaised: ${proposal.solRaised.toString()}`);
     console.log(`- totalContributions: ${proposal.totalContributions.toString()}`);
     console.log(`- lockupPeriod: ${proposal.lockupPeriod.toString()}`);
+    console.log(`- description: ${proposal.description}`);
+    console.log(`- imageUrl: ${proposal.imageUrl}`);
     
     expect(proposal.tokenName).to.equal(tokenName);
     expect(proposal.tokenSymbol).to.equal(tokenSymbol);
     expect(proposal.totalSupply.toString()).to.equal(totalSupply.toString());
     expect(proposal.creatorAllocation).to.equal(creatorAllocation);
-    expect(proposal.supporterAllocation).to.equal(100 - creatorAllocation);
+    expect(proposal.supporterAllocation).to.equal(expectedSupporterAllocation);
     expect(proposal.solRaised.toString()).to.equal("0");
     expect(proposal.totalContributions.toString()).to.equal("0");
     expect(proposal.lockupPeriod.toString()).to.equal(lockupPeriod.toString());
+    expect(proposal.description).to.equal(description);
+    expect(proposal.imageUrl).to.be.null;
   });
 
   it("Affiche la liste des propositions de tokens", async () => {
@@ -199,12 +232,16 @@ describe("Tests des propositions de tokens", () => {
       console.log(`SOL levés: ${proposal.solRaised.toString()}`);
       console.log(`Contributions totales: ${proposal.totalContributions.toString()}`);
       console.log(`Période de blocage: ${proposal.lockupPeriod.toString()} secondes`);
+      console.log(`Description: ${proposal.description}`);
+      console.log(`Image URL: ${proposal.imageUrl}`);
       console.log(`Statut: ${JSON.stringify(proposal.status)}`);
 
       // Vérifier que c'est bien la proposition que nous cherchons
       expect(proposal.epochId.toString()).to.equal(targetEpochId.toString());
       expect(proposal.creator.toString()).to.equal(targetCreator.toString());
       expect(proposal.tokenName).to.equal(targetTokenName);
+      expect(proposal.description).to.equal("Ceci est la description test pour noRugToken.");
+      expect(proposal.imageUrl).to.be.null;
 
       // Appeler getProposalDetails pour vérifier que tout fonctionne
       const tx = await program.methods

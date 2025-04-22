@@ -1,7 +1,7 @@
 "use client";
 
 import { useIsMobile } from "@/hooks/use-mobile";
-import logo from "@/public/images/logo.svg";
+import logo from "@/public/images/noruglogo.png";
 import { useWallet } from "@solana/wallet-adapter-react";
 import dynamic from "next/dynamic";
 import Image from "next/image";

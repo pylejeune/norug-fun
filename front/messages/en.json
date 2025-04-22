@@ -17,7 +17,7 @@
     "manageEpoch": "Manage Epoch",
     "createProposal": "Create Proposal",
     "treasury": "Treasury",
-    "tokenArchive": "Token Archive",
+    "myPage": "My Page",
     "howItWorks": "How It Works"
   },
   "ProposalForm": {
@@ -33,7 +33,28 @@
     "dragOrClickToUpload": "Drag and drop an image here, or click to select",
     "dropToUpload": "Drop the image here",
     "dragOrClickToReplace": "Drag a new image or click to replace",
-    "imageFormat": "JPEG, PNG or GIF up to 5MB"
+    "imageFormat": "JPEG, PNG or GIF up to 5MB",
+    "selectEpochFirst": "Please select an epoch first",
+    "submitting": "Creating proposal...",
+    "proposalCreated": "Proposal created successfully!",
+    "errorCreating": "Error creating proposal",
+    "lockupPeriod": "Lockup Period",
+    "lockupPeriodDay": "1 day",
+    "lockupPeriodWeek": "1 week",
+    "lockupPeriodMonth": "1 month",
+    "creatorAllocation": "Your allocation (max 10%)",
+    "creatorAllocationInfo": "You: {value}%",
+    "supportersAllocationInfo": "Supporters: {value}%",
+    "creatorAllocationTooHigh": "Creator allocation cannot exceed 10%",
+    "invalidTotalSupply": "Total supply must be a positive number",
+    "unlockDate": "Token Unlock Date",
+    "unlockAfterDay": "1 day after epoch end",
+    "unlockAfterWeek": "1 week after epoch end",
+    "unlockAfterMonth": "1 month after epoch end",
+    "unlockAfterThreeMonths": "3 months after epoch end",
+    "selectEpochForUnlock": "Select an epoch to set unlock date",
+    "days": "days",
+    "lockupPeriodHelp": "Period during which the creator's tokens will be locked"
   },
   "EpochManagement": {
     "title": "Epoch Management",
@@ -70,7 +91,24 @@
     "sortByDate": "Sort by date",
     "solanaRaised": "{amount} SOL",
     "epochId": "Epoch",
-    "noImage": "No image"
+    "noImage": "No image",
+    "noProposalsInEpoch": "No proposals in this epoch yet",
+    "selectEpochToViewProposals": "Select an epoch to view proposals",
+    "totalContributions": "{count, plural, =0 {No contributions} one {# contribution} other {# contributions}}",
+    "viewDetails": "View Details",
+    "supportProject": "Support",
+    "epochStart": "Epoch Start",
+    "epochEnd": "Epoch End",
+    "proposalsCount": "Active Proposals",
+    "createdAgo": "Created {time}",
+    "by": "by",
+    "activeProposals": "Active Proposals",
+    "previousEpochs": "Previous Epochs",
+    "topProposals": "Top Proposals",
+    "rank": "Rank #{rank}",
+    "qualifiedForPhase2": "Qualified for Phase 2",
+    "contributions": "{count, plural, =0 {No contributions} one {# contribution} other {# contributions}}",
+    "errorLoadingProposals": "Error loading proposals"
   },
   "Treasury": {
     "title": "Treasury",
@@ -88,36 +126,6 @@
       "newest": "Newest first",
       "oldest": "Oldest first"
     }
-  },
-  "Archive": {
-    "title": "Token Archive",
-    "viewMode": {
-      "myProposals": "My Proposals",
-      "supportedTokens": "Supported Tokens"
-    },
-    "sort": {
-      "byDate": "Sort by date",
-      "byName": "Sort by name",
-      "byVotes": "Sort by SOL raised",
-      "desc": "Highest first",
-      "asc": "Lowest first"
-    },
-    "solanaRaised": "{amount} SOL",
-    "minRequired": "Min. required: {amount} SOL",
-    "epochId": "Epoch",
-    "endDate": "End date",
-    "noImage": "No image",
-    "connectWallet": "Connect wallet to see your tokens",
-    "noProposals": "You haven't created any proposals yet",
-    "noSupportedTokens": "You haven't supported any tokens yet",
-    "yourSupport": "Your support: {amount} SOL",
-    "requiredAmount": "Required: {amount} SOL",
-    "status": {
-      "validated": "Validated",
-      "rejected": "Rejected"
-    },
-    "supportButton": "Support",
-    "connectToSupport": "Connect Wallet"
   },
   "ProposalDetail": {
     "description": "Description",
@@ -141,9 +149,22 @@
     "supportButton": "Support Project",
     "connectToSupport": "Connect Wallet to Support",
     "noImage": "No image",
-    "supportAmount": "Support amount",
+    "supportAmount": "Support Amount",
     "currentRank": "Currently ranked #{rank} out of {total} proposals",
-    "backButton": "Back"
+    "backButton": "Back",
+    "creatorAllocation": "Creator Allocation",
+    "supporterAllocation": "Supporter Allocation",
+    "errorLoadingProposal": "Error loading proposal",
+    "proposalNotFound": "Proposal not found",
+    "totalContributions": "{count, plural, =0 {No contributions} one {# contribution} other {# contributions}}",
+    "lockupPeriod": "Lockup Period",
+    "days": "days",
+    "support": "Support Project",
+    "supporting": "Supporting...",
+    "supportSuccess": "Successfully supported the project",
+    "supportError": "Failed to support the project",
+    "minAmount": "Minimum amount is 0.001 SOL",
+    "alreadySupported": "You have already supported this proposal"
   },
   "EpochForm": {
     "title": "Create New Epoch",
@@ -189,5 +210,37 @@
     "phase2P1": "NoRug.fun handles <strong>minting</strong>, <strong>token distribution</strong> (to the creator and investors), and creates the <strong>liquidity pool</strong> with the raised SOL through Meteora.",
     "phase2P2": "Investors in non-selected proposals can <strong>reclaim their funds</strong>.",
     "phase2P3": "Everyone can then trade these tokens as usual."
+  },
+  "EpochSelector": {
+    "loading": "Loading epochs...",
+    "selectEpoch": "Select an epoch",
+    "selectPlaceholder": "Choose an epoch",
+    "epochOption": "Epoch #{id} ({startDate} - {endDate})"
+  },
+  "MyPage": {
+    "title": "My Page",
+    "viewMode": {
+      "myProposals": "My Proposals",
+      "supportedTokens": "Supported Tokens"
+    },
+    "sort": {
+      "byDate": "Sort by Date",
+      "byName": "Sort by Name",
+      "byVotes": "Sort by Votes",
+      "desc": "Descending",
+      "asc": "Ascending"
+    },
+    "connectWallet": "Please connect your wallet to view your proposals",
+    "noProposals": "You haven't created any proposals yet",
+    "noSupportedTokens": "You haven't supported any tokens yet",
+    "yourSupport": "Your support: {amount} SOL",
+    "status": {
+      "active": "Active",
+      "validated": "Validated",
+      "rejected": "Rejected"
+    },
+    "errorLoadingProposals": "Error loading proposals",
+    "noImage": "No image",
+    "epochId": "Epoch"
   }
 }
