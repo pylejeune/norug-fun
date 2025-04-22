@@ -71,6 +71,9 @@ describe("Tests des propositions de tokens", () => {
     const epoch = await program.account.epochManagement.fetch(epochPda);
     const epochId = epoch.epochId;
     
+    // Définir l'allocation créateur pour ce test
+    const creatorAllocation = 10; 
+
     [proposalPda] = PublicKey.findProgramAddressSync(
       [
         Buffer.from("proposal"),
@@ -107,12 +110,24 @@ describe("Tests des propositions de tokens", () => {
 
     // Vérifier que la proposition a été créée correctement
     const proposal = await program.account.tokenProposal.fetch(proposalPda);
-    console.log("Valeurs attendues pour la proposition:");
+
+    // --- Vérification du calcul de supporter_allocation --- 
+    const remainingAllocation = 100 - creatorAllocation;
+    const expectedSupporterAllocation = Math.ceil(remainingAllocation / 2); // Calcul attendu
+    console.log("\nVérification Allocation Supporter:");
+    console.log(`- Creator Allocation: ${creatorAllocation}%`);
+    console.log(`- Remaining Allocation: ${remainingAllocation}%`);
+    console.log(`- Expected Supporter Allocation (ceil(remaining/2)): ${expectedSupporterAllocation}%`);
+    console.log(`- Actual Supporter Allocation: ${proposal.supporterAllocation}%`);
+    expect(proposal.supporterAllocation).to.equal(expectedSupporterAllocation);
+    // ------------------------------------------------------
+
+    console.log("\nValeurs attendues pour la proposition:");
     console.log(`- tokenName: ${tokenName}`);
     console.log(`- tokenSymbol: ${tokenSymbol}`);
     console.log(`- totalSupply: ${totalSupply.toString()}`);
     console.log(`- creatorAllocation: ${creatorAllocation}`);
-    console.log(`- supporterAllocation: ${100 - creatorAllocation}`);
+    console.log(`- supporterAllocation: ${expectedSupporterAllocation}`);
     console.log(`- solRaised: 0`);
     console.log(`- totalContributions: 0`);
     console.log(`- lockupPeriod: ${lockupPeriod.toString()}`);
@@ -131,7 +146,7 @@ describe("Tests des propositions de tokens", () => {
     expect(proposal.tokenSymbol).to.equal(tokenSymbol);
     expect(proposal.totalSupply.toString()).to.equal(totalSupply.toString());
     expect(proposal.creatorAllocation).to.equal(creatorAllocation);
-    expect(proposal.supporterAllocation).to.equal(100 - creatorAllocation);
+    expect(proposal.supporterAllocation).to.equal(expectedSupporterAllocation);
     expect(proposal.solRaised.toString()).to.equal("0");
     expect(proposal.totalContributions.toString()).to.equal("0");
     expect(proposal.lockupPeriod.toString()).to.equal(lockupPeriod.toString());

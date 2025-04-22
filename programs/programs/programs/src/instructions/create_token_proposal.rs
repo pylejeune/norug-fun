@@ -75,7 +75,9 @@ pub fn handler(
     proposal.token_symbol = token_symbol;
     proposal.total_supply = total_supply;
     proposal.creator_allocation = creator_allocation;
-    proposal.supporter_allocation = 100 - creator_allocation; // Le reste va aux supporters
+    // Calculer la part restante et l'allocation des supporters (arrondi supérieur)
+    let remaining_allocation = 100u8.saturating_sub(creator_allocation);
+    proposal.supporter_allocation = remaining_allocation.saturating_add(1) / 2;
     proposal.sol_raised = 0;
     proposal.total_contributions = 0;
     proposal.lockup_period = lockup_period;
