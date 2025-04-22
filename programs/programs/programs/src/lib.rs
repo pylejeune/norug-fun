@@ -12,7 +12,7 @@ pub use constants::*;
 pub use instructions::*;
 pub use state::*;
 
-declare_id!("89S48feUon6ffgtLzsnqoBVwdb1mxT4rmhRR5WnYefpA");
+declare_id!("BAnJ2TFbZnBFY9paPHD4ik1TDFVKkhnPimtnH3uogQqs");
 
 
 #[program]
