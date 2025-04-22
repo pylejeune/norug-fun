@@ -3,12 +3,11 @@
 import {
   BookOpenText,
   CirclePlus,
-  History,
+  User ,
   Home,
   Hourglass,
   PanelLeftClose,
   PanelLeftOpen,
-  Vault,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useParams } from "next/navigation";
@@ -45,21 +44,23 @@ export function AltSidebar() {
       titleKey: "manageEpoch",
       url: `/${locale}/epoch`,
       icon: Hourglass,
+      className: "text-red-500 hover:text-red-400",
     },
     {
       titleKey: "createProposal",
       url: `/${locale}/proposal/create`,
       icon: CirclePlus,
     },
+    //Will be for phase 2
+    // {
+    //   titleKey: "treasury",
+    //   url: `/${locale}/treasury`,
+    //   icon: Vault,
+    // },
     {
-      titleKey: "treasury",
-      url: `/${locale}/treasury`,
-      icon: Vault,
-    },
-    {
-      titleKey: "tokenArchive",
-      url: `/${locale}/archive`,
-      icon: History,
+      titleKey: "myPage",
+      url: `/${locale}/mypage`,
+      icon: User ,
     },
     {
       titleKey: "howItWorks",
@@ -78,7 +79,9 @@ export function AltSidebar() {
               <Link
                 key={item.titleKey}
                 href={item.url}
-                className="flex flex-col items-center gap-1 text-gray-400 hover:text-white transition-colors"
+                className={`flex flex-col items-center gap-1 transition-colors ${
+                  item.className || "text-gray-400 hover:text-white"
+                }`}
                 title={t(item.titleKey)}
               >
                 <item.icon className="h-6 w-6" />
@@ -134,7 +137,7 @@ export function AltSidebar() {
                       <SidebarMenuButton
                         asChild
                         tooltip={t(item.titleKey)}
-                        className="h-8 md:h-12 text-sm md:text-base"
+                        className={`h-8 md:h-12 text-sm md:text-base ${item.className || ""}`}
                       >
                         <Link href={item.url} className="gap-2 md:gap-3">
                           <item.icon className="h-4 w-4 md:h-6 md:w-6 group-data-[state=collapsed]:h-8 group-data-[state=collapsed]:w-5 transition-all duration-200" />

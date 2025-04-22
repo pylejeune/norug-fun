@@ -17,7 +17,7 @@
     "manageEpoch": "Manage Epoch",
     "createProposal": "Create Proposal",
     "treasury": "Treasury",
-    "tokenArchive": "Token Archive",
+    "myPage": "My Page",
     "howItWorks": "How It Works"
   },
   "ProposalForm": {
@@ -127,36 +127,6 @@
       "oldest": "Oldest first"
     }
   },
-  "Archive": {
-    "title": "Token Archive",
-    "viewMode": {
-      "myProposals": "My Proposals",
-      "supportedTokens": "Supported Tokens"
-    },
-    "sort": {
-      "byDate": "Sort by date",
-      "byName": "Sort by name",
-      "byVotes": "Sort by SOL raised",
-      "desc": "Highest first",
-      "asc": "Lowest first"
-    },
-    "solanaRaised": "{amount} SOL",
-    "minRequired": "Min. required: {amount} SOL",
-    "epochId": "Epoch",
-    "endDate": "End date",
-    "noImage": "No image",
-    "connectWallet": "Connect wallet to see your tokens",
-    "noProposals": "You haven't created any proposals yet",
-    "noSupportedTokens": "You haven't supported any tokens yet",
-    "yourSupport": "Your support: {amount} SOL",
-    "requiredAmount": "Required: {amount} SOL",
-    "status": {
-      "validated": "Validated",
-      "rejected": "Rejected"
-    },
-    "supportButton": "Support",
-    "connectToSupport": "Connect Wallet"
-  },
   "ProposalDetail": {
     "description": "Description",
     "tokenomics": "Tokenomics",
@@ -246,5 +216,31 @@
     "selectEpoch": "Select an epoch",
     "selectPlaceholder": "Choose an epoch",
     "epochOption": "Epoch #{id} ({startDate} - {endDate})"
+  },
+  "MyPage": {
+    "title": "My Page",
+    "viewMode": {
+      "myProposals": "My Proposals",
+      "supportedTokens": "Supported Tokens"
+    },
+    "sort": {
+      "byDate": "Sort by Date",
+      "byName": "Sort by Name",
+      "byVotes": "Sort by Votes",
+      "desc": "Descending",
+      "asc": "Ascending"
+    },
+    "connectWallet": "Please connect your wallet to view your proposals",
+    "noProposals": "You haven't created any proposals yet",
+    "noSupportedTokens": "You haven't supported any tokens yet",
+    "yourSupport": "Your support: {amount} SOL",
+    "status": {
+      "active": "Active",
+      "validated": "Validated",
+      "rejected": "Rejected"
+    },
+    "errorLoadingProposals": "Error loading proposals",
+    "noImage": "No image",
+    "epochId": "Epoch"
   }
 }

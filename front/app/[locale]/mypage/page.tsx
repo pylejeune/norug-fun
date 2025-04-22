@@ -1,116 +1,96 @@
 "use client";
 
+import { useProgram } from "@/context/ProgramContext";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { format } from "date-fns";
 import { enUS, fr } from "date-fns/locale";
 import { useTranslations } from "next-intl";
 import { useParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 
 // TODO: Move to types file
 type SortOrder = "asc" | "desc";
 type SortBy = "date" | "name" | "votes";
 type ViewMode = "my_proposals" | "supported_tokens";
 
-type ArchivedToken = {
-  id: string;
-  name: string;
-  ticker: string;
-  description: string;
-  image_url: string | null;
-  epoch_id: string;
-  created_at: Date;
-  ended_at: Date;
-  votes: number;
-  final_solana_raised: number;
-  creator_address: string;
-  is_user_proposal: boolean;
-  is_user_supported: boolean;
-  user_support_amount?: number;
-  status: "rejected" | "validated";
-  required_amount: number;
-};
-
-export default function ArchivePage() {
-  const t = useTranslations("Archive");
+export default function MyPage() {
+  const t = useTranslations("MyPage");
   const { locale } = useParams();
   const { publicKey } = useWallet();
+  const { getUserProposals, getUserSupportedProposals } = useProgram();
   const [viewMode, setViewMode] = useState<ViewMode>("my_proposals");
   const [sortBy, setSortBy] = useState<SortBy>("date");
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
+  const [loading, setLoading] = useState(true);
+  const [proposals, setProposals] = useState<any[]>([]);
 
-  // TODO: Replace with real data from Solana program
-  const [tokens] = useState<ArchivedToken[]>([
-    {
-      id: "token_1",
-      name: "Project Alpha",
-      ticker: "ALPHA",
-      description:
-        "A revolutionary DeFi protocol for sustainable yield farming",
-      image_url: "/tokenDemo/alpha.png",
-      epoch_id: "epoch_1",
-      created_at: new Date("2025-04-14T19:00:00"),
-      ended_at: new Date("2025-04-15T18:59:59"),
-      votes: 150,
-      final_solana_raised: 25.5,
-      creator_address: "abc123...",
-      is_user_proposal: true,
-      is_user_supported: false,
-      status: "rejected",
-      required_amount: 100,
-    },
-    {
-      id: "token_2",
-      name: "Project Beta",
-      ticker: "BETA",
-      description: "Next-gen NFT marketplace with zero fees",
-      image_url: "/tokenDemo/beta.png",
-      epoch_id: "epoch_1",
-      created_at: new Date("2025-04-14T19:05:25"),
-      ended_at: new Date("2025-04-15T18:59:59"),
-      votes: 120,
-      final_solana_raised: 150.25,
-      creator_address: "def456...",
-      is_user_proposal: false,
-      is_user_supported: true,
-      user_support_amount: 5.5,
-      status: "validated",
-      required_amount: 100,
-    },
-  ]);
+  // Load proposals
+  useEffect(() => {
+    const loadProposals = async () => {
+      if (!publicKey) return;
 
-  // Filter and sort tokens
-  const displayedTokens = useMemo(() => {
-    // Filter based on view mode
-    const filtered = tokens.filter((token) => {
-      if (!publicKey) return false;
-      return viewMode === "my_proposals"
-        ? token.is_user_proposal
-        : token.is_user_supported;
-    });
+      setLoading(true);
+      try {
+        const data =
+          viewMode === "my_proposals"
+            ? await getUserProposals(publicKey)
+            : await getUserSupportedProposals(publicKey);
+        setProposals(data);
+      } catch (error) {
+        console.error("Failed to load proposals:", error);
+        toast.error(t("errorLoadingProposals"));
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    // Sort filtered tokens
-    return filtered.sort((a, b) => {
+    loadProposals();
+  }, [publicKey, viewMode, getUserProposals, getUserSupportedProposals]);
+
+  // Sort proposals
+  const sortedProposals = useMemo(() => {
+    return [...proposals].sort((a, b) => {
       const sortValue = sortOrder === "desc" ? -1 : 1;
 
       switch (sortBy) {
         case "date":
-          return (b.ended_at.getTime() - a.ended_at.getTime()) * sortValue;
+          return (
+            (new Date(b.endTime).getTime() - new Date(a.endTime).getTime()) *
+            sortValue
+          );
         case "name":
-          return a.name.localeCompare(b.name) * sortValue;
+          return a.tokenName.localeCompare(b.tokenName) * sortValue;
         case "votes":
-          return (b.final_solana_raised - a.final_solana_raised) * sortValue;
+          return (b.solRaised - a.solRaised) * sortValue;
         default:
           return 0;
       }
     });
-  }, [tokens, sortBy, sortOrder, viewMode, publicKey]);
+  }, [proposals, sortBy, sortOrder]);
 
   // Format date
-  const formatDate = (date: Date) => {
-    return format(date, "PPpp", {
-      locale: locale === "fr" ? fr : enUS,
-    });
+  const formatDate = (timestamp: number) => {
+    if (!timestamp) return "N/A";
+
+    try {
+      return format(new Date(timestamp * 1000), "PPpp", {
+        locale: locale === "fr" ? fr : enUS,
+      });
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return "Invalid date";
+    }
+  };
+
+  // Helper function to extract status
+  const getStatusString = (status: any): string => {
+    if (typeof status === "object") {
+      // If status is an object, take the first key
+      return Object.keys(status)[0];
+    }
+    return status;
   };
 
   return (
@@ -168,11 +148,15 @@ export default function ArchivePage() {
       </div>
 
       {/* Content */}
-      {!publicKey ? (
+      {loading ? (
+        <div className="flex justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+        </div>
+      ) : !publicKey ? (
         <div className="text-center py-8 text-gray-400">
           {t("connectWallet")}
         </div>
-      ) : displayedTokens.length === 0 ? (
+      ) : sortedProposals.length === 0 ? (
         <div className="text-center py-8 text-gray-400">
           {viewMode === "my_proposals"
             ? t("noProposals")
@@ -180,18 +164,18 @@ export default function ArchivePage() {
         </div>
       ) : (
         <div className="grid gap-3 md:gap-4">
-          {displayedTokens.map((token) => (
+          {sortedProposals.map((proposal) => (
             <div
-              key={token.id}
+              key={proposal.publicKey.toString()}
               className="bg-gray-900/50 p-3 md:p-4 rounded-lg border border-gray-800 hover:bg-gray-900/70 transition-colors"
             >
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                 {/* Image */}
                 <div className="w-full sm:w-32 h-32 flex-shrink-0">
-                  {token.image_url ? (
+                  {proposal.image_url ? (
                     <img
-                      src={token.image_url}
-                      alt={token.name}
+                      src={proposal.image_url}
+                      alt={proposal.name}
                       className="w-full h-full object-cover rounded-lg"
                     />
                   ) : (
@@ -206,67 +190,40 @@ export default function ArchivePage() {
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                     <div>
                       <h3 className="text-lg font-medium truncate">
-                        {token.name}
+                        {proposal.tokenName}
                       </h3>
                       <p className="text-sm font-mono text-gray-400">
-                        ${token.ticker}
+                        ${proposal.tokenSymbol}
                       </p>
                     </div>
                     <div className="w-full sm:w-auto flex flex-col items-start sm:items-end gap-1">
                       <p className="text-lg font-medium text-green-500">
-                        {t("solanaRaised", {
-                          amount: token.final_solana_raised.toLocaleString(
-                            locale,
-                            {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2,
-                            }
-                          ),
-                        })}
+                        {(proposal.solRaised / LAMPORTS_PER_SOL).toFixed(2)} SOL
                       </p>
-                      {token.is_user_supported && token.user_support_amount && (
+                      {proposal.userSupportAmount && (
                         <p className="text-sm text-blue-400">
                           {t("yourSupport", {
-                            amount: token.user_support_amount.toLocaleString(
-                              locale,
-                              {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2,
-                              }
-                            ),
+                            amount: proposal.userSupportAmount.toFixed(2),
                           })}
                         </p>
                       )}
                       <p
                         className={`text-sm font-medium ${
-                          token.status === "validated"
+                          getStatusString(proposal.status) === "validated"
                             ? "text-green-500"
+                            : getStatusString(proposal.status) === "active"
+                            ? "text-blue-500"
                             : "text-red-500"
                         }`}
                       >
-                        {t(`status.${token.status}`)}
+                        {t(`status.${getStatusString(proposal.status)}`)}
                       </p>
                     </div>
                   </div>
 
-                  <p className="text-sm text-gray-300 line-clamp-2">
-                    {token.description}
-                  </p>
-
                   <div className="flex flex-wrap gap-2 text-xs text-gray-400">
                     <span className="bg-gray-800/50 px-2 py-1 rounded">
-                      {t("epochId")}: {token.epoch_id}
-                    </span>
-                    <span className="bg-gray-800/50 px-2 py-1 rounded">
-                      {t("endDate")}: {formatDate(token.ended_at)}
-                    </span>
-                    <span className="bg-gray-800/50 px-2 py-1 rounded">
-                      {t("requiredAmount", {
-                        amount: token.required_amount.toLocaleString(locale, {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        }),
-                      })}
+                      {t("epochId")}: {proposal.epochId}
                     </span>
                   </div>
                 </div>
