@@ -4,7 +4,13 @@ import { getProgram } from "@/context/program";
 import { BN, Program } from "@coral-xyz/anchor";
 import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
 import { LAMPORTS_PER_SOL, PublicKey, SystemProgram } from "@solana/web3.js";
-import { createContext, useContext, useMemo, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+} from "react";
 import { Programs } from "./types/programs";
 
 export type { Programs };
@@ -24,6 +30,21 @@ export type EpochState = {
   publicKey: PublicKey;
 };
 
+export type ProposalState = {
+  epochId: string;
+  creator: PublicKey;
+  tokenName: string;
+  tokenSymbol: string;
+  totalSupply: number;
+  creatorAllocation: number;
+  supporterAllocation: number;
+  solRaised: number;
+  totalContributions: number;
+  lockupPeriod: number;
+  status: "active" | "validated" | "rejected";
+  publicKey: PublicKey;
+};
+
 type ProgramContextType = {
   program: ProgramType | null;
   isConnected: boolean;
@@ -39,6 +60,21 @@ type ProgramContextType = {
   getEpochState: (epochId: number) => Promise<EpochState | null>;
   getAllEpochs: () => Promise<EpochState[]>;
   endEpoch: (epochId: number) => Promise<void>;
+  createProposal: (
+    epochId: string,
+    tokenName: string,
+    tokenSymbol: string,
+    totalSupply: number,
+    creatorAllocation: number,
+    lockupPeriod: number
+  ) => Promise<void>;
+  getAllProposals: () => Promise<ProposalState[]>;
+  getProposalDetails: (proposalId: string) => Promise<any>;
+  supportProposal: (proposalId: string, amount: number) => Promise<void>;
+  getUserProposals: (userAddress: PublicKey) => Promise<ProposalState[]>;
+  getUserSupportedProposals: (
+    userAddress: PublicKey
+  ) => Promise<ProposalState[]>;
 };
 
 const ProgramContext = createContext<ProgramContextType | null>(null);
@@ -214,6 +250,276 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const createProposal = useCallback(
+    async (
+      epochId: string,
+      tokenName: string,
+      tokenSymbol: string,
+      totalSupply: number,
+      creatorAllocation: number,
+      lockupPeriod: number
+    ) => {
+      if (!program || !isConnected || !wallet) {
+        throw new Error("Please connect your wallet first");
+      }
+
+      try {
+        // Get epoch
+        const epochState = await getEpochState(parseInt(epochId));
+        if (!epochState) {
+          throw new Error("Epoch not found");
+        }
+
+        // Check if epoch is active
+        if (!("active" in epochState.status)) {
+          throw new Error("Epoch is not active");
+        }
+
+        // Generate PDA for proposal
+        const [proposalPDA] = PublicKey.findProgramAddressSync(
+          [
+            Buffer.from("proposal"),
+            wallet.publicKey.toBuffer(),
+            new BN(epochId).toArrayLike(Buffer, "le", 8),
+            Buffer.from(tokenName),
+          ],
+          program.programId
+        );
+
+        const tx = await (program as Program).methods
+          .createProposal(
+            tokenName,
+            tokenSymbol,
+            new BN(totalSupply),
+            creatorAllocation,
+            new BN(lockupPeriod)
+          )
+          .accounts({
+            creator: wallet.publicKey,
+            tokenProposal: proposalPDA,
+            epoch: epochState.publicKey,
+            systemProgram: SystemProgram.programId,
+          })
+          .rpc();
+
+        console.log("✅ Proposal created:", tx);
+        setSuccess("Proposal created successfully");
+      } catch (err: any) {
+        console.error("❌ Error creating proposal:", err);
+        setError(err.message);
+        throw err;
+      }
+    },
+    [program, isConnected, wallet]
+  );
+
+  const getAllProposals = async (): Promise<ProposalState[]> => {
+    if (!program) return [];
+
+    try {
+      // Cast le program au bon type pour accéder à tokenProposal
+      const proposals = await (
+        program as Program<Programs>
+      ).account.tokenProposal.all();
+
+      return proposals.map((p: any) => ({
+        epochId: p.account.epochId.toString(),
+        creator: p.account.creator,
+        tokenName: p.account.tokenName,
+        tokenSymbol: p.account.tokenSymbol,
+        totalSupply: p.account.totalSupply.toNumber(),
+        creatorAllocation: p.account.creatorAllocation,
+        supporterAllocation: p.account.supporterAllocation,
+        solRaised: p.account.solRaised.toNumber(),
+        totalContributions: p.account.totalContributions.toNumber(),
+        lockupPeriod: p.account.lockupPeriod.toNumber(),
+        status: p.account.status,
+        publicKey: p.publicKey,
+      }));
+    } catch (err) {
+      console.error("Error fetching proposals:", err);
+      return [];
+    }
+  };
+
+  const getProposalDetails = useCallback(
+    async (proposalId: string) => {
+      if (!program) throw new Error("Program not initialized");
+
+      try {
+        console.log("Fetching proposal:", proposalId);
+        const proposal = await (
+          program as Program<Programs>
+        ).account.tokenProposal.fetch(new PublicKey(proposalId));
+
+        // Transformer les données pour correspondre au format attendu
+        return {
+          epochId: proposal.epochId.toString(),
+          creator: proposal.creator,
+          tokenName: proposal.tokenName,
+          tokenSymbol: proposal.tokenSymbol,
+          totalSupply: proposal.totalSupply.toNumber(),
+          creatorAllocation: proposal.creatorAllocation,
+          supporterAllocation: proposal.supporterAllocation,
+          solRaised: proposal.solRaised.toNumber() / LAMPORTS_PER_SOL,
+          totalContributions: proposal.totalContributions.toNumber(),
+          lockupPeriod: proposal.lockupPeriod.toNumber(),
+          status: proposal.status,
+          publicKey: new PublicKey(proposalId),
+        };
+      } catch (error) {
+        console.error("Failed to fetch proposal details:", error);
+        throw error;
+      }
+    },
+    [program]
+  );
+
+  const supportProposal = useCallback(
+    async (proposalId: string, amount: number) => {
+      if (!program || !isConnected || !wallet) {
+        throw new Error("Please connect your wallet first");
+      }
+
+      try {
+        // Get proposal details
+        const proposal = await getProposalDetails(proposalId);
+        if (!proposal) {
+          throw new Error("Proposal not found");
+        }
+
+        // Check if user has already supported this proposal
+        try {
+          const [userSupportPDA] = PublicKey.findProgramAddressSync(
+            [
+              Buffer.from("support"),
+              new BN(proposal.epochId).toArrayLike(Buffer, "le", 8),
+              wallet.publicKey.toBuffer(),
+              proposal.publicKey.toBuffer(),
+            ],
+            program.programId
+          );
+
+          await (
+            program as Program<Programs>
+          ).account.userProposalSupport.fetch(userSupportPDA);
+          // If we get here, account already exists
+          throw new Error("You have already supported this proposal");
+        } catch (err: any) {
+          // If account doesn't exist, continue
+          if (!err.message.includes("Account does not exist")) {
+            throw err;
+          }
+        }
+
+        // Get epoch state
+        const epochState = await getEpochState(parseInt(proposal.epochId));
+        if (!epochState) {
+          throw new Error("Epoch not found");
+        }
+
+        // Convert amount to lamports
+        const amountLamports = new BN(amount * LAMPORTS_PER_SOL);
+
+        // Generate PDA for user support
+        const [userSupportPDA] = PublicKey.findProgramAddressSync(
+          [
+            Buffer.from("support"),
+            new BN(proposal.epochId).toArrayLike(Buffer, "le", 8),
+            wallet.publicKey.toBuffer(),
+            proposal.publicKey.toBuffer(),
+          ],
+          program.programId
+        );
+
+        // Execute support instruction
+        const tx = await (program as Program).methods
+          .supportProposal(amountLamports)
+          .accounts({
+            user: wallet.publicKey,
+            epoch: epochState.publicKey,
+            proposal: proposal.publicKey,
+            userSupport: userSupportPDA,
+            systemProgram: SystemProgram.programId,
+          })
+          .rpc();
+
+        console.log("✅ Proposal supported:", tx);
+        setSuccess("Successfully supported proposal");
+
+        // Refresh proposal details
+        await getProposalDetails(proposalId);
+      } catch (err: any) {
+        console.error("❌ Error supporting proposal:", err);
+        setError(err.message);
+        throw err;
+      }
+    },
+    [program, isConnected, wallet, getProposalDetails, getEpochState]
+  );
+
+  const getUserProposals = useCallback(
+    async (userAddress: PublicKey) => {
+      if (!program) throw new Error("Program not initialized");
+
+      try {
+        const allProposals = await getAllProposals();
+        return allProposals.filter(
+          (proposal) => proposal.creator.toString() === userAddress.toString()
+        );
+      } catch (error) {
+        console.error("Failed to fetch user proposals:", error);
+        throw error;
+      }
+    },
+    [program, getAllProposals]
+  );
+
+  const getUserSupportedProposals = useCallback(
+    async (userAddress: PublicKey) => {
+      if (!program) throw new Error("Program not initialized");
+
+      try {
+        const allProposals = await getAllProposals();
+        const supportedProposals = [];
+
+        for (const proposal of allProposals) {
+          try {
+            const [userSupportPDA] = PublicKey.findProgramAddressSync(
+              [
+                Buffer.from("support"),
+                new BN(proposal.epochId).toArrayLike(Buffer, "le", 8),
+                userAddress.toBuffer(),
+                proposal.publicKey.toBuffer(),
+              ],
+              program.programId
+            );
+
+            const support = await (
+              program as ProgramType
+            ).account.userProposalSupport.fetch(userSupportPDA);
+
+            if (support) {
+              supportedProposals.push({
+                ...proposal,
+                userSupportAmount: support.amount.toNumber() / LAMPORTS_PER_SOL,
+              });
+            }
+          } catch (err) {
+            // If account doesn't exist, continue
+            continue;
+          }
+        }
+
+        return supportedProposals;
+      } catch (error) {
+        console.error("Failed to fetch user supported proposals:", error);
+        throw error;
+      }
+    },
+    [program, getAllProposals]
+  );
+
   const value = useMemo(
     () => ({
       program,
@@ -226,6 +532,12 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
       getEpochState,
       getAllEpochs,
       endEpoch,
+      createProposal,
+      getAllProposals,
+      getProposalDetails,
+      supportProposal,
+      getUserProposals,
+      getUserSupportedProposals,
     }),
     [program, isConnected, error, success]
   );

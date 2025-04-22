@@ -217,6 +217,55 @@ export type Programs = {
       "args": []
     },
     {
+      "name": "initializeProgramConfig",
+      "discriminator": [
+        6,
+        131,
+        61,
+        237,
+        40,
+        110,
+        83,
+        124
+      ],
+      "accounts": [
+        {
+          "name": "programConfig",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "adminAuthority",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
       "name": "startEpoch",
       "discriminator": [
         204,
@@ -275,6 +324,115 @@ export type Programs = {
           "type": "i64"
         }
       ]
+    },
+    {
+      "name": "supportProposal",
+      "discriminator": [
+        95,
+        239,
+        233,
+        199,
+        201,
+        62,
+        90,
+        27
+      ],
+      "accounts": [
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "epoch"
+        },
+        {
+          "name": "proposal",
+          "writable": true
+        },
+        {
+          "name": "userSupport",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  117,
+                  112,
+                  112,
+                  111,
+                  114,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "proposal.epoch_id",
+                "account": "tokenProposal"
+              },
+              {
+                "kind": "account",
+                "path": "user"
+              },
+              {
+                "kind": "account",
+                "path": "proposal"
+              }
+            ]
+          }
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "updateProposalStatus",
+      "discriminator": [
+        9,
+        171,
+        178,
+        233,
+        228,
+        50,
+        167,
+        206
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "signer": true
+        },
+        {
+          "name": "programConfig"
+        },
+        {
+          "name": "epochManagement"
+        },
+        {
+          "name": "proposal",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "newStatus",
+          "type": {
+            "defined": {
+              "name": "proposalStatus"
+            }
+          }
+        }
+      ]
     }
   ],
   "accounts": [
@@ -292,6 +450,19 @@ export type Programs = {
       ]
     },
     {
+      "name": "programConfig",
+      "discriminator": [
+        196,
+        210,
+        90,
+        231,
+        144,
+        149,
+        140,
+        63
+      ]
+    },
+    {
       "name": "tokenProposal",
       "discriminator": [
         192,
@@ -302,6 +473,19 @@ export type Programs = {
         17,
         144,
         39
+      ]
+    },
+    {
+      "name": "userProposalSupport",
+      "discriminator": [
+        255,
+        187,
+        213,
+        25,
+        93,
+        16,
+        197,
+        155
       ]
     }
   ],
@@ -362,12 +546,57 @@ export type Programs = {
     {
       "code": 6005,
       "name": "invalidEpochId",
-      "msg": "Invalid epoch ID"
+      "msg": "ID d'époque invalide"
     },
     {
       "code": 6006,
       "name": "epochAlreadyInactive",
-      "msg": "Epoch already inactive"
+      "msg": "L'époque est déjà inactive"
+    },
+    {
+      "code": 6007,
+      "name": "proposalNotActive",
+      "msg": "La proposition n'est pas active"
+    },
+    {
+      "code": 6008,
+      "name": "proposalEpochMismatch",
+      "msg": "La proposition n'appartient pas à l'époque spécifiée"
+    },
+    {
+      "code": 6009,
+      "name": "amountMustBeGreaterThanZero",
+      "msg": "Le montant doit être supérieur à zéro"
+    },
+    {
+      "code": 6010,
+      "name": "overflow",
+      "msg": "Dépassement de capacité lors du calcul"
+    },
+    {
+      "code": 6011,
+      "name": "epochNotClosed",
+      "msg": "L'époque doit être fermée pour mettre à jour le statut de la proposition"
+    },
+    {
+      "code": 6012,
+      "name": "proposalNotInEpoch",
+      "msg": "La proposition n'appartient pas à l'époque fournie"
+    },
+    {
+      "code": 6013,
+      "name": "invalidAuthority",
+      "msg": "Le signataire n'est pas l'autorité autorisée"
+    },
+    {
+      "code": 6014,
+      "name": "invalidProposalStatusUpdate",
+      "msg": "Mise à jour du statut de la proposition invalide"
+    },
+    {
+      "code": 6015,
+      "name": "proposalAlreadyFinalized",
+      "msg": "La proposition a déjà un statut final (Validée ou Rejetée)"
     }
   ],
   "types": [
@@ -428,6 +657,18 @@ export type Programs = {
           },
           {
             "name": "closed"
+          }
+        ]
+      }
+    },
+    {
+      "name": "programConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "adminAuthority",
+            "type": "pubkey"
           }
         ]
       }
@@ -557,6 +798,30 @@ export type Programs = {
                 "name": "proposalStatus"
               }
             }
+          }
+        ]
+      }
+    },
+    {
+      "name": "userProposalSupport",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "epochId",
+            "type": "u64"
+          },
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "proposal",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
           }
         ]
       }

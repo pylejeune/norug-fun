@@ -17,7 +17,7 @@
     "manageEpoch": "Gérer Époque",
     "createProposal": "Créer Proposition",
     "treasury": "Trésorerie",
-    "tokenArchive": "Archive Tokens",
+    "myPage": "Ma Page",
     "howItWorks": "Comment ça marche"
   },
   "ProposalForm": {
@@ -33,7 +33,28 @@
     "dragOrClickToUpload": "Glissez et déposez une image ici, ou cliquez pour sélectionner",
     "dropToUpload": "Déposez l'image ici",
     "dragOrClickToReplace": "Glissez une nouvelle image ou cliquez pour remplacer",
-    "imageFormat": "JPEG, PNG ou GIF jusqu'à 5MB"
+    "imageFormat": "JPEG, PNG ou GIF jusqu'à 5MB",
+    "selectEpochFirst": "Veuillez d'abord sélectionner une époque",
+    "submitting": "Création de la proposition...",
+    "proposalCreated": "Proposition créée avec succès !",
+    "errorCreating": "Erreur lors de la création de la proposition",
+    "lockupPeriod": "Période de Blocage",
+    "lockupPeriodDay": "1 jour",
+    "lockupPeriodWeek": "1 semaine",
+    "lockupPeriodMonth": "1 mois",
+    "creatorAllocation": "Votre allocation (max 10%)",
+    "creatorAllocationInfo": "Vous : {value}%",
+    "supportersAllocationInfo": "Supporters : {value}%",
+    "creatorAllocationTooHigh": "L'allocation du créateur ne peut pas dépasser 10%",
+    "invalidTotalSupply": "Le montant total doit être un nombre positif",
+    "unlockDate": "Date de déblocage des tokens",
+    "unlockAfterDay": "1 jour après la fin de l'epoch",
+    "unlockAfterWeek": "1 semaine après la fin de l'epoch",
+    "unlockAfterMonth": "1 mois après la fin de l'epoch",
+    "unlockAfterThreeMonths": "3 mois après la fin de l'epoch",
+    "selectEpochForUnlock": "Sélectionnez une epoch pour définir la date de déblocage",
+    "days": "jours",
+    "lockupPeriodHelp": "Période pendant laquelle les tokens du créateur seront bloqués"
   },
   "EpochManagement": {
     "title": "Gestion des Epochs",
@@ -70,7 +91,24 @@
     "sortByDate": "Trier par date",
     "solanaRaised": "{amount} SOL",
     "epochId": "Epoch",
-    "noImage": "Pas d'image"
+    "noImage": "Pas d'image",
+    "noProposalsInEpoch": "Aucune proposition dans cette époque",
+    "selectEpochToViewProposals": "Sélectionnez une époque pour voir les propositions",
+    "totalContributions": "{count, plural, =0 {Aucune contribution} one {# contribution} other {# contributions}}",
+    "viewDetails": "Voir les détails",
+    "supportProject": "Soutenir",
+    "epochStart": "Début de l'Epoch",
+    "epochEnd": "Fin de l'Epoch",
+    "proposalsCount": "Propositions Actives",
+    "createdAgo": "Créé {time}",
+    "by": "par",
+    "activeProposals": "Propositions Actives",
+    "previousEpochs": "Epochs Précédentes",
+    "topProposals": "Meilleures Propositions",
+    "rank": "Rang #{rank}",
+    "qualifiedForPhase2": "Qualifié pour la Phase 2",
+    "contributions": "{count, plural, =0 {Aucune contribution} one {# contribution} other {# contributions}}",
+    "errorLoadingProposals": "Erreur lors du chargement des propositions"
   },
   "Treasury": {
     "title": "Trésorerie",
@@ -89,36 +127,6 @@
       "oldest": "Plus ancien"
     }
   },
-  "Archive": {
-    "title": "Archive des Tokens",
-    "viewMode": {
-      "myProposals": "Mes Propositions",
-      "supportedTokens": "Tokens Soutenus"
-    },
-    "sort": {
-      "byDate": "Trier par date",
-      "byName": "Trier par nom",
-      "byVotes": "Trier par SOL levés",
-      "desc": "Plus élevé",
-      "asc": "Plus faible"
-    },
-    "solanaRaised": "{amount} SOL",
-    "minRequired": "Min. requis : {amount} SOL",
-    "epochId": "Epoch",
-    "endDate": "Date de fin",
-    "noImage": "Pas d'image",
-    "connectWallet": "Connectez votre wallet pour voir vos tokens",
-    "noProposals": "Vous n'avez pas encore créé de propositions",
-    "noSupportedTokens": "Vous n'avez pas encore soutenu de tokens",
-    "yourSupport": "Votre support : {amount} SOL",
-    "requiredAmount": "Requis : {amount} SOL",
-    "status": {
-      "validated": "Validé",
-      "rejected": "Rejeté"
-    },
-    "supportButton": "Soutenir",
-    "connectToSupport": "Connectez-vous"
-  },
   "ProposalDetail": {
     "description": "Description",
     "tokenomics": "Tokenomics",
@@ -134,16 +142,29 @@
     "solanaRaised": "{amount} SOL",
     "yourSupport": "Votre support : {amount} SOL",
     "status": {
-      "active": "En cours",
+      "active": "Actif",
       "validated": "Validé",
       "rejected": "Rejeté"
     },
     "supportButton": "Soutenir le Projet",
     "connectToSupport": "Connectez-vous pour Soutenir",
     "noImage": "Pas d'image",
-    "supportAmount": "Montant du support",
+    "supportAmount": "Montant du Support",
     "currentRank": "Actuellement #{rank} sur {total} propositions",
-    "backButton": "Retour"
+    "backButton": "Retour",
+    "creatorAllocation": "Allocation Créateur",
+    "supporterAllocation": "Allocation Supporters",
+    "errorLoadingProposal": "Erreur lors du chargement de la proposition",
+    "proposalNotFound": "Proposition introuvable",
+    "totalContributions": "{count, plural, =0 {Aucune contribution} one {# contribution} other {# contributions}}",
+    "lockupPeriod": "Période de Blocage",
+    "days": "jours",
+    "support": "Soutenir le Projet",
+    "supporting": "En cours...",
+    "supportSuccess": "Projet soutenu avec succès",
+    "supportError": "Échec du support du projet",
+    "minAmount": "Le montant minimum est de 0.001 SOL",
+    "alreadySupported": "Vous avez déjà soutenu cette proposition"
   },
   "EpochForm": {
     "title": "Créer un Nouvel Epoch",
@@ -165,9 +186,9 @@
   },
   "backButton": "Retour",
   "HowItWorksPage": {
-    "title": "NoRug.fun : Comment ça marche ?", 
-    "subtitle": "The trenches, with a helmet on.", 
-    "phase1Title": "Phase 1: The Founder Window", 
+    "title": "NoRug.fun : Comment ça marche ?",
+    "subtitle": "The trenches, with a helmet on.",
+    "phase1Title": "Phase 1: The Founder Window",
     "founderCardTitle": "Devenez Founder...",
     "founderCardP1": "Proposez une création de token et définissez (avec un <strong>max de 10%</strong>) :",
     "founderCardL1": "Le pourcentage de la supply qui vous est airdrop.",
@@ -186,5 +207,37 @@
     "phase2P1": "NoRug.fun gère le <strong>mint</strong>, la <strong>distribution des tokens</strong> (au créateur et aux investisseurs), et crée le <strong>pool de liquidité</strong> avec les SOL levés via Meteora.",
     "phase2P2": "Les investisseurs des propositions non sélectionnées peuvent <strong>récupérer leurs fonds</strong>.",
     "phase2P3": "Tout le monde peut ensuite échanger ces tokens normalement."
+  },
+  "EpochSelector": {
+    "loading": "Chargement des epochs...",
+    "selectEpoch": "Sélectionner une epoch",
+    "selectPlaceholder": "Choisir une epoch",
+    "epochOption": "Epoch #{id} ({startDate} - {endDate})"
+  },
+  "MyPage": {
+    "title": "Ma Page",
+    "viewMode": {
+      "myProposals": "Mes Propositions",
+      "supportedTokens": "Tokens Soutenus"
+    },
+    "sort": {
+      "byDate": "Trier par Date",
+      "byName": "Trier par Nom",
+      "byVotes": "Trier par Votes",
+      "desc": "Décroissant",
+      "asc": "Croissant"
+    },
+    "connectWallet": "Veuillez connecter votre wallet pour voir vos propositions",
+    "noProposals": "Vous n'avez pas encore créé de propositions",
+    "noSupportedTokens": "Vous n'avez pas encore soutenu de tokens",
+    "yourSupport": "Votre soutien : {amount} SOL",
+    "status": {
+      "active": "Actif",
+      "validated": "Validé",
+      "rejected": "Rejeté"
+    },
+    "errorLoadingProposals": "Erreur lors du chargement des propositions",
+    "noImage": "Pas d'image",
+    "epochId": "Epoch"
   }
 }

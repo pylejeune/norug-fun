@@ -211,6 +211,55 @@
       "args": []
     },
     {
+      "name": "initialize_program_config",
+      "discriminator": [
+        6,
+        131,
+        61,
+        237,
+        40,
+        110,
+        83,
+        124
+      ],
+      "accounts": [
+        {
+          "name": "program_config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "admin_authority",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
       "name": "start_epoch",
       "discriminator": [
         204,
@@ -269,6 +318,115 @@
           "type": "i64"
         }
       ]
+    },
+    {
+      "name": "support_proposal",
+      "discriminator": [
+        95,
+        239,
+        233,
+        199,
+        201,
+        62,
+        90,
+        27
+      ],
+      "accounts": [
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "epoch"
+        },
+        {
+          "name": "proposal",
+          "writable": true
+        },
+        {
+          "name": "user_support",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  117,
+                  112,
+                  112,
+                  111,
+                  114,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "proposal.epoch_id",
+                "account": "TokenProposal"
+              },
+              {
+                "kind": "account",
+                "path": "user"
+              },
+              {
+                "kind": "account",
+                "path": "proposal"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "update_proposal_status",
+      "discriminator": [
+        9,
+        171,
+        178,
+        233,
+        228,
+        50,
+        167,
+        206
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "signer": true
+        },
+        {
+          "name": "program_config"
+        },
+        {
+          "name": "epoch_management"
+        },
+        {
+          "name": "proposal",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "new_status",
+          "type": {
+            "defined": {
+              "name": "ProposalStatus"
+            }
+          }
+        }
+      ]
     }
   ],
   "accounts": [
@@ -286,6 +444,19 @@
       ]
     },
     {
+      "name": "ProgramConfig",
+      "discriminator": [
+        196,
+        210,
+        90,
+        231,
+        144,
+        149,
+        140,
+        63
+      ]
+    },
+    {
       "name": "TokenProposal",
       "discriminator": [
         192,
@@ -296,6 +467,19 @@
         17,
         144,
         39
+      ]
+    },
+    {
+      "name": "UserProposalSupport",
+      "discriminator": [
+        255,
+        187,
+        213,
+        25,
+        93,
+        16,
+        197,
+        155
       ]
     }
   ],
@@ -356,12 +540,57 @@
     {
       "code": 6005,
       "name": "InvalidEpochId",
-      "msg": "Invalid epoch ID"
+      "msg": "ID d'époque invalide"
     },
     {
       "code": 6006,
       "name": "EpochAlreadyInactive",
-      "msg": "Epoch already inactive"
+      "msg": "L'époque est déjà inactive"
+    },
+    {
+      "code": 6007,
+      "name": "ProposalNotActive",
+      "msg": "La proposition n'est pas active"
+    },
+    {
+      "code": 6008,
+      "name": "ProposalEpochMismatch",
+      "msg": "La proposition n'appartient pas à l'époque spécifiée"
+    },
+    {
+      "code": 6009,
+      "name": "AmountMustBeGreaterThanZero",
+      "msg": "Le montant doit être supérieur à zéro"
+    },
+    {
+      "code": 6010,
+      "name": "Overflow",
+      "msg": "Dépassement de capacité lors du calcul"
+    },
+    {
+      "code": 6011,
+      "name": "EpochNotClosed",
+      "msg": "L'époque doit être fermée pour mettre à jour le statut de la proposition"
+    },
+    {
+      "code": 6012,
+      "name": "ProposalNotInEpoch",
+      "msg": "La proposition n'appartient pas à l'époque fournie"
+    },
+    {
+      "code": 6013,
+      "name": "InvalidAuthority",
+      "msg": "Le signataire n'est pas l'autorité autorisée"
+    },
+    {
+      "code": 6014,
+      "name": "InvalidProposalStatusUpdate",
+      "msg": "Mise à jour du statut de la proposition invalide"
+    },
+    {
+      "code": 6015,
+      "name": "ProposalAlreadyFinalized",
+      "msg": "La proposition a déjà un statut final (Validée ou Rejetée)"
     }
   ],
   "types": [
@@ -422,6 +651,18 @@
           },
           {
             "name": "Closed"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ProgramConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin_authority",
+            "type": "pubkey"
           }
         ]
       }
@@ -551,6 +792,30 @@
                 "name": "ProposalStatus"
               }
             }
+          }
+        ]
+      }
+    },
+    {
+      "name": "UserProposalSupport",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "epoch_id",
+            "type": "u64"
+          },
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "proposal",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
           }
         ]
       }
