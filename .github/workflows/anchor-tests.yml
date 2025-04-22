@@ -20,6 +20,26 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Set cluster based on branch
+        shell: bash
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
+            echo "ANCHOR_RPC=devnet" >> $GITHUB_ENV
+            echo "Using devnet cluster for master branch"
+          else
+            echo "ANCHOR_RPC=localnet" >> $GITHUB_ENV
+            echo "Using localnet cluster for other branches"
+          fi
+          echo "ANCHOR_RPC is set to $ANCHOR_RPC"
+      
+      - name: Verify ANCHOR_RPC is set
+        run: |
+          echo "ANCHOR_RPC value: $ANCHOR_RPC"
+          if [ -z "$ANCHOR_RPC" ]; then
+            echo "ANCHOR_RPC is not set!"
+            exit 1
+          fi
+
       - name: Verify container environment
         shell: bash
         run: |
@@ -86,7 +106,10 @@ jobs:
 
       - name: Build Anchor program
         working-directory: programs
+        env:
+          ANCHOR_RPC: ${{ env.ANCHOR_RPC }}
         run: |
+          echo "Building with ANCHOR_RPC=$ANCHOR_RPC"
           rustc --version &&
           anchor --version &&
           RUSTUP_TOOLCHAIN=nightly-2025-04-01 \
@@ -95,7 +118,10 @@ jobs:
       - name: Run Anchor tests
         shell: bash
         working-directory: programs
+        env:
+          ANCHOR_RPC: ${{ env.ANCHOR_RPC }}
         run: |
+          echo "Testing with ANCHOR_RPC=$ANCHOR_RPC"
           rustc --version &&
           anchor --version &&
           anchor test --skip-build
