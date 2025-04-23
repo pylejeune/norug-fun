@@ -23,7 +23,7 @@ jobs:
       - name: Verify container environment
         shell: bash
         run: |
-          echo "RUSTUP_TOOLCHAIN=${{ vars.GIT_RUSTUP_TOOLCHAIN }}" >> $GITHUB_ENV
+          echo "GIT_RUSTUP_TOOLCHAIN=${{ vars.GIT_RUSTUP_TOOLCHAIN }}" >> $GITHUB_ENV
           echo "=== Current user ==="
           id
           echo "=== Working directory ==="
@@ -38,6 +38,14 @@ jobs:
           solana --version || true
           rustc --version  || true
           rustup --version || true
+
+      - name: Verify GIT_RUSTUP_TOOLCHAIN is set
+        run: |
+          echo "GIT_RUSTUP_TOOLCHAIN value: ${{ vars.GIT_RUSTUP_TOOLCHAIN }}"
+          if [ -z "$GIT_RUSTUP_TOOLCHAIN" ]; then
+            echo "GIT_RUSTUP_TOOLCHAIN is not set!"
+            exit 1
+          fi
 
       - name: Generate Solana keypair
         run: |
@@ -84,11 +92,6 @@ jobs:
           toolchain: $GIT_RUSTUP_TOOLCHAIN
           targets: wasm32-unknown-unknown  # si nécessaire
       - run: rustup component add rustfmt
-
-      - name: Change version anchor
-        working-directory: programs
-        run: |
-          avm use $ANCHOR_VERSION && anchor --version
 
       - name: Build Anchor program
         working-directory: programs
