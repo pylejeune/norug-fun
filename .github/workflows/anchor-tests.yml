@@ -23,6 +23,7 @@ jobs:
       - name: Verify container environment
         shell: bash
         run: |
+          echo "RUSTUP_TOOLCHAIN=${{ vars.GIT_RUSTUP_TOOLCHAIN }}" >> $GITHUB_ENV
           echo "=== Current user ==="
           id
           echo "=== Working directory ==="
@@ -80,7 +81,7 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: $RUSTUP_TOOLCHAIN
+          toolchain: $GIT_RUSTUP_TOOLCHAIN
           targets: wasm32-unknown-unknown  # si nécessaire
       - run: rustup component add rustfmt
 
@@ -94,7 +95,7 @@ jobs:
         run: |
           rustc --version &&
           anchor --version &&
-          RUSTUP_TOOLCHAIN=$RUSTUP_TOOLCHAIN \
+          RUSTUP_TOOLCHAIN=$GIT_RUSTUP_TOOLCHAIN \
           anchor build
 
       - name: Run Anchor tests
