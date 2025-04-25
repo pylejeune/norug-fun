@@ -33,9 +33,9 @@ pub struct SupportProposal<'info> {
     )]
     pub proposal: Account<'info, TokenProposal>,
 
-    // Le nouveau compte UserProposalSupport à créer (PDA)
+    // Le compte UserProposalSupport à créer ou mettre à jour (PDA)
     #[account(
-        init,
+        init_if_needed, // Utiliser init_if_needed pour créer ou charger le compte existant
         payer = user,
         space = 8 + UserProposalSupport::INIT_SPACE, // 8 bytes discriminateur + taille struct
         seeds = [
@@ -48,7 +48,7 @@ pub struct SupportProposal<'info> {
     )]
     pub user_support: Account<'info, UserProposalSupport>,
 
-    // Le programme système, requis pour créer des comptes (init) et transférer des SOL
+    // Le programme système, requis pour créer des comptes et transférer des SOL
     pub system_program: Program<'info, System>,
 }
 
@@ -57,36 +57,52 @@ pub fn handler(ctx: Context<SupportProposal>, amount: u64) -> Result<()> {
     // Vérification de sécurité : s'assurer qu'un montant positif est envoyé
     require!(amount > 0, ErrorCode::AmountMustBeGreaterThanZero);
 
+    // Récupérer les comptes pour plus de clarté
+    let proposal = &mut ctx.accounts.proposal;
+    let user_support = &mut ctx.accounts.user_support;
+    let user = &ctx.accounts.user;
+
+    // Vérifier si c'est le premier soutien de cet utilisateur pour cette proposition dans cet epoch
+    // On le détermine en vérifiant si le montant actuel dans user_support est 0.
+    // Anchor initialise les champs à 0 lors de `init_if_needed` si le compte est nouveau.
+    let is_new_supporter = user_support.amount == 0;
+
     // --- 1. Transférer les SOL de l'utilisateur vers le compte de la proposition ---
     let cpi_context = CpiContext::new(
         ctx.accounts.system_program.to_account_info(),
         Transfer {
-            from: ctx.accounts.user.to_account_info(),
-            to: ctx.accounts.proposal.to_account_info(), // Envoyer directement au compte de la proposition
+            from: user.to_account_info(),
+            to: proposal.to_account_info(), // Envoyer directement au compte de la proposition
         },
     );
     transfer(cpi_context, amount)?;
 
     // --- 2. Mettre à jour les informations sur le compte TokenProposal ---
-    let proposal = &mut ctx.accounts.proposal;
-    // Utiliser checked_add pour éviter les overflows arithmétiques
     proposal.sol_raised = proposal.sol_raised.checked_add(amount)
         .ok_or_else(|| error!(ErrorCode::Overflow))?;
-    proposal.total_contributions = proposal.total_contributions.checked_add(1)
+
+    // Incrémenter le nombre total de supporters *uniquement* si c'est un nouveau supporter
+    if is_new_supporter {
+        proposal.total_contributions = proposal.total_contributions.checked_add(1)
+            .ok_or_else(|| error!(ErrorCode::Overflow))?;
+    }
+
+    // --- 3. Initialiser ou mettre à jour le compte UserProposalSupport ---
+    // Si le compte est nouveau (init_if_needed l'a créé), initialiser les champs non-montant.
+    // Si le compte existait déjà, ces champs seront déjà corrects et l'assignation est idempotente.
+    user_support.epoch_id = proposal.epoch_id;
+    user_support.user = user.key();
+    user_support.proposal = proposal.key();
+
+    // Mettre à jour (cumuler) le montant total supporté par cet utilisateur
+    user_support.amount = user_support.amount.checked_add(amount)
         .ok_or_else(|| error!(ErrorCode::Overflow))?;
 
-    // --- 3. Initialiser le nouveau compte UserProposalSupport ---
-    let user_support = &mut ctx.accounts.user_support;
-    user_support.epoch_id = proposal.epoch_id; // Utiliser l'epoch_id de la proposition liée
-    user_support.user = ctx.accounts.user.key();
-    user_support.proposal = proposal.key();
-    user_support.amount = amount;
-    // Le bump est automatiquement géré par Anchor lors de `init` pour les versions >= 0.28
-
-    msg!("User {} supported proposal {} with {} lamports for epoch {}",
+    msg!("User {} supported proposal {} with additional {} lamports (total {} now) for epoch {}",
         user_support.user,
         user_support.proposal,
-        user_support.amount,
+        amount, // Montant de cette transaction
+        user_support.amount, // Montant total cumulé
         user_support.epoch_id
     );
 
