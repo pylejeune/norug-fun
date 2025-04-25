@@ -343,4 +343,78 @@ describe("Tests des propositions de tokens", () => {
     console.log("Soldes SOL vérifiés.");
   });
 
+  // --- Nouveau test pour supporter une deuxième fois --- 
+  it("Supporte une proposition une deuxième fois", async () => {
+    // Utiliser les mêmes epoch, proposition et supporter que le test précédent
+    expect(epochPda).to.exist;
+    expect(proposalPda).to.exist;
+
+    const supporter = provider.wallet; // Le même supporter
+    const supportAmount2 = new anchor.BN(anchor.web3.LAMPORTS_PER_SOL * 0.05); // Nouveau montant: 0.05 SOL
+
+    // Récupérer l'état APRÈS le premier support (qui est l'état AVANT le second)
+    const proposalBeforeSecondSupport = await program.account.tokenProposal.fetch(proposalPda);
+    const initialSolRaised = proposalBeforeSecondSupport.solRaised;
+    const initialContributions = proposalBeforeSecondSupport.totalContributions; // Devrait être 1
+
+    // Calculer le PDA pour le compte UserProposalSupport (c'est le même)
+    const [userSupportPda] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("support"),
+        proposalBeforeSecondSupport.epochId.toArrayLike(Buffer, "le", 8),
+        supporter.publicKey.toBuffer(),
+        proposalPda.toBuffer(),
+      ],
+      program.programId
+    );
+
+    const userSupportBeforeSecond = await program.account.userProposalSupport.fetch(userSupportPda);
+    const initialUserSupportAmount = userSupportBeforeSecond.amount; // Montant après le 1er support
+
+    console.log("\nTest de support de proposition (deuxième fois):");
+    console.log("------------------------------------------------");
+    console.log(`- Supporter: ${supporter.publicKey.toString()}`);
+    console.log(`- Proposition PDA: ${proposalPda.toString()}`);
+    console.log(`- User Support PDA: ${userSupportPda.toString()}`);
+    console.log(`- Montant du 2ème support (lamports): ${supportAmount2.toString()}`);
+    console.log(`- SOL levés avant 2ème: ${initialSolRaised.toString()}`);
+    console.log(`- Contributions avant 2ème: ${initialContributions.toString()} (attendu: 1)`);
+    console.log(`- Montant UserSupport avant 2ème: ${initialUserSupportAmount.toString()}`);
+
+    // Appeler l'instruction supportProposal à nouveau
+    const tx = await program.methods
+      .supportProposal(supportAmount2) // Avec le nouveau montant
+      .accounts({
+        user: supporter.publicKey,
+        epoch: epochPda, 
+        proposal: proposalPda, 
+        userSupport: userSupportPda, // Le même compte UserProposalSupport
+        systemProgram: anchor.web3.SystemProgram.programId,
+      })
+      .rpc();
+
+    console.log("Transaction signature (2ème support)", tx);
+
+    // --- Vérifications --- 
+
+    // 1. Vérifier la mise à jour du compte UserProposalSupport
+    const userSupportAfterSecond = await program.account.userProposalSupport.fetch(userSupportPda);
+    const expectedUserSupportAmount = initialUserSupportAmount.add(supportAmount2);
+    expect(userSupportAfterSecond.amount.toString()).to.equal(expectedUserSupportAmount.toString());
+    console.log(`Montant UserSupport après 2ème: ${userSupportAfterSecond.amount.toString()} (attendu: ${expectedUserSupportAmount.toString()})`);
+
+    // 2. Vérifier la mise à jour de la proposition
+    const proposalAfterSecondSupport = await program.account.tokenProposal.fetch(proposalPda);
+    const expectedSolRaised = initialSolRaised.add(supportAmount2);
+    // Les contributions ne doivent PAS augmenter car c'est le même supporter
+    const expectedContributions = initialContributions; 
+    expect(proposalAfterSecondSupport.solRaised.toString()).to.equal(expectedSolRaised.toString());
+    expect(proposalAfterSecondSupport.totalContributions.toString()).to.equal(expectedContributions.toString()); 
+    console.log(`SOL levés après 2ème: ${proposalAfterSecondSupport.solRaised.toString()} (attendu: ${expectedSolRaised.toString()})`);
+    console.log(`Contributions après 2ème: ${proposalAfterSecondSupport.totalContributions.toString()} (attendu: ${expectedContributions.toString()})`); // Doit rester à 1
+
+    // 3. Pas besoin de revérifier les soldes SOL en détail, mais s'assurer que ça a fonctionné.
+    console.log("Vérifications du 2ème support terminées.");
+  });
+
 }); 
