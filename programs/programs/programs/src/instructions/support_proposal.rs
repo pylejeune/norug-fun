@@ -85,16 +85,16 @@ pub fn handler(ctx: Context<SupportProposal>, amount: u64) -> Result<()> {
     if is_new_supporter {
         proposal.total_contributions = proposal.total_contributions.checked_add(1)
             .ok_or_else(|| error!(ErrorCode::Overflow))?;
+        
+        // Initialiser les champs fixes SEULEMENT si le compte est nouveau
+        user_support.epoch_id = proposal.epoch_id;
+        user_support.user = user.key();
+        user_support.proposal = proposal.key();
     }
 
-    // --- 3. Initialiser ou mettre à jour le compte UserProposalSupport ---
-    // Si le compte est nouveau (init_if_needed l'a créé), initialiser les champs non-montant.
-    // Si le compte existait déjà, ces champs seront déjà corrects et l'assignation est idempotente.
-    user_support.epoch_id = proposal.epoch_id;
-    user_support.user = user.key();
-    user_support.proposal = proposal.key();
-
+    // --- 3. Mettre à jour le montant cumulé dans UserProposalSupport ---
     // Mettre à jour (cumuler) le montant total supporté par cet utilisateur
+    // Ceci est fait dans tous les cas (premier ou N-ième support)
     user_support.amount = user_support.amount.checked_add(amount)
         .ok_or_else(|| error!(ErrorCode::Overflow))?;
 
