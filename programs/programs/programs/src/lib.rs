@@ -92,4 +92,11 @@ pub mod programs {
     ) -> Result<()> {
         mark_epoch_processed::handler(ctx)
     }
+
+    // --- Nouvelle instruction pour réclamer les fonds d'une proposition rejetée ---
+    pub fn reclaim_support(
+        ctx: Context<ReclaimSupport>
+    ) -> Result<()> {
+        reclaim_support::handler(ctx)
+    }
 }
