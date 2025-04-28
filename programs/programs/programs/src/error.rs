@@ -81,5 +81,8 @@ pub enum ErrorCode {
 
     #[msg("L'époque n'a pas encore été marquée comme traitée par le crank.")]
     EpochNotProcessedYet,
+
+    #[msg("Could not retrieve bump seed.")]
+    CouldNotRetrieveBump,
 }
 
