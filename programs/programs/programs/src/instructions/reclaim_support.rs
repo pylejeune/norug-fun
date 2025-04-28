@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_lang::system_program;
 
-use crate::state::{UserProposalSupport, TokenProposal, ProposalStatus, EpochManagement, EpochStatus};
+use crate::state::{UserProposalSupport, TokenProposal, ProposalStatus, EpochManagement};
 use crate::error::ErrorCode;
 
 #[derive(Accounts)]
