@@ -41,6 +41,7 @@ async function main() {
 
         // Fonction pour vérifier et terminer les époques
         async function checkAndEndEpochs() {
+            console.log("checkAndEndEpochs");
             try {
                 // Récupérer toutes les époques
                 const allEpochs = await program.account.epochManagement.all();
