@@ -3,11 +3,19 @@ import { Program } from "@coral-xyz/anchor";
 import { PublicKey, Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { Programs } from "../target/types/programs";
 import { BN } from "@coral-xyz/anchor";
-import { CONFIG } from "./config";
 import * as fs from 'fs';
 import * as path from 'path';
 import { exit } from "process";
+import * as dotenv from "dotenv";
 
+
+// Charger les variables d'environnement depuis le fichier .env
+dotenv.config({ path: path.join(__dirname, ".env") });
+
+// Configuration directement dans ce fichier
+const RPC_ENDPOINT = process.env.RPC_ENDPOINT || "http://localhost:8899";
+const SCHEDULER_INTERVAL = 3000; // 3 secondes en millisecondes
+const PROGRAM_ID = new PublicKey("3HBzNutk8DrRfffCS74S55adJAjgY8NHrWXgRtABaSbF");
 // Utiliser le même ADMIN_SEED que dans crank_simulation.test.ts
 const ADMIN_SEED = Uint8Array.from([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32]);
 
@@ -20,12 +28,13 @@ async function main() {
     try {
         // Afficher la configuration chargée
         console.log("Configuration chargée :", {
-            RPC_ENDPOINT: CONFIG.RPC_ENDPOINT,
-            SCHEDULER_INTERVAL: CONFIG.SCHEDULER_INTERVAL,
+            RPC_ENDPOINT,
+            SCHEDULER_INTERVAL,
+            PROGRAM_ID: PROGRAM_ID.toString()
         });
 
         // Initialiser la connexion
-        const connection = new anchor.web3.Connection(CONFIG.RPC_ENDPOINT);
+        const connection = new anchor.web3.Connection(RPC_ENDPOINT);
         // Utiliser la méthode déterministe comme dans le crank
         const adminKeypair = getAdminKeypair();
         
@@ -34,7 +43,7 @@ async function main() {
         
         // Obtenir et afficher le solde du wallet admin
         const balance = await connection.getBalance(adminKeypair.publicKey);
-        console.log(`RPC utilisé: ${CONFIG.RPC_ENDPOINT}`);
+        console.log(`RPC utilisé: ${RPC_ENDPOINT}`);
         console.log(`Balance du wallet admin: ${balance / LAMPORTS_PER_SOL} SOL`);
         
         // Vérifier si le solde est suffisant pour les transactions
@@ -199,7 +208,7 @@ async function main() {
 
         // Exécuter la vérification toutes les minutes
         console.log("Démarrage du scheduler d'époques...");
-        setInterval(checkAndEndEpochs, CONFIG.SCHEDULER_INTERVAL);
+        setInterval(checkAndEndEpochs, SCHEDULER_INTERVAL);
         
         // Exécuter immédiatement la première vérification
         await checkAndEndEpochs();
