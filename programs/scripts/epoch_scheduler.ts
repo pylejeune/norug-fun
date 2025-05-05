@@ -1,11 +1,9 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
-import { PublicKey, Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { PublicKey, Keypair, LAMPORTS_PER_SOL, SystemProgram } from "@solana/web3.js";
 import { Programs } from "../target/types/programs";
 import { BN } from "@coral-xyz/anchor";
-import * as fs from 'fs';
 import * as path from 'path';
-import { exit } from "process";
 import * as dotenv from "dotenv";
 
 
@@ -43,14 +41,31 @@ async function main() {
         
         // Obtenir et afficher le solde du wallet admin
         const balance = await connection.getBalance(adminKeypair.publicKey);
-        console.log(`RPC utilisé: ${RPC_ENDPOINT}`);
-        console.log(`Balance du wallet admin: ${balance / LAMPORTS_PER_SOL} SOL`);
+        console.log(`\nBalance du wallet admin: ${balance / LAMPORTS_PER_SOL} SOL\n`);
         
         // Vérifier si le solde est suffisant pour les transactions
         if (balance < 0.01 * LAMPORTS_PER_SOL) {
             console.warn("⚠️ ATTENTION: Le solde du wallet admin est très bas!");
             console.warn("Les transactions pourraient échouer par manque de fonds.");
         }
+        
+        // Vérifier et financer l'admin si nécessaire (ajouter après la vérification du solde)
+        /*
+        if (balance < 0.5 * LAMPORTS_PER_SOL) {
+            console.log("Financement de l'autorité admin...");
+            try {
+                const signature = await connection.requestAirdrop(
+                    adminKeypair.publicKey, 
+                    1 * LAMPORTS_PER_SOL
+                );
+                await connection.confirmTransaction(signature, "confirmed");
+                console.log(`Admin financé avec succès. Nouvelle balance: ${
+                    await connection.getBalance(adminKeypair.publicKey) / LAMPORTS_PER_SOL} SOL`);
+            } catch (error) {
+                console.warn("⚠️ Impossible de financer l'admin:", error);
+            }
+        }
+        */
         
         // Initialiser le provider et le programme
         const provider = new anchor.AnchorProvider(connection, new anchor.Wallet(adminKeypair), {});
@@ -68,24 +83,39 @@ async function main() {
         
         // Récupérer le compte ProgramConfig pour vérifier l'autorité admin
         try {
-            const programConfig = await program.account.programConfig.fetch(configPDA);
-            console.log("Admin authority from ProgramConfig:", programConfig.adminAuthority.toString());
+
+            const accounts_program_config = {
+                program_config: configPDA,
+                authority: provider.wallet.publicKey,
+                system_program: SystemProgram.programId,
+            };
+            // Tenter d'initialiser comme dans le crank
+            try {
+                await program.methods
+                    .initializeProgramConfig(adminKeypair.publicKey)
+                    .accounts(accounts_program_config)
+                    .rpc();
+                console.log("ProgramConfig initialisé avec succès.");
+            } catch (e) {
+                console.log("ProgramConfig probablement déjà initialisé:", e.message);
+            }
+            
+            // Vérifier la configuration
+            const config = await program.account.programConfig.fetch(configPDA);
+            console.log("Admin authority from ProgramConfig:", config.adminAuthority.toString());
             
             // Vérifier si l'admin keypair correspond à l'admin authority
-            if (adminKeypair.publicKey.toString() !== programConfig.adminAuthority.toString()) {
+            if (adminKeypair.publicKey.toString() !== config.adminAuthority.toString()) {
                 console.warn("⚠️ ATTENTION: Le keypair admin utilisé ne correspond pas à l'admin authority configurée!");
                 console.warn("Cela pourrait causer des erreurs d'autorisation lors des transactions.");
             } else {
                 console.log("✓ Le keypair admin correspond à l'admin authority configurée.");
-                
             }
         } catch (error) {
             console.error("Erreur lors de la récupération du compte ProgramConfig:", error);
-            console.log("Le compte ProgramConfig n'existe pas encore. Vous devez d'abord initialiser le programme.");
-            console.log("Exécutez: npx ts-node scripts/initialize_program.ts");
-            
-            // Continuer quand même pour tester la logique de base
-            console.log("Poursuite du script sans vérification d'autorité...");
+            console.log("Le compte ProgramConfig n'existe pas ou n'a pas pu être initialisé.");
+            console.log("Vérifiez les permissions et le solde du compte.");
+            throw error;
         }
 
         // Fonction pour vérifier et terminer les époques
@@ -150,8 +180,8 @@ async function main() {
                             const accounts = {
                                 epochManagement: epochPDA,
                                 authority: adminKeypair.publicKey,
-                                programConfig: configPDA,
-                                systemProgram: anchor.web3.SystemProgram.programId,
+                                program_config: configPDA,
+                                system_program: anchor.web3.SystemProgram.programId,
                             };
                             
                             console.log("Comptes utilisés pour la transaction:", accounts);
@@ -207,7 +237,7 @@ async function main() {
         }
 
         // Exécuter la vérification toutes les minutes
-        console.log("Démarrage du scheduler d'époques...");
+        console.log("\nDémarrage du scheduler d'époques...\n");
         setInterval(checkAndEndEpochs, SCHEDULER_INTERVAL);
         
         // Exécuter immédiatement la première vérification
