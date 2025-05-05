@@ -18,7 +18,12 @@
     "createProposal": "Create Proposal",
     "treasury": "Treasury",
     "myPage": "My Page",
-    "howItWorks": "How It Works"
+    "howItWorks": "How It Works",
+    "support": "Support",
+    "socialLinks": {
+      "telegram": "Join us on Telegram",
+      "twitter": "Follow us on X (Twitter)"
+    }
   },
   "ProposalForm": {
     "title": "Create new Token Proposal",

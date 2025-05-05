@@ -2,6 +2,8 @@
 
 import { useIsMobile } from "@/hooks/use-mobile";
 import logo from "@/public/images/noruglogo.png";
+import telegramLogo from "@/public/images/telegramLogo.svg";
+import xLogo from "@/public/images/xLogo.svg";
 import { useWallet } from "@solana/wallet-adapter-react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
@@ -19,6 +21,11 @@ const ClientWalletMultiButton = dynamic(
   }
 );
 
+const SOCIAL_LINKS = {
+  telegram: "https://t.me/norugdotfun",
+  twitter: "https://x.com/norugdotfun",
+};
+
 export default function Header() {
   const { connected } = useWallet();
   const isMobile = useIsMobile();
@@ -28,15 +35,48 @@ export default function Header() {
       <div className="mx-3 my-2 md:mx-6 md:my-4">
         <div className="flex h-12 md:h-14 items-center justify-between gap-2 rounded-xl  px-3 md:px-4 backdrop-blur-sm">
           {isMobile && (
-            <Link href="/" className="flex items-center">
-              <Image
-                src={logo}
-                alt="NoRug.fun Logo"
-                width={32}
-                height={32}
-                className="w-8 h-8"
-              />
-            </Link>
+            <div className="flex items-center gap-4">
+              <Link href="/" className="flex items-center">
+                <Image
+                  src={logo}
+                  alt="NoRug.fun Logo"
+                  width={32}
+                  height={32}
+                  className="w-8 h-8"
+                />
+              </Link>
+              {/* Logos sociaux */}
+              <div className="flex items-center gap-3">
+                <Link
+                  href={SOCIAL_LINKS.telegram}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="transition-opacity hover:opacity-80"
+                >
+                  <Image
+                    src={telegramLogo}
+                    alt="Telegram"
+                    width={20}
+                    height={20}
+                    className="w-3 h-3"
+                  />
+                </Link>
+                <Link
+                  href={SOCIAL_LINKS.twitter}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="transition-opacity hover:opacity-80"
+                >
+                  <Image
+                    src={xLogo}
+                    alt="X (Twitter)"
+                    width={20}
+                    height={20}
+                    className="w-3 h-3"
+                  />
+                </Link>
+              </div>
+            </div>
           )}
           <div className="flex items-center gap-2 ml-auto">
             <LocaleSwitcher />
