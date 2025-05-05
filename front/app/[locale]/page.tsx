@@ -3,6 +3,7 @@
 import { ActiveProposalsView } from "@/components/home/ActiveProposalsView";
 import { PreviousEpochsView } from "@/components/home/PreviousEpochsView";
 import { ViewModeToggle } from "@/components/home/ViewModeToggle";
+import { TypewriterEffect } from "@/components/ui/typewriter-effect";
 
 import {
   EpochState,
@@ -117,9 +118,9 @@ export default function Home() {
           setSelectedEpochDetails(null); // Ensure details are null if no epochs
         }
 
-        // Reload proposals after epoch change
-        const proposals = await getAllProposals();
-        setAllProposals(proposals);
+        // NE PAS recharger les propositions ici. Le filtrage s'en chargera.
+        // const proposals = await getAllProposals();
+        // setAllProposals(proposals);
       } catch (error) {
         console.error("Failed to fetch epochs:", error);
         setSelectedEpochDetails(null); // Reset on error
@@ -131,10 +132,32 @@ export default function Home() {
     initializeEpoch();
   }, [getAllEpochs, viewMode]);
 
+  // Prepare words for TypewriterEffect
+  const sloganWords = [
+    { text: "10" },
+    { text: "tokens" },
+    { text: "rise." },
+    { text: "The" },
+    { text: "rest" },
+    { text: "burn.", className: "text-red-600 dark:text-red-500" }, // Changed to red color
+    { text: "Choose" },
+    { text: "your" },
+    { text: "side." }, // Removed specific class, will use base color
+  ];
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Toggle Switch */}
-      <div className="flex justify-center mb-8">
+    <div className="container mx-auto px-4 pt-4 pb-8">
+      {/* Slogan Section with Typewriter Effect */}
+      <div className="text-center mb-6"> {/* Container for centering */}
+        <TypewriterEffect
+          words={sloganWords}
+          className="text-xl text-gray-200"
+          cursorClassName="bg-white" // Set cursor to white
+        />
+      </div>
+
+      {/* Toggle Switch: Align to the right */}
+      <div className="flex justify-end mb-4">
         <ViewModeToggle viewMode={viewMode} onChangeMode={setViewMode} />
       </div>
 

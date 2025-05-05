@@ -70,7 +70,7 @@
   --sidebar-accent: oklch(0.97 0 0);
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar-ring: oklch(0.556 0 0);
 }
 
 .dark {
@@ -106,3 +106,99 @@
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
 }
+
+/* --- Suppression de l'ancienne approche (wrapper/content) --- */
+/*
+@keyframes bg-spin { to { --border-angle: 1turn; } }
+.gradient-border-wrap { ... }
+.gradient-border-wrap::before { ... }
+.gradient-content { ... }
+.gradient-border-green { ... }
+.gradient-border-dark-green { ... }
+.gradient-border-orange { ... }
+*/
+
+/* --- Début: Code fourni par l'utilisateur (basé sur le masquage) --- */
+
+@property --border-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@keyframes bg-spin { to { --border-angle: 1turn; } }
+
+/* Classe de base: UNIQUEMENT structure, PAS de ::before ni de couleurs par défaut */
+.gradient-border {
+  --border-size: 2px;
+  --border-angle: 0turn;
+  position: relative;
+  /* Le fond et le radius sont appliqués via Tailwind sur le même élément */
+}
+
+/* Règles ::before SPÉCIFIQUES pour chaque couleur */
+
+.gradient-border-green::before,
+.gradient-border-blue::before,
+.gradient-border-orange::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: var(--border-size);
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  animation: bg-spin 8s linear infinite;
+  z-index: 0;
+}
+
+/* Définition du conic-gradient pour chaque couleur */
+
+.gradient-border-green::before { /* Top 3 */
+  background: conic-gradient(
+    from var(--border-angle),
+    rgba(71, 85, 105, 0.3) 80%,
+    rgb(16, 185, 129) 86%,    /* green-500 */
+    rgb(66, 222, 164) 90%,   /* green-400 */
+    rgb(16, 185, 129) 94%,    /* green-500 */
+    rgba(71, 85, 105, 0.3)
+  );
+}
+
+.gradient-border-blue::before { /* 4-7 - Test avec du bleu */
+  background: conic-gradient(
+    from var(--border-angle),
+    rgba(71, 85, 105, 0.2) 80%,
+    rgb(1, 79, 32) 86%,      /* green-800 */
+    rgb(1, 111, 20) 90%,     /* green-900 */
+    rgb(2, 87, 32) 94%,      /* green-800 */
+    rgba(71, 85, 105, 0.2)
+  );
+}
+
+.gradient-border-orange::before { /* 8-10 */
+  background: conic-gradient(
+    from var(--border-angle),
+    rgba(71, 85, 105, 0.3) 80%,
+    rgb(234, 88, 12) 86%,     /* orange-600 */
+    rgb(247, 127, 42) 90%,    /* orange-500 */
+    rgb(234, 88, 12) 94%,     /* orange-600 */
+    rgba(71, 85, 105, 0.3)
+  );
+}
+
+/* --- Supprimer l'ancien .gradient-border::before et les anciennes classes de couleur --- */
+/*
+.gradient-border::before { }
+.gradient-border-green { }
+.gradient-border-dark-green::before { } // Commenté car remplacé par blue pour test 
+.gradient-border-orange { }
+*/
+
+/* --- Fin du code --- */
