@@ -16,7 +16,7 @@ export function ViewModeToggle({
           onClick={() => onChangeMode("active")}
           className={`relative z-10 px-6 py-2 rounded-full transition-all duration-200 ${
             viewMode === "active"
-              ? "text-white font-medium"
+              ? "text-black font-medium"
               : "text-gray-300 hover:text-white"
           }`}
         >
@@ -26,14 +26,14 @@ export function ViewModeToggle({
           onClick={() => onChangeMode("previous")}
           className={`relative z-10 px-6 py-2 rounded-full transition-all duration-200 ${
             viewMode === "previous"
-              ? "text-white font-medium"
+              ? "text-black font-medium"
               : "text-gray-300 hover:text-white"
           }`}
         >
           Previous Epochs
         </button>
         <div
-          className="absolute inset-y-0 w-1/2 bg-green-600/90 rounded-full transition-transform duration-200 shadow-lg"
+          className="absolute inset-y-0 w-1/2 bg-white rounded-full transition-transform duration-200 shadow-lg"
           style={{
             transform: `translateX(${viewMode === "previous" ? "100%" : "0"})`,
           }}
