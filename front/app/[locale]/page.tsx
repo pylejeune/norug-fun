@@ -151,7 +151,7 @@ export default function Home() {
       <div className="text-center mb-6"> {/* Container for centering */}
         <TypewriterEffect
           words={sloganWords}
-          className="text-xl text-gray-200"
+          className="text-xl"
           cursorClassName="bg-white" // Set cursor to white
         />
       </div>
