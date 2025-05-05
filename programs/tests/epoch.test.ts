@@ -18,7 +18,7 @@ describe("Tests des époques", () => {
   it("Démarre une nouvelle epoch", async () => {
     const epochId = epochIdGeneral;
     const startTime = new anchor.BN(Math.floor(Date.now() / 1000));
-    const endTime = new anchor.BN(startTime.toNumber() + 86400); // 1 jour
+    const endTime = new anchor.BN(startTime.toNumber() + 1); // 1 jour
 
     [epochPda] = PublicKey.findProgramAddressSync(
       [Buffer.from("epoch"), epochId.toArrayLike(Buffer, "le", 8)],
