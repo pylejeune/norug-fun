@@ -19,7 +19,7 @@ declare_id!("3HBzNutk8DrRfffCS74S55adJAjgY8NHrWXgRtABaSbF");
 pub mod programs {
     use super::*;
 
-    // --- Instruction d'initialisation de la config globale --- 
+    // --- Global program configuration initialization instruction --- 
     pub fn initialize_program_config(
         ctx: Context<InitializeProgramConfig>,
         admin_authority: Pubkey,
@@ -37,7 +37,7 @@ pub mod programs {
         start_time: i64,
         end_time: i64,
     ) -> Result<()>{
-        start_epoch::hanlder(ctx, epoch_id, start_time, end_time)
+        start_epoch::handler(ctx, epoch_id, start_time, end_time)
     }
 
     pub fn create_proposal(
@@ -54,29 +54,15 @@ pub mod programs {
     }
 
     pub fn support_proposal(ctx: Context<SupportProposal>, amount: u64) -> Result<()> {
-        instructions::support_proposal::handler(ctx, amount)
-    }
-
-    pub fn get_epoch_state(
-        ctx: Context<GetEpochState>,
-        epoch_id: u64,
-    ) -> Result<()> {
-        get_epoch_state::handler(ctx, epoch_id)
+        support_proposal::handler(ctx, amount)
     }
 
     pub fn end_epoch(
         ctx: Context<EndEpoch>,
         epoch_id: u64,
     ) -> Result<()> {
-        // Vérifier que l'époque existe
+        // Verify that the epoch exists
         end_epoch::handler(ctx, epoch_id)
-    }
-
-    pub fn get_proposal_details(
-        ctx: Context<GetProposalDetails>,
-        proposal_id: u64,
-    ) -> Result<()> {
-        get_proposal_details::handler(ctx, proposal_id)
     }
 
     pub fn update_proposal_status(
@@ -86,7 +72,7 @@ pub mod programs {
         update_proposal_status::handler(ctx, new_status)
     }
 
-    // --- Nouvelle instruction pour marquer une époque comme traitée ---
+    // --- New instruction to mark an epoch as processed ---
     pub fn mark_epoch_processed(
         ctx: Context<MarkEpochProcessed>
     ) -> Result<()> {

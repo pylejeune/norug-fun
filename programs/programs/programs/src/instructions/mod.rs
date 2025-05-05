@@ -1,7 +1,5 @@
 pub mod create_token_proposal;
 pub mod end_epoch;
-pub mod get_epoch_state;
-pub mod get_proposal_details;
 pub mod initialize;
 pub mod initialize_program_config;
 pub mod mark_epoch_processed;
@@ -12,8 +10,6 @@ pub mod reclaim_support;
 
 pub use create_token_proposal::*;
 pub use end_epoch::*;
-pub use get_epoch_state::*;
-pub use get_proposal_details::*;
 pub use initialize::*;
 pub use initialize_program_config::*;
 pub use mark_epoch_processed::*;

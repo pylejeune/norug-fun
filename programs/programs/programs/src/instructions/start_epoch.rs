@@ -28,19 +28,19 @@ pub struct StartEpoch<'info> {
 
 // }
 
-pub fn hanlder(
+pub fn handler(
     ctx: Context<StartEpoch>,
     epoch_id: u64,
     start_time: i64,
     end_time: i64,
 ) -> Result<()> {
-    // Vérifier que start_time est inférieur à end_time
+    // Verify that start_time is less than end_time
     require!(
         start_time < end_time,
         ErrorCode::InvalidEpochTimeRange
     );
 
-    // Initialiser l'époque
+    // Initialize the epoch
     let epoch = &mut ctx.accounts.epoch_management;
     epoch.epoch_id = epoch_id;
     epoch.start_time = start_time;
