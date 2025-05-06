@@ -67,7 +67,8 @@ type ProgramContextType = {
     description: string,
     totalSupply: number,
     creatorAllocation: number,
-    lockupPeriod: number
+    lockupPeriod: number,
+    imageUrl: string | null
   ) => Promise<void>;
   getAllProposals: () => Promise<ProposalState[]>;
   getProposalDetails: (proposalId: string) => Promise<any>;
@@ -259,7 +260,8 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
       description: string,
       totalSupply: number,
       creatorAllocation: number,
-      lockupPeriod: number
+      lockupPeriod: number,
+      imageUrl: string | null
     ) => {
       if (!program || !isConnected || !wallet) {
         throw new Error("Please connect your wallet first");
@@ -274,6 +276,7 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
           totalSupply,
           creatorAllocation,
           lockupPeriod,
+          imageUrl,
         });
 
         // Get epoch
@@ -303,7 +306,7 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
             tokenName,
             tokenSymbol,
             description,
-            null,
+            imageUrl,
             new BN(totalSupply),
             creatorAllocation,
             new BN(lockupPeriod)

@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
 import { EpochState, useProgram } from "@/context/ProgramContext";
+import { uploadImageToIPFS } from "@/utils/ImageStorage";
 import { useTranslations } from "next-intl";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -85,17 +86,11 @@ export default function ProposalForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Starting proposal creation with data:", {
-      epochId: selectedEpochId,
-      name: formData.name,
-      ticker: formData.ticker,
-      description: formData.description,
-      totalSupply: formData.totalSupply,
-      creatorAllocation: formData.creatorAllocation,
-      lockupPeriod: formData.lockupPeriod,
-    });
+
+    console.log("Form data at submission:", formData); // Debug complet du formData
 
     if (!selectedEpochId) {
+      console.warn("No epoch selected");
       toast.error(t("selectEpochFirst"));
       return;
     }
@@ -115,14 +110,35 @@ export default function ProposalForm() {
       return;
     }
 
+    // Upload the image to IPFS if present
+    let imageIpfsUrl: string | null = null;
+    if (formData.image) {
+      console.log("Preparing to upload image:", {
+        name: formData.image.name,
+        type: formData.image.type,
+        size: formData.image.size,
+      });
+
+      const loadingToast = toast.loading(t("uploadingImage"));
+      try {
+        imageIpfsUrl = await uploadImageToIPFS(formData.image);
+        console.log("Image uploaded successfully:", imageIpfsUrl);
+        toast.dismiss(loadingToast);
+        toast.success(t("imageUploaded"));
+      } catch (error) {
+        console.error("Image upload failed:", error);
+        toast.dismiss(loadingToast);
+        toast.error(t("imageUploadError"));
+        return;
+      }
+    } else {
+      console.log("No image to upload");
+    }
+
     // Show loading toast
     const loadingToast = toast.loading(t("submitting"));
 
     try {
-      console.log(
-        "Calling createProposal with description:",
-        formData.description
-      );
       await createProposal(
         selectedEpochId,
         formData.name,
@@ -130,19 +146,15 @@ export default function ProposalForm() {
         formData.description,
         parseInt(formData.totalSupply),
         formData.creatorAllocation,
-        formData.lockupPeriod
+        formData.lockupPeriod,
+        imageIpfsUrl // Pass the IPFS URL here
       );
 
-      console.log(
-        "Proposal created successfully with description:",
-        formData.description
-      );
       toast.dismiss(loadingToast);
       toast.success(t("proposalCreated"));
       router.push(`/${locale}`);
     } catch (error: any) {
       console.error("Failed to create proposal:", error);
-      console.log("Description that failed:", formData.description);
       toast.dismiss(loadingToast);
       toast.error(error.message || t("errorCreating"));
     }
@@ -150,8 +162,15 @@ export default function ProposalForm() {
 
   // Handle file upload
   const onDrop = useCallback((acceptedFiles: File[]) => {
-    if (acceptedFiles.length > 0) {
-      setFormData((prev) => ({ ...prev, image: acceptedFiles[0] }));
+    console.log("Files dropped:", acceptedFiles); // Debug dropzone
+    if (acceptedFiles?.length > 0) {
+      const file = acceptedFiles[0];
+      console.log("Selected file:", {
+        name: file.name,
+        type: file.type,
+        size: file.size,
+      });
+      setFormData((prev) => ({ ...prev, image: file }));
     }
   }, []);
 
@@ -161,6 +180,10 @@ export default function ProposalForm() {
       "image/*": [".jpeg", ".jpg", ".png", ".gif"],
     },
     maxFiles: 1,
+    maxSize: 5 * 1024 * 1024, // 5MB max
+    onDropRejected: (files) => {
+      toast.error(t("imageTooBig"));
+    },
   });
 
   return (
