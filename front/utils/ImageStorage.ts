@@ -6,7 +6,6 @@ if (!LIGHTHOUSE_API_KEY) {
   throw new Error("LIGHTHOUSE_API_KEY is not defined in environment variables");
 }
 
-// Fonction pour compresser une image
 async function compressImage(file: File): Promise<File> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -55,7 +54,6 @@ async function compressImage(file: File): Promise<File> {
   });
 }
 
-// Upload vers Lighthouse
 export async function uploadImageToIPFS(file: File): Promise<string> {
   try {
     console.log("Starting compression...");
@@ -67,7 +65,6 @@ export async function uploadImageToIPFS(file: File): Promise<string> {
       compressedFile.size
     );
 
-    // ✅ Passer un tableau à lighthouse.upload
     const result = await lighthouse.upload(
       [compressedFile],
       LIGHTHOUSE_API_KEY
@@ -82,7 +79,6 @@ export async function uploadImageToIPFS(file: File): Promise<string> {
   }
 }
 
-// IPFS → HTTP
 export function ipfsToHttp(ipfsUrl: string): string {
   if (!ipfsUrl) return "";
   if (ipfsUrl.startsWith("ipfs://")) {

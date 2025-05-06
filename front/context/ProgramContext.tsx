@@ -43,6 +43,7 @@ export type ProposalState = {
   lockupPeriod: number;
   status: "active" | "validated" | "rejected";
   publicKey: PublicKey;
+  imageUrl?: string;
 };
 
 type ProgramContextType = {
@@ -336,25 +337,33 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
     if (!program) return [];
 
     try {
-      // Cast le program au bon type pour accéder à tokenProposal
       const proposals = await (
         program as Program<Programs>
       ).account.tokenProposal.all();
 
-      return proposals.map((p: any) => ({
-        epochId: p.account.epochId.toString(),
-        creator: p.account.creator,
-        tokenName: p.account.tokenName,
-        tokenSymbol: p.account.tokenSymbol,
-        totalSupply: p.account.totalSupply.toNumber(),
-        creatorAllocation: p.account.creatorAllocation,
-        supporterAllocation: p.account.supporterAllocation,
-        solRaised: p.account.solRaised.toNumber(),
-        totalContributions: p.account.totalContributions.toNumber(),
-        lockupPeriod: p.account.lockupPeriod.toNumber(),
-        status: p.account.status,
-        publicKey: p.publicKey,
-      }));
+      console.log("Raw proposals data:", proposals);
+
+      const mappedProposals = proposals.map((p: any) => {
+        const proposal = {
+          epochId: p.account.epochId.toString(),
+          creator: p.account.creator,
+          tokenName: p.account.tokenName,
+          tokenSymbol: p.account.tokenSymbol,
+          totalSupply: p.account.totalSupply.toNumber(),
+          creatorAllocation: p.account.creatorAllocation,
+          supporterAllocation: p.account.supporterAllocation,
+          solRaised: p.account.solRaised.toNumber(),
+          totalContributions: p.account.totalContributions.toNumber(),
+          lockupPeriod: p.account.lockupPeriod.toNumber(),
+          status: p.account.status,
+          publicKey: p.publicKey,
+          imageUrl: p.account.imageUrl,
+        };
+        console.log("Mapped proposal:", proposal);
+        return proposal;
+      });
+
+      return mappedProposals;
     } catch (err) {
       console.error("Error fetching proposals:", err);
       return [];
