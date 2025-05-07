@@ -1,8 +1,10 @@
 import { ProposalState } from "@/context/ProgramContext";
+import { cn } from "@/lib/utils";
+import { ipfsToHttp } from "@/utils/ImageStorage";
 import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { useTranslations } from "next-intl";
+import Image from "next/image";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
 
 type ProposalCardProps = {
   proposal: ProposalState;
@@ -10,15 +12,42 @@ type ProposalCardProps = {
   className?: string; // Expects border classes (static or gradient)
 };
 
-export function ProposalCard({ proposal, locale, className }: ProposalCardProps) {
+export function ProposalCard({
+  proposal,
+  locale,
+  className,
+}: ProposalCardProps) {
   const t = useTranslations("Home");
 
   // Card content definition remains the same
   const CardContent = (
     <>
-      <div className="w-12 h-12 bg-gray-700 rounded-lg mr-4 flex-shrink-0 animate-pulse"></div>
-      <div className="flex-grow mr-4 space-y-1">
-        <p className="font-bold text-lg text-gray-100">${proposal.tokenSymbol}</p>
+      <div className="relative w-24 h-24 bg-gray-800 rounded-lg overflow-hidden">
+        {proposal.imageUrl && proposal.imageUrl.length > 0 ? (
+          <>
+            <Image
+              src={ipfsToHttp(proposal.imageUrl)}
+              alt={proposal.tokenName}
+              fill
+              className="object-cover"
+              onError={(e) => {
+                console.error("Image failed to load:", e);
+                const target = e.target as HTMLImageElement;
+                target.style.display = "none";
+              }}
+              onLoad={() => console.log("Image loaded successfully")}
+            />
+          </>
+        ) : (
+          <div className="flex items-center justify-center h-full text-gray-400 text-sm">
+            {t("noImage")}
+          </div>
+        )}
+      </div>
+      <div className="flex-grow mr-4 space-y-1 ml-2">
+        <p className="font-bold text-lg text-gray-100">
+          ${proposal.tokenSymbol}
+        </p>
         <h3 className="text-md text-gray-200">{proposal.tokenName}</h3>
         <p className="text-xs text-gray-500 pt-1">
           {t("by")} {proposal.creator.toString().slice(0, 4)}...
@@ -29,7 +58,7 @@ export function ProposalCard({ proposal, locale, className }: ProposalCardProps)
       <div className="flex items-center gap-4 ml-auto flex-shrink-0">
         {/* Bouton Support (maintenant à gauche dans cette section) */}
         <Link
-          href={`/${locale || "en"}/proposal/${proposal.publicKey.toString()}#support`}
+          href={`/${locale}/proposal/${proposal.publicKey.toString()}#support`}
           className={cn(
             "px-4 py-2",
             "bg-emerald-700",
@@ -43,7 +72,9 @@ export function ProposalCard({ proposal, locale, className }: ProposalCardProps)
           {t("supportProject")}
         </Link>
         {/* Colonne interne pour les stats (SOL levés et Contributions) */}
-        <div className="flex flex-col items-end space-y-0.5"> {/* Espace vertical réduit */}
+        <div className="flex flex-col items-end space-y-0.5">
+          {" "}
+          {/* Espace vertical réduit */}
           <span className="text-base font-semibold text-gray-100 whitespace-nowrap">
             {t("solanaRaised", {
               amount: (proposal.solRaised / LAMPORTS_PER_SOL).toFixed(2),
@@ -68,17 +99,19 @@ export function ProposalCard({ proposal, locale, className }: ProposalCardProps)
       <div
         className={cn(
           "gradient-border", // Classe CSS de base pour l'effet
-          className,         // Classe de couleur (ex: "gradient-border-green")
-          "bg-gray-800/50",  // Fond réel de la carte
-          "rounded-xl",      // Applique le radius (sera hérité par ::before)
+          className, // Classe de couleur (ex: "gradient-border-green")
+          "bg-gray-800/50", // Fond réel de la carte
+          "rounded-xl", // Applique le radius (sera hérité par ::before)
           "flex items-center", // Layout du contenu
-          "px-4 py-1"        // Padding INTERNE global réduit (py-2 -> py-1)
+          "px-4 py-1" // Padding INTERNE global réduit (py-2 -> py-1)
           // Le CSS .gradient-border::before ajoutera le padding EXTERNE pour la bordure
         )}
       >
         {/* Le contenu est directement enfant. Le z-index du ::before devrait le placer derrière ce contenu */}
-        <div className="relative z-10 flex items-center w-full"> {/* Ajout d'un wrapper pour z-index */} 
-          {CardContent} 
+        <div className="relative z-10 flex items-center w-full">
+          {" "}
+          {/* Ajout d'un wrapper pour z-index */}
+          {CardContent}
         </div>
       </div>
     );

@@ -59,7 +59,11 @@
     "unlockAfterThreeMonths": "3 months after epoch end",
     "selectEpochForUnlock": "Select an epoch to set unlock date",
     "days": "days",
-    "lockupPeriodHelp": "Period during which the creator's tokens will be locked"
+    "lockupPeriodHelp": "Period during which the creator's tokens will be locked",
+    "uploadingImage": "Uploading image...",
+    "imageUploaded": "Image uploaded successfully",
+    "imageUploadError": "Error uploading image",
+    "submitProposal": "Create Proposal"
   },
   "EpochManagement": {
     "title": "Epoch Management",

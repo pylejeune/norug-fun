@@ -59,7 +59,11 @@
     "unlockAfterThreeMonths": "3 mois après la fin de l'epoch",
     "selectEpochForUnlock": "Sélectionnez une epoch pour définir la date de déblocage",
     "days": "jours",
-    "lockupPeriodHelp": "Période pendant laquelle les tokens du créateur seront bloqués"
+    "lockupPeriodHelp": "Période pendant laquelle les tokens du créateur seront bloqués",
+    "uploadingImage": "Envoi de l'image...",
+    "imageUploaded": "Image envoyée avec succès",
+    "imageUploadError": "Erreur lors de l'envoi de l'image",
+    "submitProposal": "Créer la proposition"
   },
   "EpochManagement": {
     "title": "Gestion des Epochs",
