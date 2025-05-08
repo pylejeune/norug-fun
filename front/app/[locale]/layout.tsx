@@ -1,3 +1,4 @@
+import "../globals.css";
 import { AltSidebar } from "@/components/layout/AltSidebar";
 import Footer from "@/components/layout/Footer";
 import Header from "@/components/layout/Header";
@@ -13,7 +14,6 @@ import localFont from "next/font/local";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { Toaster } from "sonner";
-import "../globals.css";
 import { routing } from "../i18n/routing";
 
 const inter = Inter({

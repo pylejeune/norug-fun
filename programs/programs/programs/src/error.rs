@@ -65,5 +65,24 @@ pub enum ErrorCode {
 
     #[msg("Unauthorized: Only the admin can perform this action.")]
     Unauthorized,
+
+    // --- Codes pour reclaim_support ---
+    #[msg("La proposition doit être rejetée pour pouvoir réclamer les fonds.")]
+    ProposalNotRejected,
+    
+    #[msg("Le compte de support ne correspond pas à la proposition fournie.")]
+    ProposalMismatch,
+
+    #[msg("Il n'y a aucun montant à réclamer dans ce compte de support.")]
+    NothingToReclaim,
+
+    #[msg("Fonds insuffisants dans le compte de la proposition pour effectuer le remboursement.")]
+    InsufficientProposalFunds,
+
+    #[msg("L'époque n'a pas encore été marquée comme traitée par le crank.")]
+    EpochNotProcessedYet,
+
+    #[msg("Could not retrieve bump seed.")]
+    CouldNotRetrieveBump,
 }
 

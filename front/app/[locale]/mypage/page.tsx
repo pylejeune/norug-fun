@@ -1,11 +1,13 @@
 "use client";
 
 import { useProgram } from "@/context/ProgramContext";
+import { ipfsToHttp } from "@/utils/ImageStorage";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { format } from "date-fns";
 import { enUS, fr } from "date-fns/locale";
 import { useTranslations } from "next-intl";
+import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -174,12 +176,19 @@ export default function MyPage() {
               <div className="bg-gray-900/50 p-3 md:p-4 rounded-lg border border-gray-800 hover:bg-gray-900/70 transition-colors">
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                   {/* Image */}
-                  <div className="w-full sm:w-32 h-32 flex-shrink-0">
-                    {proposal.imageUrl ? (
-                      <img
-                        src={proposal.imageUrl}
+                  <div className="w-full sm:w-32 h-32 flex-shrink-0 bg-gray-800 rounded-lg overflow-hidden">
+                    {proposal.imageUrl && proposal.imageUrl.length > 0 ? (
+                      <Image
+                        src={ipfsToHttp(proposal.imageUrl)}
                         alt={proposal.tokenName}
-                        className="w-full h-full object-cover rounded-lg"
+                        width={128}
+                        height={128}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          console.error("Image failed to load:", e);
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = "none";
+                        }}
                       />
                     ) : (
                       <div className="w-full h-full bg-gray-800 rounded-lg flex items-center justify-center text-gray-600">

@@ -18,7 +18,12 @@
     "createProposal": "Créer Proposition",
     "treasury": "Trésorerie",
     "myPage": "Ma Page",
-    "howItWorks": "Comment ça marche"
+    "howItWorks": "Comment ça marche",
+    "support": "Support",
+    "socialLinks": {
+      "telegram": "Rejoignez-nous sur Telegram",
+      "twitter": "Suivez-nous sur X (Twitter)"
+    }
   },
   "ProposalForm": {
     "title": "Créer une nouvelle proposition de token",
@@ -54,7 +59,11 @@
     "unlockAfterThreeMonths": "3 mois après la fin de l'epoch",
     "selectEpochForUnlock": "Sélectionnez une epoch pour définir la date de déblocage",
     "days": "jours",
-    "lockupPeriodHelp": "Période pendant laquelle les tokens du créateur seront bloqués"
+    "lockupPeriodHelp": "Période pendant laquelle les tokens du créateur seront bloqués",
+    "uploadingImage": "Envoi de l'image...",
+    "imageUploaded": "Image envoyée avec succès",
+    "imageUploadError": "Erreur lors de l'envoi de l'image",
+    "submitProposal": "Créer la proposition"
   },
   "EpochManagement": {
     "title": "Gestion des Epochs",
@@ -239,5 +248,92 @@
     "errorLoadingProposals": "Erreur lors du chargement des propositions",
     "noImage": "Pas d'image",
     "epochId": "Epoch"
+  },
+  "Privacy": {
+    "title": "Politique de Confidentialité",
+    "lastUpdated": "Dernière mise à jour : Mai 2025",
+    "intro": "Chez NoRug.fun, nous prenons votre confidentialité au sérieux. Cette politique explique comment nous collectons, utilisons et protégeons vos données.",
+    "sections": {
+      "collection": {
+        "title": "Informations Collectées",
+        "content": "Nous collectons uniquement les informations essentielles au fonctionnement de la plateforme :",
+        "items": [
+          "Adresses des wallets pour le traitement des transactions",
+          "Données de transaction sur la blockchain Solana",
+          "Informations des propositions que vous choisissez de partager"
+        ]
+      },
+      "usage": {
+        "title": "Utilisation de vos Informations",
+        "content": "Vos informations sont utilisées exclusivement pour :",
+        "items": [
+          "Traiter vos transactions sur la plateforme",
+          "Afficher vos propositions et contributions",
+          "Analyser et améliorer la plateforme",
+          "Communiquer sur vos propositions ou contributions"
+        ]
+      },
+      "storage": {
+        "title": "Stockage des Données",
+        "content": "La majorité des données est stockée sur la blockchain Solana et est donc publique. Nous ne stockons aucune information personnelle sur des serveurs centralisés."
+      },
+      "sharing": {
+        "title": "Partage d'Informations",
+        "content": "Nous ne vendons ni ne partageons vos informations avec des tiers. Toutes les données de transaction sont publiquement disponibles sur la blockchain Solana."
+      },
+      "contact": {
+        "title": "Nous Contacter",
+        "content": "Pour toute question relative à la confidentialité, contactez-nous à :"
+      }
+    }
+  },
+  "Terms": {
+    "title": "Conditions d'Utilisation",
+    "lastUpdated": "Dernière mise à jour : Mai 2025",
+    "intro": "Bienvenue sur NoRug.fun. En utilisant notre plateforme, vous acceptez ces conditions d'utilisation. Veuillez les lire attentivement.",
+    "sections": {
+      "acceptance": {
+        "title": "Acceptation des Conditions",
+        "content": "En accédant ou en utilisant NoRug.fun, vous acceptez d'être lié par ces Conditions d'Utilisation et toutes les lois et réglementations applicables."
+      },
+      "services": {
+        "title": "Services de la Plateforme",
+        "content": "NoRug.fun fournit une plateforme pour :",
+        "items": [
+          "Créer des propositions de tokens",
+          "Soutenir des propositions avec des SOL",
+          "Participer aux lancements de tokens",
+          "Gérer les distributions de tokens"
+        ]
+      },
+      "risks": {
+        "title": "Risques et Responsabilités",
+        "content": "Vous comprenez et acceptez que :",
+        "items": [
+          "Les investissements en cryptomonnaies comportent des risques inhérents",
+          "Vous êtes responsable de la sécurité de votre wallet",
+          "Les performances passées ne garantissent pas les résultats futurs",
+          "Vous ne devez pas investir plus que ce que vous pouvez vous permettre de perdre"
+        ]
+      },
+      "prohibited": {
+        "title": "Activités Interdites",
+        "content": "Les utilisateurs ne doivent pas :",
+        "items": [
+          "Tenter de manipuler les votes ou les prix des tokens",
+          "Soumettre des informations fausses ou trompeuses",
+          "Utiliser la plateforme pour des activités illégales",
+          "Interférer avec le fonctionnement de la plateforme"
+        ]
+      },
+      "disclaimer": {
+        "title": "Avertissement",
+        "content": "NoRug.fun est fourni \"tel quel\" sans aucune garantie. Nous ne sommes pas responsables des pertes ou dommages résultant de votre utilisation de la plateforme."
+      },
+      "contact": {
+        "title": "Nous Contacter",
+        "content": "Pour toute question concernant ces conditions, contactez-nous à :"
+      }
+    }
   }
 }

@@ -2,9 +2,11 @@
 
 import BackButton from "@/components/ui/BackButton";
 import { useProgram } from "@/context/ProgramContext";
+import { ipfsToHttp } from "@/utils/ImageStorage";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey } from "@solana/web3.js";
 import { useTranslations } from "next-intl";
+import Image from "next/image";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -130,6 +132,18 @@ export default function ProposalDetailPage() {
     return status as ProposalStatus;
   };
 
+  // Helper function to get status color
+  const getStatusColor = (status: ProposalStatus) => {
+    switch (status) {
+      case "active":
+        return "bg-blue-500 text-white";
+      case "validated":
+        return "bg-green-500 text-white";
+      case "rejected":
+        return "bg-red-500 text-white";
+    }
+  };
+
   // Loading state
   if (loading) {
     return (
@@ -155,20 +169,29 @@ export default function ProposalDetailPage() {
 
       <div className="bg-gray-900/50 p-3 md:p-6 rounded-lg border border-gray-800">
         {/* Header */}
-        <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
-          {/* Image Container */}
-          <div className="w-full lg:w-1/3 max-w-sm mx-auto lg:mx-0">
-            {proposal.imageUrl ? (
-              <img
-                src={proposal.imageUrl}
-                alt={proposal.name}
-                className="w-full aspect-square object-cover rounded-lg"
-              />
-            ) : (
-              <div className="w-full aspect-square bg-gray-800 rounded-lg flex items-center justify-center text-gray-600">
-                {t("noImage")}
-              </div>
-            )}
+        <div className="flex flex-col md:flex-row gap-8">
+          {/* Image et Infos de Base */}
+          <div className="flex-shrink-0">
+            <div className="relative w-full md:w-64 h-64 bg-gray-800 rounded-lg overflow-hidden">
+              {proposal.imageUrl && proposal.imageUrl.length > 0 ? (
+                <Image
+                  src={ipfsToHttp(proposal.imageUrl)}
+                  alt={proposal.name}
+                  fill
+                  className="object-cover"
+                  onError={(e) => {
+                    console.error("Image failed to load:", e);
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = "none";
+                  }}
+                  priority // Pour charger l'image en priorité
+                />
+              ) : (
+                <div className="w-full aspect-square bg-gray-800 rounded-lg flex items-center justify-center text-gray-600">
+                  {t("noImage")}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Info */}

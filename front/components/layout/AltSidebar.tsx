@@ -3,11 +3,12 @@
 import {
   BookOpenText,
   CirclePlus,
-  User ,
   Home,
   Hourglass,
+  MessagesSquare,
   PanelLeftClose,
   PanelLeftOpen,
+  User,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useParams } from "next/navigation";
@@ -28,12 +29,22 @@ import logo from "@/public/images/noruglogo.png";
 import Image from "next/image";
 import Link from "next/link";
 
+// Définition des liens sociaux
+const SOCIAL_LINKS = {
+  telegram: "https://t.me/norugdotfun",
+  twitter: "https://x.com/norugdotfun",
+};
+
+// Références aux logos SVG
+import telegramLogo from "@/public/images/telegramLogo.svg";
+import xLogo from "@/public/images/xLogo.svg";
+
 export function AltSidebar() {
   const t = useTranslations("Navigation");
   const { toggleSidebar, open, isMobile } = useSidebar();
   const { locale } = useParams();
 
-  // Navigation menu configuration
+  // Configuration du menu de navigation
   const items = [
     {
       titleKey: "home",
@@ -51,21 +62,21 @@ export function AltSidebar() {
       url: `/${locale}/proposal/create`,
       icon: CirclePlus,
     },
-    //Will be for phase 2
-    // {
-    //   titleKey: "treasury",
-    //   url: `/${locale}/treasury`,
-    //   icon: Vault,
-    // },
     {
       titleKey: "myPage",
       url: `/${locale}/mypage`,
-      icon: User ,
+      icon: User,
     },
     {
       titleKey: "howItWorks",
       url: `/${locale}/howitworks`,
       icon: BookOpenText,
+    },
+    {
+      titleKey: "support",
+      url: SOCIAL_LINKS.telegram,
+      icon: MessagesSquare,
+      external: true,
     },
   ];
 
@@ -137,18 +148,66 @@ export function AltSidebar() {
                       <SidebarMenuButton
                         asChild
                         tooltip={t(item.titleKey)}
-                        className={`h-8 md:h-12 text-sm md:text-base ${item.className || ""}`}
+                        className={`h-8 md:h-12 text-sm md:text-base ${
+                          item.className || ""
+                        }`}
                       >
-                        <Link href={item.url} className="gap-2 md:gap-3">
-                          <item.icon className="h-4 w-4 md:h-6 md:w-6 group-data-[state=collapsed]:h-8 group-data-[state=collapsed]:w-5 transition-all duration-200" />
-                          <span>{t(item.titleKey)}</span>
-                        </Link>
+                        {item.external ? (
+                          <Link
+                            href={item.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="gap-2 md:gap-3"
+                          >
+                            <item.icon className="h-4 w-4 md:h-6 md:w-6 group-data-[state=collapsed]:h-8 group-data-[state=collapsed]:w-5 transition-all duration-200" />
+                            <span>{t(item.titleKey)}</span>
+                          </Link>
+                        ) : (
+                          <Link href={item.url} className="gap-2 md:gap-3">
+                            <item.icon className="h-4 w-4 md:h-6 md:w-6 group-data-[state=collapsed]:h-8 group-data-[state=collapsed]:w-5 transition-all duration-200" />
+                            <span>{t(item.titleKey)}</span>
+                          </Link>
+                        )}
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   ))}
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
+
+            {/* Social Links */}
+            <div className="mt-auto px-2 py-4 flex items-center justify-center group-data-[state=collapsed]:flex-col gap-4 group-data-[state=collapsed]:gap-2">
+              <Link
+                href={SOCIAL_LINKS.telegram}
+                target="_blank"
+                rel="noopener noreferrer"
+                title={t("socialLinks.telegram")}
+                className="transition-opacity hover:opacity-80"
+              >
+                <Image
+                  src={telegramLogo}
+                  alt="Telegram"
+                  width={16}
+                  height={16}
+                  className="w-5 h-5 group-data-[state=collapsed]:w-4 group-data-[state=collapsed]:h-4"
+                />
+              </Link>
+              <Link
+                href={SOCIAL_LINKS.twitter}
+                target="_blank"
+                rel="noopener noreferrer"
+                title={t("socialLinks.twitter")}
+                className="transition-opacity hover:opacity-80"
+              >
+                <Image
+                  src={xLogo}
+                  alt="X (Twitter)"
+                  width={16}
+                  height={16}
+                  className="w-5 h-5 group-data-[state=collapsed]:w-4 group-data-[state=collapsed]:h-4"
+                />
+              </Link>
+            </div>
           </SidebarContent>
         </Sidebar>
       </div>
