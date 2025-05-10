@@ -35,6 +35,11 @@ pub fn add_treasury_role(
         !treasury_roles.roles.iter().any(|r| r.pubkey == pubkey && r.role_type == role_type),
         ErrorCode::RoleAlreadyExists
     );
+    // Check if the maximum number of roles has been reached
+    require!(
+        treasury_roles.roles.len() < 5, // Max 5 roles
+        ErrorCode::RolesCapacityExceeded
+    );
     let new_role = TreasuryRole {
         role_type,
         pubkey,
@@ -67,12 +72,9 @@ pub fn remove_treasury_role(
         treasury_roles.authorities.contains(ctx.accounts.authority.key),
         ErrorCode::Unauthorized
     );
-    let original_len = treasury_roles.roles.len();
+    // Retain roles that do not match the one to be removed.
+    // This makes the operation idempotent: if the role doesn't exist, the vector remains unchanged.
     treasury_roles.roles.retain(|r| !(r.pubkey == pubkey && r.role_type == role_type));
-    require!(
-        treasury_roles.roles.len() < original_len,
-        ErrorCode::CustomError // Could define a specific error if needed
-    );
     Ok(())
 }
 
@@ -173,5 +175,25 @@ pub fn remove_admin(
         treasury_roles.authorities.len() < original_len,
         ErrorCode::CustomError // Could define a specific error if needed
     );
+    Ok(())
+}
+
+#[derive(Accounts)]
+pub struct InitializeTreasuryRoles<'info> {
+    #[account(init, payer = payer, space = 8 + 32 * 3 + 4 + (32 + 1 + 8 + 8 + 1) * 16, seeds = [b"treasury_roles"], bump)]
+    pub treasury_roles: Account<'info, TreasuryRoles>,
+    #[account(mut)]
+    pub payer: Signer<'info>,
+    pub system_program: Program<'info, System>,
+}
+
+pub fn initialize_treasury_roles(
+    ctx: Context<InitializeTreasuryRoles>,
+    authorities: Vec<Pubkey>,
+) -> Result<()> {
+    require!(authorities.len() >= 1 && authorities.len() <= 3, ErrorCode::CustomError);
+    let treasury_roles = &mut ctx.accounts.treasury_roles;
+    treasury_roles.authorities = authorities;
+    treasury_roles.roles = Vec::new();
     Ok(())
 } 

@@ -84,5 +84,11 @@ pub enum ErrorCode {
 
     #[msg("Could not retrieve bump seed.")]
     CouldNotRetrieveBump,
+
+    #[msg("Ce rôle existe déjà pour ce wallet.")]
+    RoleAlreadyExists,
+
+    #[msg("The maximum number of roles has been reached.")]
+    RolesCapacityExceeded,
 }
 
