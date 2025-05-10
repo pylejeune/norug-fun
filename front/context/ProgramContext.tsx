@@ -17,6 +17,8 @@ export type { Programs };
 
 type ProgramType = Program<Programs>;
 
+export type ProposalStatus = "active" | "validated" | "rejected";
+
 export type EpochStatus =
   | Programs["types"][2]["type"]["variants"][0]
   | Programs["types"][2]["type"]["variants"][1]
@@ -41,9 +43,17 @@ export type ProposalState = {
   solRaised: number;
   totalContributions: number;
   lockupPeriod: number;
-  status: "active" | "validated" | "rejected";
+  status: ProposalStatus;
   publicKey: PublicKey;
   imageUrl?: string;
+};
+
+export type ProposalSupport = {
+  user: PublicKey;
+  amount: number;
+  timestamp: number;
+  tokenAllocation: number;
+  rank: number;
 };
 
 type ProgramContextType = {
@@ -78,6 +88,7 @@ type ProgramContextType = {
   getUserSupportedProposals: (
     userAddress: PublicKey
   ) => Promise<ProposalState[]>;
+  getProposalSupports: (proposalId: string) => Promise<ProposalSupport[]>;
 };
 
 const ProgramContext = createContext<ProgramContextType | null>(null);
@@ -552,6 +563,74 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
     [program, getAllProposals]
   );
 
+  const getProposalSupports = useCallback(
+    async (proposalId: string): Promise<ProposalSupport[]> => {
+      if (!program) throw new Error("Program not initialized");
+
+      try {
+        const proposal = await (
+          program as Program<Programs>
+        ).account.tokenProposal.fetch(new PublicKey(proposalId));
+
+        const allAccounts = await (
+          program as Program<Programs>
+        ).account.userProposalSupport.all();
+
+        type SupportAccount = {
+          account: {
+            user: PublicKey;
+            amount: BN;
+            proposal: PublicKey;
+          };
+        };
+
+        const proposalSupports = allAccounts
+          .filter(
+            (acc: SupportAccount) =>
+              acc.account.proposal.toString() === proposalId
+          )
+          .map((support: SupportAccount) => ({
+            user: support.account.user,
+            amount: support.account.amount.toNumber() / LAMPORTS_PER_SOL,
+            timestamp: Date.now(),
+            tokenAllocation: 0,
+          }));
+
+        // Calculer le total des SOL investis
+        const totalSolRaised = proposalSupports.reduce(
+          (sum, support) => sum + support.amount,
+          0
+        );
+
+        // Calculer le pourcentage de tokens pour chaque supporter
+        const supporterAllocation = proposal.supporterAllocation;
+        const totalTokensForSupporters =
+          proposal.totalSupply * (supporterAllocation / 100);
+
+        // Trier par montant investi (décroissant) et calculer le % individuel
+        const sortedSupports = proposalSupports
+          .map((support) => ({
+            ...support,
+            tokenAllocation:
+              totalSolRaised > 0
+                ? (support.amount / totalSolRaised) * supporterAllocation // Pourcentage direct de l'allocation supporter
+                : 0,
+          }))
+          .sort((a, b) => b.amount - a.amount)
+          .map((support, index) => ({
+            ...support,
+            rank: index + 1,
+          }));
+
+        return sortedSupports;
+      } catch (error) {
+        console.error("Failed to fetch proposal supports:", error);
+        throw error;
+      }
+    },
+    [program]
+  );
+
   const value = useMemo(
     () => ({
       program,
@@ -570,6 +649,7 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
       supportProposal,
       getUserProposals,
       getUserSupportedProposals,
+      getProposalSupports,
     }),
     [program, isConnected, error, success]
   );

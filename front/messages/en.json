@@ -17,7 +17,8 @@
     "manageEpoch": "Manage Epoch",
     "createProposal": "Create Proposal",
     "treasury": "Treasury",
-    "myPage": "My Page",
+    "myPage": "Profile",
+    "profile": "Profile",
     "howItWorks": "How It Works",
     "support": "Support",
     "socialLinks": {
@@ -173,7 +174,13 @@
     "supportSuccess": "Successfully supported the project",
     "supportError": "Failed to support the project",
     "minAmount": "Minimum amount is 0.001 SOL",
-    "alreadySupported": "You have already supported this proposal"
+    "alreadySupported": "You have already supported this proposal",
+    "supporters": "Supporters",
+    "noSupportersYet": "No supporters yet",
+    "errorLoadingSupports": "Error loading supporters",
+    "ofTokens": "of tokens",
+    "creatorWallet": "Creator's wallet",
+    "showingTop20": "showing top 20"
   },
   "EpochForm": {
     "title": "Create New Epoch",
@@ -338,5 +345,24 @@
         "content": "For any questions about these terms, please contact us at:"
       }
     }
+  },
+  "Profile": {
+    "yourProfile": "Your Profile",
+    "userProfile": "User Profile",
+    "viewOnSolscan": "View on Solscan",
+    "createdTokens": "Created Tokens",
+    "supportedTokens": "Supported Tokens",
+    "sortBy": {
+      "date": "Sort by Date",
+      "name": "Sort by Name",
+      "amount": "Sort by Amount"
+    },
+    "noCreatedTokens": "No tokens created yet",
+    "noSupportedTokens": "No tokens supported yet",
+    "noImage": "No image",
+    "invalidAddress": "Invalid address",
+    "errorLoadingProposals": "Error loading proposals",
+    "addressCopied": "Address copied to clipboard",
+    "copyFailed": "Failed to copy address"
   }
 }

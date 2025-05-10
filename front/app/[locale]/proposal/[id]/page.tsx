@@ -1,19 +1,22 @@
 "use client";
 
+import ProposalSupportList from "@/components/proposal/ProposalSupportList";
 import BackButton from "@/components/ui/BackButton";
-import { useProgram } from "@/context/ProgramContext";
+import {
+  ProposalStatus,
+  ProposalSupport,
+  useProgram,
+} from "@/context/ProgramContext";
 import { ipfsToHttp } from "@/utils/ImageStorage";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey } from "@solana/web3.js";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
-type ProposalStatus = "active" | "validated" | "rejected";
-
-type DetailedProposal = {
+export type DetailedProposal = {
   id: string;
   name: string;
   ticker: string;
@@ -32,96 +35,115 @@ type DetailedProposal = {
 };
 
 export default function ProposalDetailPage() {
-  // Hooks and context
+  // 1. Hooks
   const t = useTranslations("ProposalDetail");
   const { locale, id } = useParams();
   const { publicKey } = useWallet();
+  const { getProposalDetails, supportProposal, getProposalSupports } =
+    useProgram();
+
+  // 2. States
   const [supportAmount, setSupportAmount] = useState<string>("");
-  const { getProposalDetails, supportProposal } = useProgram();
   const [proposal, setProposal] = useState<DetailedProposal | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [supports, setSupports] = useState<ProposalSupport[]>([]);
+  const [isLoadingSupports, setIsLoadingSupports] = useState(true);
 
-  // Load proposal details on mount
-  useEffect(() => {
-    const loadProposal = async () => {
-      try {
-        setLoading(true);
-        if (!id) {
-          toast.error(t("proposalNotFound"));
-          return;
-        }
-
-        // Wait for program initialization
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-
-        const details = await getProposalDetails(id as string);
-        if (!details) {
-          toast.error(t("proposalNotFound"));
-          return;
-        }
-
-        // Format proposal data
-        const formattedProposal: DetailedProposal = {
-          id: id as string,
-          name: details.tokenName,
-          ticker: details.tokenSymbol,
-          description: details.description,
-          imageUrl: details.imageUrl,
-          epoch_id: details.epochId,
-          solRaised: details.solRaised,
-          creator: details.creator,
-          totalSupply: details.totalSupply,
-          creatorAllocation: details.creatorAllocation,
-          supporterAllocation: details.supporterAllocation,
-          status: details.status as ProposalStatus,
-          totalContributions: details.totalContributions,
-          lockupPeriod: details.lockupPeriod,
-          publicKey: details.publicKey,
-        };
-
-        setProposal(formattedProposal);
-      } catch (error) {
-        console.error("Failed to load proposal:", error);
-        if ((error as Error).message === "Program not initialized") {
-          // Retry after delay if program not ready
-          setTimeout(loadProposal, 1000);
-        } else {
-          toast.error(t("errorLoadingProposal"));
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadProposal();
-  }, [id, getProposalDetails]);
-
-  // Helper function to format large numbers
-  const formatNumber = (number: number) => {
-    return number.toLocaleString(locale === "fr" ? "fr-FR" : "en-US");
-  };
-
-  // Handle support form submission
-  const handleSupport = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!proposal || !supportAmount) return;
+  // 3. Callbacks
+  const loadProposal = useCallback(async () => {
+    if (!id || !getProposalDetails) return;
 
     try {
-      setIsSubmitting(true);
-      await supportProposal(
-        proposal.publicKey.toString(),
-        parseFloat(supportAmount)
-      );
-      toast.success(t("supportSuccess"));
-      setSupportAmount("");
-    } catch (error: any) {
-      console.error("Support failed:", error);
-      toast.error(error.message || t("supportError"));
+      setLoading(true);
+      const details = await getProposalDetails(id as string);
+
+      if (!details) {
+        toast.error(t("proposalNotFound"));
+        return;
+      }
+
+      setProposal({
+        id: id as string,
+        name: details.tokenName,
+        ticker: details.tokenSymbol,
+        description: details.description,
+        imageUrl: details.imageUrl,
+        epoch_id: details.epochId,
+        solRaised: details.solRaised,
+        creator: details.creator,
+        totalSupply: details.totalSupply,
+        creatorAllocation: details.creatorAllocation,
+        supporterAllocation: details.supporterAllocation,
+        status: details.status as ProposalStatus,
+        totalContributions: details.totalContributions,
+        lockupPeriod: details.lockupPeriod,
+        publicKey: details.publicKey,
+      });
+    } catch (error) {
+      toast.error(t("errorLoadingProposal"));
     } finally {
-      setIsSubmitting(false);
+      setLoading(false);
     }
-  };
+  }, [id, getProposalDetails, t]);
+
+  const loadSupports = useCallback(async () => {
+    if (!proposal?.publicKey || !getProposalSupports) return;
+
+    try {
+      setIsLoadingSupports(true);
+      const proposalSupports = await getProposalSupports(
+        proposal.publicKey.toString()
+      );
+      setSupports(proposalSupports);
+    } catch (error) {
+      toast.error(t("errorLoadingSupports"));
+    } finally {
+      setIsLoadingSupports(false);
+    }
+  }, [proposal?.publicKey, getProposalSupports, t]);
+
+  const handleSupport = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!proposal || !supportAmount || !supportProposal) return;
+
+      try {
+        setIsSubmitting(true);
+        await supportProposal(
+          proposal.publicKey.toString(),
+          parseFloat(supportAmount)
+        );
+        toast.success(t("supportSuccess"));
+        setSupportAmount("");
+        loadSupports();
+      } catch (error: any) {
+        toast.error(error.message || t("supportError"));
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [proposal, supportAmount, supportProposal, t, loadSupports]
+  );
+
+  // 4. Effects
+  useEffect(() => {
+    loadProposal();
+  }, [loadProposal]);
+
+  useEffect(() => {
+    if (proposal) {
+      loadSupports();
+    }
+  }, [proposal, loadSupports]);
+
+  // 5. Render helpers
+  const formatNumber = useCallback(
+    (number: number) => {
+      return number.toLocaleString(locale === "fr" ? "fr-FR" : "en-US");
+    },
+    [locale]
+  );
 
   // Helper function to get status string
   const getStatusString = (status: any): ProposalStatus => {
@@ -148,7 +170,7 @@ export default function ProposalDetailPage() {
   if (loading) {
     return (
       <div className="flex justify-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white" />
       </div>
     );
   }
@@ -170,7 +192,7 @@ export default function ProposalDetailPage() {
       <div className="bg-gray-900/50 p-3 md:p-6 rounded-lg border border-gray-800">
         {/* Header */}
         <div className="flex flex-col md:flex-row gap-8">
-          {/* Image et Infos de Base */}
+          {/* Image and Basic Info */}
           <div className="flex-shrink-0">
             <div className="relative w-full md:w-64 h-64 bg-gray-800 rounded-lg overflow-hidden">
               {proposal.imageUrl && proposal.imageUrl.length > 0 ? (
@@ -180,7 +202,6 @@ export default function ProposalDetailPage() {
                   fill
                   className="object-cover"
                   onError={(e) => {
-                    console.error("Image failed to load:", e);
                     const target = e.target as HTMLImageElement;
                     target.style.display = "none";
                   }}
@@ -347,6 +368,9 @@ export default function ProposalDetailPage() {
               </div>
             </div>
           </div>
+
+          {/* Supporters Section */}
+          <ProposalSupportList proposal={proposal} />
         </div>
       </div>
     </div>
