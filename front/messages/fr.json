@@ -173,7 +173,13 @@
     "supportSuccess": "Projet soutenu avec succès",
     "supportError": "Échec du support du projet",
     "minAmount": "Le montant minimum est de 0.001 SOL",
-    "alreadySupported": "Vous avez déjà soutenu cette proposition"
+    "alreadySupported": "Vous avez déjà soutenu cette proposition",
+    "supporters": "Supporters",
+    "noSupportersYet": "Aucun supporter pour le moment",
+    "errorLoadingSupports": "Erreur lors du chargement des supporters",
+    "ofTokens": "des tokens",
+    "creatorWallet": "Portefeuille du créateur",
+    "showingTop20": "affichage du top 20"
   },
   "EpochForm": {
     "title": "Créer un Nouvel Epoch",
