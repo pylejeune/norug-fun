@@ -24,7 +24,7 @@ pub mod programs {
         ctx: Context<InitializeProgramConfig>,
         admin_authority: Pubkey,
     ) -> Result<()> {
-        initialize_program_config::handler(ctx, admin_authority)
+        instructions::initialize_program_config::handler(ctx, admin_authority)
     }
 
     pub fn initialize(_ctx: Context<Initialize>) -> Result<()> {
@@ -90,7 +90,11 @@ pub mod programs {
         ctx: Context<InitializeTreasuryRoles>,
         authorities: Vec<Pubkey>,
     ) -> Result<()> {
-        manage_treasury_role::initialize_treasury_roles(ctx, authorities)
+        instructions::manage_treasury_role::initialize_treasury_roles(ctx, authorities)
+    }
+
+    pub fn initialize_treasury(ctx: Context<InitializeTreasury>, initial_authority: Pubkey) -> Result<()> {
+        instructions::initialize_treasury::initialize_treasury(ctx, initial_authority)
     }
 
     pub fn add_admin(
