@@ -370,24 +370,7 @@ export default function ProposalDetailPage() {
           </div>
 
           {/* Supporters Section */}
-          <div className="bg-gray-800/50 p-4 rounded-lg">
-            <h2 className="text-lg font-medium mb-4">
-              {t("supporters")}
-              {supports.length > 20 && (
-                <span className="text-sm text-gray-400 ml-2">
-                  ({t("showingTop20")})
-                </span>
-              )}
-            </h2>
-
-            {isLoadingSupports ? (
-              <div className="flex justify-center py-4">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white" />
-              </div>
-            ) : (
-              <ProposalSupportList proposal={proposal} />
-            )}
-          </div>
+          <ProposalSupportList proposal={proposal} />
         </div>
       </div>
     </div>
