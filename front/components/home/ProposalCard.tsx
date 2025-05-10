@@ -50,8 +50,14 @@ export function ProposalCard({
         </p>
         <h3 className="text-md text-gray-200">{proposal.tokenName}</h3>
         <p className="text-xs text-gray-500 pt-1">
-          {t("by")} {proposal.creator.toString().slice(0, 4)}...
-          {proposal.creator.toString().slice(-4)}
+          {t("by")}{" "}
+          <Link
+            href={`/${locale}/profile/${proposal.creator.toString()}`}
+            className="hover:underline hover:text-[#e6d3ba] transition-colors"
+          >
+            {proposal.creator.toString().slice(0, 4)}...
+            {proposal.creator.toString().slice(-4)}
+          </Link>
         </p>
       </div>
       {/* Section Droite : Réorganisée en Ligne (Bouton à gauche, Stats à droite) */}

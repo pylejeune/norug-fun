@@ -17,7 +17,8 @@
     "manageEpoch": "Manage Epoch",
     "createProposal": "Create Proposal",
     "treasury": "Treasury",
-    "myPage": "My Page",
+    "myPage": "Profile",
+    "profile": "Profile",
     "howItWorks": "How It Works",
     "support": "Support",
     "socialLinks": {
@@ -338,5 +339,24 @@
         "content": "For any questions about these terms, please contact us at:"
       }
     }
+  },
+  "Profile": {
+    "yourProfile": "Your Profile",
+    "userProfile": "User Profile",
+    "viewOnSolscan": "View on Solscan",
+    "createdTokens": "Created Tokens",
+    "supportedTokens": "Supported Tokens",
+    "sortBy": {
+      "date": "Sort by Date",
+      "name": "Sort by Name",
+      "amount": "Sort by Amount"
+    },
+    "noCreatedTokens": "No tokens created yet",
+    "noSupportedTokens": "No tokens supported yet",
+    "noImage": "No image",
+    "invalidAddress": "Invalid address",
+    "errorLoadingProposals": "Error loading proposals",
+    "addressCopied": "Address copied to clipboard",
+    "copyFailed": "Failed to copy address"
   }
 }
