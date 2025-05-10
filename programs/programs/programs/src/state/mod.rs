@@ -105,7 +105,9 @@ pub struct TreasuryRole {
 #[account]
 #[derive(InitSpace)]
 pub struct TreasuryRoles {
-    pub authority: Pubkey,          // Admin des rôles
+    /// List of up to 3 admin authorities allowed to manage roles
+    #[max_len(3)]
+    pub authorities: Vec<Pubkey>,
     #[max_len(16)]
     pub roles: Vec<TreasuryRole>,   // Liste des rôles attribués
 }

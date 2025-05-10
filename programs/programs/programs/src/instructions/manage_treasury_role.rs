@@ -1,18 +1,18 @@
 // Treasury role management instructions for the norug.fun protocol
 // This file provides Anchor instructions to add, remove, and update roles (Admin, CategoryManager, Withdrawer)
-// to specific addresses for treasury sub-accounts. Only the authority can manage roles.
+// to specific addresses for treasury sub-accounts. Only an admin (present in authorities) can manage roles.
 
 use anchor_lang::prelude::*;
 use crate::state::{TreasuryRoles, TreasuryRole, RoleType};
 use crate::error::ErrorCode;
 
-/// Only the authority (admin) of the TreasuryRoles account can call this instruction.
+/// Only an admin (present in authorities) of the TreasuryRoles account can call this instruction.
 #[derive(Accounts)]
 pub struct AddTreasuryRole<'info> {
-    /// The TreasuryRoles account (must be mutable and owned by authority)
-    #[account(mut, has_one = authority)]
+    /// The TreasuryRoles account (must be mutable)
+    #[account(mut)]
     pub treasury_roles: Account<'info, TreasuryRoles>,
-    /// The authority allowed to manage roles
+    /// The admin authority (must be present in authorities)
     pub authority: Signer<'info>,
 }
 
@@ -25,6 +25,11 @@ pub fn add_treasury_role(
     withdrawal_period: Option<i64>,
 ) -> Result<()> {
     let treasury_roles = &mut ctx.accounts.treasury_roles;
+    // Check that the signer is an admin
+    require!(
+        treasury_roles.authorities.contains(ctx.accounts.authority.key),
+        ErrorCode::Unauthorized
+    );
     // Prevent duplicate roles for the same address and type
     require!(
         !treasury_roles.roles.iter().any(|r| r.pubkey == pubkey && r.role_type == role_type),
@@ -40,13 +45,13 @@ pub fn add_treasury_role(
     Ok(())
 }
 
-/// Only the authority (admin) of the TreasuryRoles account can call this instruction.
+/// Only an admin (present in authorities) of the TreasuryRoles account can call this instruction.
 #[derive(Accounts)]
 pub struct RemoveTreasuryRole<'info> {
-    /// The TreasuryRoles account (must be mutable and owned by authority)
-    #[account(mut, has_one = authority)]
+    /// The TreasuryRoles account (must be mutable)
+    #[account(mut)]
     pub treasury_roles: Account<'info, TreasuryRoles>,
-    /// The authority allowed to manage roles
+    /// The admin authority (must be present in authorities)
     pub authority: Signer<'info>,
 }
 
@@ -57,6 +62,11 @@ pub fn remove_treasury_role(
     pubkey: Pubkey,
 ) -> Result<()> {
     let treasury_roles = &mut ctx.accounts.treasury_roles;
+    // Check that the signer is an admin
+    require!(
+        treasury_roles.authorities.contains(ctx.accounts.authority.key),
+        ErrorCode::Unauthorized
+    );
     let original_len = treasury_roles.roles.len();
     treasury_roles.roles.retain(|r| !(r.pubkey == pubkey && r.role_type == role_type));
     require!(
@@ -66,13 +76,13 @@ pub fn remove_treasury_role(
     Ok(())
 }
 
-/// Only the authority (admin) of the TreasuryRoles account can call this instruction.
+/// Only an admin (present in authorities) of the TreasuryRoles account can call this instruction.
 #[derive(Accounts)]
 pub struct UpdateTreasuryRole<'info> {
-    /// The TreasuryRoles account (must be mutable and owned by authority)
-    #[account(mut, has_one = authority)]
+    /// The TreasuryRoles account (must be mutable)
+    #[account(mut)]
     pub treasury_roles: Account<'info, TreasuryRoles>,
-    /// The authority allowed to manage roles
+    /// The admin authority (must be present in authorities)
     pub authority: Signer<'info>,
 }
 
@@ -85,6 +95,11 @@ pub fn update_treasury_role(
     withdrawal_period: Option<i64>,
 ) -> Result<()> {
     let treasury_roles = &mut ctx.accounts.treasury_roles;
+    // Check that the signer is an admin
+    require!(
+        treasury_roles.authorities.contains(ctx.accounts.authority.key),
+        ErrorCode::Unauthorized
+    );
     let role = treasury_roles
         .roles
         .iter_mut()
