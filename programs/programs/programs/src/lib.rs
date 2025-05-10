@@ -85,4 +85,53 @@ pub mod programs {
     ) -> Result<()> {
         reclaim_support::handler(ctx)
     }
+
+    pub fn initialize_treasury_roles(
+        ctx: Context<InitializeTreasuryRoles>,
+        authorities: Vec<Pubkey>,
+    ) -> Result<()> {
+        manage_treasury_role::initialize_treasury_roles(ctx, authorities)
+    }
+
+    pub fn add_admin(
+        ctx: Context<AddAdmin>,
+        new_admin: Pubkey,
+    ) -> Result<()> {
+        manage_treasury_role::add_admin(ctx, new_admin)
+    }
+
+    pub fn remove_admin(
+        ctx: Context<RemoveAdmin>,
+        admin_to_remove: Pubkey,
+    ) -> Result<()> {
+        manage_treasury_role::remove_admin(ctx, admin_to_remove)
+    }
+
+    pub fn add_treasury_role(
+        ctx: Context<AddTreasuryRole>,
+        role_type: RoleType,
+        pubkey: Pubkey,
+        withdrawal_limit: Option<u64>,
+        withdrawal_period: Option<i64>,
+    ) -> Result<()> {
+        manage_treasury_role::add_treasury_role(ctx, role_type, pubkey, withdrawal_limit, withdrawal_period)
+    }
+
+    pub fn remove_treasury_role(
+        ctx: Context<RemoveTreasuryRole>,
+        role_type: RoleType,
+        pubkey: Pubkey,
+    ) -> Result<()> {
+        manage_treasury_role::remove_treasury_role(ctx, role_type, pubkey)
+    }
+
+    pub fn update_treasury_role(
+        ctx: Context<UpdateTreasuryRole>,
+        role_type: RoleType,
+        pubkey: Pubkey,
+        withdrawal_limit: Option<u64>,
+        withdrawal_period: Option<i64>,
+    ) -> Result<()> {
+        manage_treasury_role::update_treasury_role(ctx, role_type, pubkey, withdrawal_limit, withdrawal_period)
+    }
 }
