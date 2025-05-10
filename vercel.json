@@ -1,0 +1,24 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "app/api/**/*.ts",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/cron/epoch-check",
+      "dest": "/api/cron/epoch-check"
+    }
+  ],
+  "env": {
+    "RPC_ENDPOINT": "https://api.devnet.solana.com"
+  },
+  "crons": [
+    {
+      "path": "/api/cron/epoch-check",
+      "schedule": "0 0 * * *"
+    }
+  ]
+}
