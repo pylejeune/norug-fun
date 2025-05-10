@@ -10,7 +10,7 @@ pub struct EpochManagement {
     pub processed: bool,              // Indicates if the epoch has been processed
 }
 
-#[derive(AnchorSerialize, AnchorDeserialize, Clone, PartialEq, Eq, InitSpace)]
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, PartialEq, Eq, InitSpace, Debug)]
 pub enum EpochStatus {
     Active,
     Pending,

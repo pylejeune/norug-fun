@@ -26,6 +26,8 @@ pub fn handler(ctx: Context<EndEpoch>, epoch_id: u64) -> Result<()> {
     // Mettre à jour le statut de l'époque à inactive et la date de fin
     epoch.status = EpochStatus::Closed;
     epoch.end_time = current_time;
+
+    println!("Epoch: {:?}", epoch.status);
     
     // Émettre un événement pour la clôture de l'époque
     emit!(EpochEnded {
