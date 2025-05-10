@@ -1,6 +1,6 @@
 // Treasury role management instructions for the norug.fun protocol
 // This file provides Anchor instructions to add, remove, and update roles (Admin, CategoryManager, Withdrawer)
-// to specific addresses for treasury sub-accounts. Only an admin (present in authorities) can manage roles.
+// to specific addresses for treasury sub-accounts. Only an admin (present in authorities) can manage roles and admins.
 
 use anchor_lang::prelude::*;
 use crate::state::{TreasuryRoles, TreasuryRole, RoleType};
@@ -107,5 +107,71 @@ pub fn update_treasury_role(
         .ok_or(ErrorCode::CustomError)?; // Could define a specific error if needed
     role.withdrawal_limit = withdrawal_limit;
     role.withdrawal_period = withdrawal_period;
+    Ok(())
+}
+
+/// Only an admin (present in authorities) of the TreasuryRoles account can call this instruction.
+#[derive(Accounts)]
+pub struct AddAdmin<'info> {
+    #[account(mut)]
+    pub treasury_roles: Account<'info, TreasuryRoles>,
+    pub authority: Signer<'info>,
+}
+
+/// Adds a new admin to the authorities list (max 3 admins).
+pub fn add_admin(
+    ctx: Context<AddAdmin>,
+    new_admin: Pubkey,
+) -> Result<()> {
+    let treasury_roles = &mut ctx.accounts.treasury_roles;
+    // Check that the signer is an admin
+    require!(
+        treasury_roles.authorities.contains(ctx.accounts.authority.key),
+        ErrorCode::Unauthorized
+    );
+    // Prevent duplicates
+    require!(
+        !treasury_roles.authorities.contains(&new_admin),
+        ErrorCode::RoleAlreadyExists // Could define a specific error if needed
+    );
+    // Max 3 admins
+    require!(
+        treasury_roles.authorities.len() < 3,
+        ErrorCode::CustomError // Could define a specific error if needed
+    );
+    treasury_roles.authorities.push(new_admin);
+    Ok(())
+}
+
+/// Only an admin (present in authorities) of the TreasuryRoles account can call this instruction.
+#[derive(Accounts)]
+pub struct RemoveAdmin<'info> {
+    #[account(mut)]
+    pub treasury_roles: Account<'info, TreasuryRoles>,
+    pub authority: Signer<'info>,
+}
+
+/// Removes an admin from the authorities list (must always have at least 1 admin).
+pub fn remove_admin(
+    ctx: Context<RemoveAdmin>,
+    admin_to_remove: Pubkey,
+) -> Result<()> {
+    let treasury_roles = &mut ctx.accounts.treasury_roles;
+    // Check that the signer is an admin
+    require!(
+        treasury_roles.authorities.contains(ctx.accounts.authority.key),
+        ErrorCode::Unauthorized
+    );
+    // Must always have at least 1 admin
+    require!(
+        treasury_roles.authorities.len() > 1,
+        ErrorCode::CustomError // Could define a specific error if needed
+    );
+    let original_len = treasury_roles.authorities.len();
+    treasury_roles.authorities.retain(|a| *a != admin_to_remove);
+    require!(
+        treasury_roles.authorities.len() < original_len,
+        ErrorCode::CustomError // Could define a specific error if needed
+    );
     Ok(())
 } 
