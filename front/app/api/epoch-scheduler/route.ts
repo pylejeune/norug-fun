@@ -1,6 +1,8 @@
 import * as anchor from "@coral-xyz/anchor";
 import { PublicKey, Keypair, SystemProgram, Connection, Transaction } from "@solana/web3.js";
 import { BN } from "@coral-xyz/anchor";
+// Importer l'IDL localement. TypeScript le traitera comme un objet.
+import idlContentFromFile from "./idl/programs.json";
 
 // Chargement de l'Anchor IDL (Interface Description Language)
 // Note: l'IDL sera chargé automatiquement par anchor.workspace, pas besoin de le charger manuellement
@@ -94,26 +96,20 @@ async function checkAndEndEpochs(): Promise<SchedulerResults> {
     );
     anchor.setProvider(provider);
     
-    // Charger l'IDL directement depuis la réponse de l'API getAccountInfo
-    console.log("📝 Chargement de l'IDL...");
-    let programIdl;
-    try {
-      programIdl = await anchor.Program.fetchIdl(PROGRAM_ID, provider);
-      if (!programIdl) {
-        throw new Error("Impossible de charger l'IDL du programme");
-      }
-    } catch (error: any) {
-      console.error("Erreur lors du chargement de l'IDL:", error);
-      results.message = `Erreur lors du chargement de l'IDL: ${error.message}`;
-      results.details.errors.push(results.message);
-      return results;
+    // S'assurer que l'IDL est bien l'objet importé.
+    const idlForProgram: anchor.Idl = idlContentFromFile as unknown as anchor.Idl;
+
+    if (!idlForProgram) {
+        console.error("Erreur: L'IDL local (idl/programs.json) n'a pas pu être chargé ou est vide.");
+        results.message = "Erreur critique: L'IDL local n'a pas pu être chargé ou est vide.";
+        results.details.errors.push(results.message);
+        return results; 
     }
-    
-    console.log("✅ IDL chargé avec succès");
+    console.log("✅ IDL local chargé avec succès depuis ./idl/programs.json");
     
     // Créer le programme avec l'IDL récupéré
-    // @ts-ignore - La propriété existe dans l'IDL même si TypeScript ne la reconnaît pas
-    const program = new anchor.Program(programIdl, PROGRAM_ID, provider);
+    // mais TypeScript peut avoir du mal avec les types complexes d'Anchor.
+    const program = new anchor.Program(idlForProgram, provider);
     console.log("✅ Programme initialisé avec l'ID:", PROGRAM_ID.toString());
 
     // Dériver la PDA pour le compte de configuration
