@@ -1,0 +1,190 @@
+{
+  "version": "0.1.0",
+  "name": "programs",
+  "instructions": [
+    {
+      "name": "initializeProgramConfig",
+      "accounts": [
+        {
+          "name": "programConfig",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "adminAuthority",
+          "type": "publicKey"
+        }
+      ]
+    },
+    {
+      "name": "createEpoch",
+      "accounts": [
+        {
+          "name": "epochManagement",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "programConfig",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "epochId",
+          "type": "u64"
+        },
+        {
+          "name": "startTime",
+          "type": "u64"
+        },
+        {
+          "name": "endTime",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "endEpoch",
+      "accounts": [
+        {
+          "name": "epochManagement",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "programConfig",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "epochId",
+          "type": "u64"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "ProgramConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "adminAuthority",
+            "type": "publicKey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "EpochManagement",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "epochId",
+            "type": "u64"
+          },
+          {
+            "name": "startTime",
+            "type": "u64"
+          },
+          {
+            "name": "endTime",
+            "type": "u64"
+          },
+          {
+            "name": "status",
+            "type": {
+              "defined": "EpochStatus"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "types": [
+    {
+      "name": "EpochStatus",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Active"
+          },
+          {
+            "name": "Closed"
+          }
+        ]
+      }
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "Unauthorized",
+      "msg": "You are not authorized to perform this action"
+    },
+    {
+      "code": 6001,
+      "name": "InvalidTimeRange",
+      "msg": "Invalid time range: start time must be before end time"
+    },
+    {
+      "code": 6002,
+      "name": "EpochAlreadyExists",
+      "msg": "An epoch with this ID already exists"
+    },
+    {
+      "code": 6003,
+      "name": "EpochNotFound",
+      "msg": "Epoch not found"
+    },
+    {
+      "code": 6004,
+      "name": "EpochAlreadyClosed",
+      "msg": "This epoch is already closed"
+    },
+    {
+      "code": 6005,
+      "name": "EpochStillActive",
+      "msg": "This epoch is still active and cannot be closed yet"
+    }
+  ]
+} 
