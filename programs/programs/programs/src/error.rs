@@ -90,5 +90,8 @@ pub enum ErrorCode {
 
     #[msg("The maximum number of roles has been reached.")]
     RolesCapacityExceeded,
+
+    #[msg("A calculation resulted in an overflow.")]
+    CalculationOverflow,
 }
 
