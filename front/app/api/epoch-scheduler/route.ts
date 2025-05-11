@@ -18,7 +18,7 @@ const ADMIN_SEED_BASE64 = process.env.ADMIN_SEED_BASE64; // Utiliser la variable
 
 // Fonction pour générer le keypair admin à partir de la seed stockée en Base64
 function getAdminKeypair(): Keypair {
-  console.log("ADMIN_SEED_BASE64 (valeur reçue):", process.env.ADMIN_SEED_BASE64); // Log pour débogage
+  //console.log("ADMIN_SEED_BASE64 (valeur reçue):", process.env.ADMIN_SEED_BASE64); // Log pour débogage
   if (!ADMIN_SEED_BASE64) {
     throw new Error("ADMIN_SEED_BASE64 n'est pas défini dans les variables d'environnement ou est vide");
   }
@@ -96,6 +96,16 @@ async function checkAndEndEpochs(): Promise<SchedulerResults> {
     );
     anchor.setProvider(provider);
     
+    // Afficher la clé publique du wallet du provider
+    if (provider.wallet && provider.wallet.publicKey) {
+      console.log("🔑 Wallet PublicKey du Provider (adminKeypair):");
+      console.log("   ", provider.wallet.publicKey.toString());
+    } else {
+      console.warn("⚠️ Wallet du Provider ou sa PublicKey est indéfini(e).");
+    }
+    console.log("🅿️ PROGRAM_ID cible:");
+    console.log("   ", PROGRAM_ID.toString());
+
     // S'assurer que l'IDL est bien l'objet importé.
     const idlForProgram: anchor.Idl = idlContentFromFile as unknown as anchor.Idl;
 
@@ -107,10 +117,21 @@ async function checkAndEndEpochs(): Promise<SchedulerResults> {
     }
     console.log("✅ IDL local chargé avec succès depuis ./idl/programs.json");
     
-    // Créer le programme avec l'IDL récupéré
-    // @ts-ignore - Erreur de typage connue avec Anchor dans certains environnements, mais fonctionnel.
-    const program = new anchor.Program(idlForProgram, PROGRAM_ID, provider);
-    console.log("✅ Programme initialisé avec l'ID:", PROGRAM_ID.toString());
+    let program: anchor.Program;
+    try {
+      // @ts-ignore - Erreur de typage connue avec Anchor dans certains environnements, mais fonctionnel.
+      program = new anchor.Program(idlForProgram, PROGRAM_ID, provider);
+      console.log("✅ Programme initialisé avec l'ID:", PROGRAM_ID.toString());
+      console.log("🔍 Vérification de program.programId après initialisation:", program.programId?.toString());
+    } catch (error: any) {
+      console.error("❌ Erreur critique lors de l'initialisation de anchor.Program:", error);
+      console.error("   Message:", error.message);
+      console.error("   Stack:", error.stack);
+      if (error.cause) console.error("   Cause:", error.cause);
+      results.message = `Erreur critique lors de l'initialisation du programme Anchor: ${error.message}`;
+      results.details.errors.push(results.message);
+      return results;
+    }
 
     // Dériver la PDA pour le compte de configuration
     const [configPDA] = PublicKey.findProgramAddressSync(
