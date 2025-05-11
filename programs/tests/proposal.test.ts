@@ -30,6 +30,17 @@ describe("Tests des propositions de tokens", () => {
   const lockupPeriod = new anchor.BN(86400); // 1 jour en secondes
   const epochIdGeneral = generateRandomId();
 
+  // Constantes pour les frais de support (dupliquées de constants.rs pour usage dans les tests)
+  const SUPPORT_FEE_PERCENTAGE_NUMERATOR = new anchor.BN(5);
+  const SUPPORT_FEE_PERCENTAGE_DENOMINATOR = new anchor.BN(1000);
+
+  // Constantes pour la distribution des frais de support (pourcentages)
+  const TREASURY_DISTRIBUTION_MARKETING_PERCENT = 10;
+  const TREASURY_DISTRIBUTION_TEAM_PERCENT = 40;
+  const TREASURY_DISTRIBUTION_OPERATIONS_PERCENT = 5;
+  const TREASURY_DISTRIBUTION_INVESTMENTS_PERCENT = 44;
+  const TREASURY_DISTRIBUTION_CRANK_PERCENT = 1;
+
   it("Démarre une nouvelle époque", async () => {
     const epochId = epochIdGeneral;
     const startTime = new anchor.BN(Math.floor(Date.now() / 1000));
@@ -219,14 +230,27 @@ describe("Tests des propositions de tokens", () => {
 
   // --- Tests Granulaires pour support_proposal ---
   const supporter = provider.wallet;
-  const supportAmount1 = new anchor.BN(anchor.web3.LAMPORTS_PER_SOL * 0.1); // 0.1 SOL
-  const supportAmount2 = new anchor.BN(anchor.web3.LAMPORTS_PER_SOL * 0.05); // 0.05 SOL
+  const supportAmount1_BN = new anchor.BN(anchor.web3.LAMPORTS_PER_SOL * 0.1); // 0.1 SOL
+  const supportAmount2_BN = new anchor.BN(anchor.web3.LAMPORTS_PER_SOL * 0.05); // 0.05 SOL
+  
   let userSupportPda: PublicKey;
   let proposalEpochId: anchor.BN;
+  
+  // Variables pour stocker les soldes avant/après et les montants calculés pour le 1er support
   let supporterBalanceBefore1: number;
   let proposalBalanceBefore1: number;
+  let treasuryPdaBalanceBefore1: number;
+  let treasurySubAccountsBefore1: { marketing: anchor.BN, team: anchor.BN, operations: anchor.BN, investments: anchor.BN, crank: anchor.BN };
+  let expectedFeeAmount1: anchor.BN;
+  let expectedNetSupportAmount1: anchor.BN;
+
+  // Variables pour le 2ème support
   let supporterBalanceBefore2: number;
   let proposalBalanceBefore2: number;
+  let treasuryPdaBalanceBefore2: number;
+  let treasurySubAccountsBefore2: { marketing: anchor.BN, team: anchor.BN, operations: anchor.BN, investments: anchor.BN, crank: anchor.BN };
+  let expectedFeeAmount2: anchor.BN;
+  let expectedNetSupportAmount2: anchor.BN;
 
   it("Vérifie le calcul du PDA UserProposalSupport avant le premier support", async () => {
     expect(proposalPda).to.exist; // Assure que la proposition a été créée
@@ -262,137 +286,262 @@ describe("Tests des propositions de tokens", () => {
     }
   });
 
-  it("Supporte une proposition active pour la première fois", async () => {
-    console.log("\nSupport (1ère fois): Exécution");
-    console.log("-------------------------------");
+  it("Supporte une proposition active pour la première fois (avec frais)", async () => {
+    console.log("\nSupport (1ère fois avec frais): Exécution");
+    console.log("------------------------------------------");
+
+    // Calcul des frais et du montant net attendus pour le 1er support
+    expectedFeeAmount1 = supportAmount1_BN
+      .mul(SUPPORT_FEE_PERCENTAGE_NUMERATOR)
+      .div(SUPPORT_FEE_PERCENTAGE_DENOMINATOR);
+    expectedNetSupportAmount1 = supportAmount1_BN.sub(expectedFeeAmount1);
+
+    console.log(`- Montant brut du support (1): ${supportAmount1_BN.toString()}`);
+    console.log(`- Frais attendus (1): ${expectedFeeAmount1.toString()}`);
+    console.log(`- Montant net attendu pour la proposition (1): ${expectedNetSupportAmount1.toString()}`);
+
     // Stocker les soldes AVANT la transaction
     supporterBalanceBefore1 = await provider.connection.getBalance(supporter.publicKey);
     proposalBalanceBefore1 = await provider.connection.getBalance(proposalPda);
-    console.log(`- Solde supporter avant: ${supporterBalanceBefore1}`);
-    console.log(`- Solde proposition avant: ${proposalBalanceBefore1}`);
-    console.log(`- Montant du support: ${supportAmount1.toString()}`);
+    treasuryPdaBalanceBefore1 = await provider.connection.getBalance(treasuryPda);
+    const treasuryAccBefore = await program.account.treasury.fetch(treasuryPda);
+    treasurySubAccountsBefore1 = {
+        marketing: treasuryAccBefore.marketing.solBalance,
+        team: treasuryAccBefore.team.solBalance,
+        operations: treasuryAccBefore.operations.solBalance,
+        investments: treasuryAccBefore.investments.solBalance,
+        crank: treasuryAccBefore.crank.solBalance,
+    };
+
+    console.log(`- Solde supporter avant (1): ${supporterBalanceBefore1}`);
+    console.log(`- Solde proposition avant (1): ${proposalBalanceBefore1}`);
+    console.log(`- Solde PDA Trésorerie avant (1): ${treasuryPdaBalanceBefore1}`);
 
     const tx = await program.methods
-      .supportProposal(supportAmount1)
+      .supportProposal(supportAmount1_BN)
       .accounts({
         user: supporter.publicKey,
         epoch: epochPda,
         proposal: proposalPda,
         userSupport: userSupportPda,
+        treasury: treasuryPda, // Ajout du compte treasury
         systemProgram: anchor.web3.SystemProgram.programId,
       })
       .rpc();
-    console.log(`- Transaction signature (1er support): ${tx}`);
-    expect(tx).to.be.a('string'); // Simple vérification que la tx a réussi
+    console.log(`- Transaction signature (1er support avec frais): ${tx}`);
+    expect(tx).to.be.a('string'); 
   });
 
-  it("Vérifie le transfert de SOL vers TokenProposal après le premier support", async () => {
+  it("Vérifie les transferts et soldes après le premier support (avec frais)", async () => {
     const proposalBalanceAfter1 = await provider.connection.getBalance(proposalPda);
-    const expectedProposalBalance = proposalBalanceBefore1 + supportAmount1.toNumber();
-    console.log("\nVérification Solde Proposition (après 1er support):");
-    console.log("---------------------------------------------------");
-    console.log(`- Solde proposition après: ${proposalBalanceAfter1}`);
-    console.log(`- Solde proposition attendu: ${expectedProposalBalance}`);
-    expect(proposalBalanceAfter1).to.equal(expectedProposalBalance);
-  });
+    const treasuryPdaBalanceAfter1 = await provider.connection.getBalance(treasuryPda);
+    const treasuryAccAfter1 = await program.account.treasury.fetch(treasuryPda);
 
-  it("Vérifie la mise à jour des champs de TokenProposal après le premier support", async () => {
+    console.log("\nVérification Soldes (après 1er support avec frais):");
+    console.log("-------------------------------------------------------");
+
+    // Vérification solde Proposition (doit augmenter du montant NET)
+    const expectedProposalBalanceAfter1 = proposalBalanceBefore1 + expectedNetSupportAmount1.toNumber();
+    console.log(`- Solde proposition après (1): ${proposalBalanceAfter1} (attendu: ${expectedProposalBalanceAfter1})`);
+    expect(proposalBalanceAfter1).to.equal(expectedProposalBalanceAfter1);
+
+    // Vérification solde PDA Trésorerie (doit augmenter des FRAIS)
+    const expectedTreasuryPdaBalanceAfter1 = treasuryPdaBalanceBefore1 + expectedFeeAmount1.toNumber();
+    console.log(`- Solde PDA Trésorerie après (1): ${treasuryPdaBalanceAfter1} (attendu: ${expectedTreasuryPdaBalanceAfter1})`);
+    expect(treasuryPdaBalanceAfter1).to.equal(expectedTreasuryPdaBalanceAfter1);
+
+    // Vérification distribution interne trésorerie
+    let calculatedDistributionTotal1 = new anchor.BN(0);
+    const marketingIncrease1 = treasuryAccAfter1.marketing.solBalance.sub(treasurySubAccountsBefore1.marketing);
+    const teamIncrease1 = treasuryAccAfter1.team.solBalance.sub(treasurySubAccountsBefore1.team);
+    const operationsIncrease1 = treasuryAccAfter1.operations.solBalance.sub(treasurySubAccountsBefore1.operations);
+    const investmentsIncrease1 = treasuryAccAfter1.investments.solBalance.sub(treasurySubAccountsBefore1.investments);
+    const crankIncrease1 = treasuryAccAfter1.crank.solBalance.sub(treasurySubAccountsBefore1.crank);
+
+    const expectedMarketing1 = expectedFeeAmount1.mul(new anchor.BN(TREASURY_DISTRIBUTION_MARKETING_PERCENT)).div(new anchor.BN(100));
+    calculatedDistributionTotal1 = calculatedDistributionTotal1.add(expectedMarketing1);
+    const expectedTeam1 = expectedFeeAmount1.mul(new anchor.BN(TREASURY_DISTRIBUTION_TEAM_PERCENT)).div(new anchor.BN(100));
+    calculatedDistributionTotal1 = calculatedDistributionTotal1.add(expectedTeam1);
+    const expectedOperations1 = expectedFeeAmount1.mul(new anchor.BN(TREASURY_DISTRIBUTION_OPERATIONS_PERCENT)).div(new anchor.BN(100));
+    calculatedDistributionTotal1 = calculatedDistributionTotal1.add(expectedOperations1);
+    const expectedInvestments1 = expectedFeeAmount1.mul(new anchor.BN(TREASURY_DISTRIBUTION_INVESTMENTS_PERCENT)).div(new anchor.BN(100));
+    calculatedDistributionTotal1 = calculatedDistributionTotal1.add(expectedInvestments1);
+    
+    // Le reste va au crank
+    const expectedCrank1 = expectedFeeAmount1.sub(calculatedDistributionTotal1);
+
+    console.log(`  Distribution Trésorerie (1):`);
+    console.log(`  - Marketing: ${marketingIncrease1.toString()} (attendu: ${expectedMarketing1.toString()})`);
+    console.log(`  - Team: ${teamIncrease1.toString()} (attendu: ${expectedTeam1.toString()})`);
+    console.log(`  - Operations: ${operationsIncrease1.toString()} (attendu: ${expectedOperations1.toString()})`);
+    console.log(`  - Investments: ${investmentsIncrease1.toString()} (attendu: ${expectedInvestments1.toString()})`);
+    console.log(`  - Crank (reliquat): ${crankIncrease1.toString()} (attendu: ${expectedCrank1.toString()})`);
+
+    expect(marketingIncrease1.eq(expectedMarketing1)).to.be.true;
+    expect(teamIncrease1.eq(expectedTeam1)).to.be.true;
+    expect(operationsIncrease1.eq(expectedOperations1)).to.be.true;
+    expect(investmentsIncrease1.eq(expectedInvestments1)).to.be.true;
+    expect(crankIncrease1.eq(expectedCrank1)).to.be.true;
+    expect(marketingIncrease1.add(teamIncrease1).add(operationsIncrease1).add(investmentsIncrease1).add(crankIncrease1).eq(expectedFeeAmount1)).to.be.true;
+  });
+  
+  it("Vérifie la mise à jour des champs de TokenProposal après le premier support (avec frais)", async () => {
     const proposal = await program.account.tokenProposal.fetch(proposalPda);
-    console.log("\nVérification Champs Proposition (après 1er support):");
-    console.log("---------------------------------------------------");
-    console.log(`- solRaised: ${proposal.solRaised.toString()} (attendu: ${supportAmount1.toString()})`);
+    console.log("\nVérification Champs Proposition (après 1er support avec frais):");
+    console.log("------------------------------------------------------------------");
+    console.log(`- solRaised: ${proposal.solRaised.toString()} (attendu: ${expectedNetSupportAmount1.toString()})`);
     console.log(`- totalContributions: ${proposal.totalContributions.toString()} (attendu: 1)`);
-    expect(proposal.solRaised.toString()).to.equal(supportAmount1.toString());
+    expect(proposal.solRaised.eq(expectedNetSupportAmount1)).to.be.true;
     expect(proposal.totalContributions.toString()).to.equal("1");
   });
 
-  it("Vérifie la création et le contenu du compte UserProposalSupport après le premier support", async () => {
+  it("Vérifie la création et le contenu du compte UserProposalSupport après le premier support (avec frais)", async () => {
     const userSupport = await program.account.userProposalSupport.fetch(userSupportPda);
-    console.log("\nVérification Compte UserSupport (après 1er support):");
-    console.log("---------------------------------------------------");
+    console.log("\nVérification Compte UserSupport (après 1er support avec frais):");
+    console.log("-----------------------------------------------------------------");
     expect(userSupport.epochId.toString()).to.equal(proposalEpochId.toString());
     expect(userSupport.user.toString()).to.equal(supporter.publicKey.toString());
     expect(userSupport.proposal.toString()).to.equal(proposalPda.toString());
-    expect(userSupport.amount.toString()).to.equal(supportAmount1.toString());
-    console.log(`- Epoch ID: ${userSupport.epochId.toString()}`);
-    console.log(`- User: ${userSupport.user.toString()}`);
-    console.log(`- Proposal: ${userSupport.proposal.toString()}`);
-    console.log(`- Amount: ${userSupport.amount.toString()} (attendu: ${supportAmount1.toString()})`);
+    console.log(`- Amount: ${userSupport.amount.toString()} (attendu: ${expectedNetSupportAmount1.toString()})`);
+    expect(userSupport.amount.eq(expectedNetSupportAmount1)).to.be.true;
   });
 
-  it("Vérifie la diminution du solde du supporter après le premier support", async () => {
+  it("Vérifie la diminution du solde du supporter après le premier support (avec frais)", async () => {
     const supporterBalanceAfter1 = await provider.connection.getBalance(supporter.publicKey);
-    console.log("\nVérification Solde Supporter (après 1er support):");
-    console.log("--------------------------------------------------");
-    console.log(`- Solde supporter après: ${supporterBalanceAfter1}`);
-    expect(supporterBalanceAfter1).to.be.lessThan(supporterBalanceBefore1 - supportAmount1.toNumber());
-    console.log("- Solde a diminué d'au moins le montant du support. OK.");
+    console.log("\nVérification Solde Supporter (après 1er support avec frais):");
+    console.log("---------------------------------------------------------------");
+    console.log(`- Solde supporter après (1): ${supporterBalanceAfter1}`);
+    // Le supporter paie le montant BRUT + frais de transaction Solana (difficile à prédire exactement)
+    // Donc on vérifie que la diminution est au moins le montant BRUT.
+    expect(supporterBalanceAfter1).to.be.lessThan(supporterBalanceBefore1 - supportAmount1_BN.toNumber());
+    console.log("- Solde a diminué d'au moins le montant brut du support. OK.");
   });
 
-  it("Supporte la même proposition active une deuxième fois avec un montant différent", async () => {
-    console.log("\nSupport (2ème fois): Exécution");
-    console.log("-------------------------------");
+  it("Supporte la même proposition active une deuxième fois (avec frais)", async () => {
+    console.log("\nSupport (2ème fois avec frais): Exécution");
+    console.log("------------------------------------------");
+
+    // Calcul des frais et du montant net attendus pour le 2ème support
+    expectedFeeAmount2 = supportAmount2_BN
+      .mul(SUPPORT_FEE_PERCENTAGE_NUMERATOR)
+      .div(SUPPORT_FEE_PERCENTAGE_DENOMINATOR);
+    expectedNetSupportAmount2 = supportAmount2_BN.sub(expectedFeeAmount2);
+
+    console.log(`- Montant brut du support (2): ${supportAmount2_BN.toString()}`);
+    console.log(`- Frais attendus (2): ${expectedFeeAmount2.toString()}`);
+    console.log(`- Montant net attendu pour la proposition (2): ${expectedNetSupportAmount2.toString()}`);
+
     // Stocker les soldes AVANT la deuxième transaction
     supporterBalanceBefore2 = await provider.connection.getBalance(supporter.publicKey);
-    proposalBalanceBefore2 = await provider.connection.getBalance(proposalPda); // Ce sera le solde après le 1er support
-    console.log(`- Solde supporter avant: ${supporterBalanceBefore2}`);
-    console.log(`- Solde proposition avant: ${proposalBalanceBefore2}`);
-    console.log(`- Montant du 2ème support: ${supportAmount2.toString()}`);
+    proposalBalanceBefore2 = await provider.connection.getBalance(proposalPda); // Solde après le 1er support
+    treasuryPdaBalanceBefore2 = await provider.connection.getBalance(treasuryPda); // Solde après le 1er support
+    const treasuryAccBefore2 = await program.account.treasury.fetch(treasuryPda);
+    treasurySubAccountsBefore2 = {
+        marketing: treasuryAccBefore2.marketing.solBalance,
+        team: treasuryAccBefore2.team.solBalance,
+        operations: treasuryAccBefore2.operations.solBalance,
+        investments: treasuryAccBefore2.investments.solBalance,
+        crank: treasuryAccBefore2.crank.solBalance,
+    };
+    
+    console.log(`- Solde supporter avant (2): ${supporterBalanceBefore2}`);
+    console.log(`- Solde proposition avant (2): ${proposalBalanceBefore2}`);
+    console.log(`- Solde PDA Trésorerie avant (2): ${treasuryPdaBalanceBefore2}`);
 
     const tx = await program.methods
-      .supportProposal(supportAmount2) // Utiliser le deuxième montant
+      .supportProposal(supportAmount2_BN) 
       .accounts({
         user: supporter.publicKey,
         epoch: epochPda,
         proposal: proposalPda,
-        userSupport: userSupportPda, // Le même PDA
+        userSupport: userSupportPda, 
+        treasury: treasuryPda,
         systemProgram: anchor.web3.SystemProgram.programId,
       })
       .rpc();
-    console.log(`- Transaction signature (2ème support): ${tx}`);
+    console.log(`- Transaction signature (2ème support avec frais): ${tx}`);
     expect(tx).to.be.a('string');
   });
 
-  it("Vérifie le transfert de SOL vers TokenProposal après le deuxième support", async () => {
+  it("Vérifie les transferts et soldes après le deuxième support (avec frais)", async () => {
     const proposalBalanceAfter2 = await provider.connection.getBalance(proposalPda);
-    const expectedProposalBalance = proposalBalanceBefore2 + supportAmount2.toNumber();
-    console.log("\nVérification Solde Proposition (après 2ème support):");
-    console.log("---------------------------------------------------");
-    console.log(`- Solde proposition après: ${proposalBalanceAfter2}`);
-    console.log(`- Solde proposition attendu: ${expectedProposalBalance}`);
-    expect(proposalBalanceAfter2).to.equal(expectedProposalBalance);
+    const treasuryPdaBalanceAfter2 = await provider.connection.getBalance(treasuryPda);
+    const treasuryAccAfter2 = await program.account.treasury.fetch(treasuryPda);
+    
+    console.log("\nVérification Soldes (après 2ème support avec frais):");
+    console.log("-------------------------------------------------------");
+
+    const expectedProposalBalanceAfter2 = proposalBalanceBefore2 + expectedNetSupportAmount2.toNumber();
+    console.log(`- Solde proposition après (2): ${proposalBalanceAfter2} (attendu: ${expectedProposalBalanceAfter2})`);
+    expect(proposalBalanceAfter2).to.equal(expectedProposalBalanceAfter2);
+
+    const expectedTreasuryPdaBalanceAfter2 = treasuryPdaBalanceBefore2 + expectedFeeAmount2.toNumber();
+    console.log(`- Solde PDA Trésorerie après (2): ${treasuryPdaBalanceAfter2} (attendu: ${expectedTreasuryPdaBalanceAfter2})`);
+    expect(treasuryPdaBalanceAfter2).to.equal(expectedTreasuryPdaBalanceAfter2);
+    
+    // Vérification distribution interne trésorerie pour le 2ème support
+    let calculatedDistributionTotal2 = new anchor.BN(0);
+    const marketingIncrease2 = treasuryAccAfter2.marketing.solBalance.sub(treasurySubAccountsBefore2.marketing);
+    const teamIncrease2 = treasuryAccAfter2.team.solBalance.sub(treasurySubAccountsBefore2.team);
+    const operationsIncrease2 = treasuryAccAfter2.operations.solBalance.sub(treasurySubAccountsBefore2.operations);
+    const investmentsIncrease2 = treasuryAccAfter2.investments.solBalance.sub(treasurySubAccountsBefore2.investments);
+    const crankIncrease2 = treasuryAccAfter2.crank.solBalance.sub(treasurySubAccountsBefore2.crank);
+
+    const expectedMarketing2 = expectedFeeAmount2.mul(new anchor.BN(TREASURY_DISTRIBUTION_MARKETING_PERCENT)).div(new anchor.BN(100));
+    calculatedDistributionTotal2 = calculatedDistributionTotal2.add(expectedMarketing2);
+    const expectedTeam2 = expectedFeeAmount2.mul(new anchor.BN(TREASURY_DISTRIBUTION_TEAM_PERCENT)).div(new anchor.BN(100));
+    calculatedDistributionTotal2 = calculatedDistributionTotal2.add(expectedTeam2);
+    const expectedOperations2 = expectedFeeAmount2.mul(new anchor.BN(TREASURY_DISTRIBUTION_OPERATIONS_PERCENT)).div(new anchor.BN(100));
+    calculatedDistributionTotal2 = calculatedDistributionTotal2.add(expectedOperations2);
+    const expectedInvestments2 = expectedFeeAmount2.mul(new anchor.BN(TREASURY_DISTRIBUTION_INVESTMENTS_PERCENT)).div(new anchor.BN(100));
+    calculatedDistributionTotal2 = calculatedDistributionTotal2.add(expectedInvestments2);
+    const expectedCrank2 = expectedFeeAmount2.sub(calculatedDistributionTotal2); // Le reste va au crank
+
+    console.log(`  Distribution Trésorerie (2):`);
+    console.log(`  - Marketing: ${marketingIncrease2.toString()} (attendu: ${expectedMarketing2.toString()})`);
+    console.log(`  - Team: ${teamIncrease2.toString()} (attendu: ${expectedTeam2.toString()})`);
+    console.log(`  - Operations: ${operationsIncrease2.toString()} (attendu: ${expectedOperations2.toString()})`);
+    console.log(`  - Investments: ${investmentsIncrease2.toString()} (attendu: ${expectedInvestments2.toString()})`);
+    console.log(`  - Crank (reliquat): ${crankIncrease2.toString()} (attendu: ${expectedCrank2.toString()})`);
+    
+    expect(marketingIncrease2.eq(expectedMarketing2)).to.be.true;
+    expect(teamIncrease2.eq(expectedTeam2)).to.be.true;
+    expect(operationsIncrease2.eq(expectedOperations2)).to.be.true;
+    expect(investmentsIncrease2.eq(expectedInvestments2)).to.be.true;
+    expect(crankIncrease2.eq(expectedCrank2)).to.be.true;
+    expect(marketingIncrease2.add(teamIncrease2).add(operationsIncrease2).add(investmentsIncrease2).add(crankIncrease2).eq(expectedFeeAmount2)).to.be.true;
   });
 
-  it("Vérifie la mise à jour des champs de TokenProposal après le deuxième support", async () => {
+  it("Vérifie la mise à jour des champs de TokenProposal après le deuxième support (avec frais)", async () => {
     const proposal = await program.account.tokenProposal.fetch(proposalPda);
-    const expectedSolRaised = supportAmount1.add(supportAmount2);
-    console.log("\nVérification Champs Proposition (après 2ème support):");
-    console.log("----------------------------------------------------");
-    console.log(`- solRaised: ${proposal.solRaised.toString()} (attendu: ${expectedSolRaised.toString()})`);
-    console.log(`- totalContributions: ${proposal.totalContributions.toString()} (attendu: 1)`); // Doit rester 1
-    expect(proposal.solRaised.toString()).to.equal(expectedSolRaised.toString());
-    expect(proposal.totalContributions.toString()).to.equal("1"); // Vérifier que ça n'a pas bougé
+    const expectedTotalSolRaised = expectedNetSupportAmount1.add(expectedNetSupportAmount2);
+    console.log("\nVérification Champs Proposition (après 2ème support avec frais):");
+    console.log("-----------------------------------------------------------------");
+    console.log(`- solRaised: ${proposal.solRaised.toString()} (attendu: ${expectedTotalSolRaised.toString()})`);
+    console.log(`- totalContributions: ${proposal.totalContributions.toString()} (attendu: 1)`); 
+    expect(proposal.solRaised.eq(expectedTotalSolRaised)).to.be.true;
+    expect(proposal.totalContributions.toString()).to.equal("1"); 
   });
 
-  it("Vérifie la mise à jour du montant cumulé dans UserProposalSupport après le deuxième support", async () => {
+  it("Vérifie la mise à jour du montant cumulé dans UserProposalSupport après le deuxième support (avec frais)", async () => {
     const userSupport = await program.account.userProposalSupport.fetch(userSupportPda);
-    const expectedAmount = supportAmount1.add(supportAmount2);
-    console.log("\nVérification Compte UserSupport (après 2ème support):");
-    console.log("----------------------------------------------------");
-    console.log(`- Amount: ${userSupport.amount.toString()} (attendu: ${expectedAmount.toString()})`);
-    expect(userSupport.amount.toString()).to.equal(expectedAmount.toString());
+    const expectedTotalUserAmount = expectedNetSupportAmount1.add(expectedNetSupportAmount2);
+    console.log("\nVérification Compte UserSupport (après 2ème support avec frais):");
+    console.log("-----------------------------------------------------------------");
+    console.log(`- Amount: ${userSupport.amount.toString()} (attendu: ${expectedTotalUserAmount.toString()})`);
+    expect(userSupport.amount.eq(expectedTotalUserAmount)).to.be.true;
   });
 
-  it("Vérifie la diminution du solde du supporter après le deuxième support", async () => {
+  it("Vérifie la diminution du solde du supporter après le deuxième support (avec frais)", async () => {
     const supporterBalanceAfter2 = await provider.connection.getBalance(supporter.publicKey);
-    console.log("\nVérification Solde Supporter (après 2ème support):");
-    console.log("---------------------------------------------------");
-    console.log(`- Solde supporter après: ${supporterBalanceAfter2}`);
-    expect(supporterBalanceAfter2).to.be.lessThan(supporterBalanceBefore2 - supportAmount2.toNumber());
-    console.log("- Solde a diminué d'au moins le montant du 2ème support. OK.");
+    console.log("\nVérification Solde Supporter (après 2ème support avec frais):");
+    console.log("----------------------------------------------------------------");
+    console.log(`- Solde supporter après (2): ${supporterBalanceAfter2}`);
+    expect(supporterBalanceAfter2).to.be.lessThan(supporterBalanceBefore2 - supportAmount2_BN.toNumber());
+    console.log("- Solde a diminué d'au moins le montant brut du 2ème support. OK.");
   });
 
-  it("Échoue lors d'une tentative de support avec un montant nul", async () => {
+  it("Échoue lors d'une tentative de support avec un montant nul (logique de frais non applicable ici)", async () => {
     console.log("\nTest Échec: Montant nul");
     console.log("-------------------------");
     try {
