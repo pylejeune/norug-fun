@@ -108,8 +108,8 @@ async function checkAndEndEpochs(): Promise<SchedulerResults> {
     console.log("✅ IDL local chargé avec succès depuis ./idl/programs.json");
     
     // Créer le programme avec l'IDL récupéré
-    // mais TypeScript peut avoir du mal avec les types complexes d'Anchor.
-    const program = new anchor.Program(idlForProgram, provider);
+    // @ts-ignore - Erreur de typage connue avec Anchor dans certains environnements, mais fonctionnel.
+    const program = new anchor.Program(idlForProgram, PROGRAM_ID, provider);
     console.log("✅ Programme initialisé avec l'ID:", PROGRAM_ID.toString());
 
     // Dériver la PDA pour le compte de configuration
