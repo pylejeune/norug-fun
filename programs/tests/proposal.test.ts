@@ -19,6 +19,8 @@ describe("Tests des propositions de tokens", () => {
   const { provider, program } = setupTestEnvironment();
   let proposalPda: PublicKey;
   let epochPda: PublicKey;
+  let treasuryPda: PublicKey;
+  const TREASURY_SEED = Buffer.from("treasury");
 
   // Constantes pour les tests
   const tokenName = "noRugToken";
@@ -71,15 +73,66 @@ describe("Tests des propositions de tokens", () => {
     expect(epoch.status).to.deep.equal({ active: {} });
   });
 
-  it("Crée une nouvelle proposition de token", async () => {
-    // Récupérer l'époque pour obtenir l'epoch_id correct
+  it("Initialise le compte Treasury", async () => {
+    [treasuryPda] = PublicKey.findProgramAddressSync(
+      [TREASURY_SEED],
+      program.programId
+    );
+
+    console.log("\nInitialisation de la Trésorerie:");
+    console.log("----------------------------------");
+    console.log(`- Treasury PDA: ${treasuryPda.toBase58()}`);
+
+    const initialTreasuryAuthority = provider.wallet.publicKey;
+
+    try {
+      // Essayer de récupérer le compte d'abord
+      const existingTreasuryAccount = await program.account.treasury.fetch(treasuryPda);
+      console.log("- Compte Treasury déjà initialisé.");
+      // Vérifier si l'autorité est correcte (optionnel mais bonne pratique)
+      expect(existingTreasuryAccount.authority.toBase58()).to.equal(initialTreasuryAuthority.toBase58());
+    } catch (error) {
+      // Si le compte n'existe pas, l'erreur "Account does not exist" sera levée, nous pouvons alors l'initialiser
+      if (error.message.includes("Account does not exist") || error.message.includes("Account not found")) {
+        console.log("- Compte Treasury non trouvé, initialisation...");
+        await program.methods
+          .initializeTreasury(initialTreasuryAuthority)
+          .accounts({
+            treasury: treasuryPda,
+            authority: provider.wallet.publicKey,
+            systemProgram: anchor.web3.SystemProgram.programId,
+          })
+          .rpc();
+        console.log("- Compte Treasury initialisé avec succès.");
+      } else {
+        // Si c'est une autre erreur, la relancer
+        throw error;
+      }
+    }
+
+    // Vérifications finales dans tous les cas (initialisé maintenant ou déjà existant)
+    const treasuryAccount = await program.account.treasury.fetch(treasuryPda);
+    expect(treasuryAccount.authority.toBase58()).to.equal(initialTreasuryAuthority.toBase58());
+    // Les soldes peuvent ne pas être à zéro s'ils ont été modifiés par un test précédent,
+    // donc ces vérifications ne sont pertinentes que pour une VRAIE première initialisation.
+    // Pour ce test, nous nous assurons surtout que le compte existe et que l'autorité est correcte.
+    // Si nous voulions tester les soldes à zéro, il faudrait une méthode pour réinitialiser la trésorerie
+    // ou s'assurer que ce test s'exécute dans un environnement complètement frais.
+    // Pour l'instant, on commente les vérifications de solde strictes à zéro.
+    // expect(treasuryAccount.marketing.solBalance.toNumber()).to.equal(0);
+    // expect(treasuryAccount.team.solBalance.toNumber()).to.equal(0);
+    // expect(treasuryAccount.operations.solBalance.toNumber()).to.equal(0);
+    // expect(treasuryAccount.investments.solBalance.toNumber()).to.equal(0);
+    // expect(treasuryAccount.crank.solBalance.toNumber()).to.equal(0);
+  });
+
+  it("Crée une nouvelle proposition de token et vérifie les frais", async () => {
     const epoch = await program.account.epochManagement.fetch(epochPda);
     const epochId = epoch.epochId;
-    
-    // Définir l'allocation créateur pour ce test
     const creatorAllocation = 10; 
     const description = "Ceci est la description test pour noRugToken.";
-    const imageUrl = null; // Tester Option::None
+    const imageUrl = null; 
+    const PROPOSAL_CREATION_FEE_LAMPORTS = 5000000;
 
     [proposalPda] = PublicKey.findProgramAddressSync(
       [
@@ -91,11 +144,16 @@ describe("Tests des propositions de tokens", () => {
       program.programId
     );
 
-    console.log("\nTest de création de proposition:");
-    console.log("----------------------------------\n");
-    console.log(`proposalPda: ${proposalPda.toString()}`);
+    console.log("\nTest de création de proposition (avec frais):");
+    console.log("---------------------------------------------");
+    console.log(`- proposalPda: ${proposalPda.toString()}`);
     console.log(`- epochId utilisé: ${epochId.toString()}`);
-    console.log(`- tokenName: ${tokenName}`);
+    console.log(`- treasuryPda: ${treasuryPda.toBase58()}`);
+
+    const creatorBalanceBefore = await provider.connection.getBalance(provider.wallet.publicKey);
+    const treasuryAccountBefore = await program.account.treasury.fetch(treasuryPda);
+    const treasuryOperationsBalanceBefore = treasuryAccountBefore.operations.solBalance.toNumber();
+    const treasuryPdaBalanceBefore = await provider.connection.getBalance(treasuryPda);
 
     const tx = await program.methods
       .createProposal(
@@ -107,68 +165,56 @@ describe("Tests des propositions de tokens", () => {
         creatorAllocation,
         lockupPeriod
       )
-      .accounts({
+      .accounts({ 
         creator: provider.wallet.publicKey,
         tokenProposal: proposalPda,
         epoch: epochPda,
+        treasury: treasuryPda, 
         systemProgram: anchor.web3.SystemProgram.programId,
       })
       .rpc();
 
     console.log("Transaction signature", tx);
 
-    // Vérifier que la proposition a été créée correctement
+    const creatorBalanceAfter = await provider.connection.getBalance(provider.wallet.publicKey);
+    const treasuryAccountAfter = await program.account.treasury.fetch(treasuryPda);
+    const treasuryOperationsBalanceAfter = treasuryAccountAfter.operations.solBalance.toNumber();
+    const treasuryPdaBalanceAfter = await provider.connection.getBalance(treasuryPda);
+
+    console.log("\nVérification des Frais de Création de Proposition:");
+    console.log(`- Solde Créateur Avant: ${creatorBalanceBefore}`);
+    console.log(`- Solde Créateur Après: ${creatorBalanceAfter}`);
+    console.log(`- Diminution attendue pour le créateur (au moins): ${PROPOSAL_CREATION_FEE_LAMPORTS}`);
+    expect(creatorBalanceBefore - creatorBalanceAfter).to.be.gte(PROPOSAL_CREATION_FEE_LAMPORTS);
+
+    console.log(`- Solde PDA Trésorerie Avant: ${treasuryPdaBalanceBefore}`);
+    console.log(`- Solde PDA Trésorerie Après: ${treasuryPdaBalanceAfter}`);
+    expect(treasuryPdaBalanceAfter - treasuryPdaBalanceBefore).to.equal(PROPOSAL_CREATION_FEE_LAMPORTS);
+    
+    console.log(`- Solde Opérations Trésorerie Avant: ${treasuryOperationsBalanceBefore}`);
+    console.log(`- Solde Opérations Trésorerie Après: ${treasuryOperationsBalanceAfter}`);
+    expect(treasuryOperationsBalanceAfter - treasuryOperationsBalanceBefore).to.equal(PROPOSAL_CREATION_FEE_LAMPORTS);
+
+    expect(treasuryAccountAfter.marketing.solBalance.toNumber()).to.equal(treasuryAccountBefore.marketing.solBalance.toNumber());
+    expect(treasuryAccountAfter.team.solBalance.toNumber()).to.equal(treasuryAccountBefore.team.solBalance.toNumber());
+    expect(treasuryAccountAfter.investments.solBalance.toNumber()).to.equal(treasuryAccountBefore.investments.solBalance.toNumber());
+    expect(treasuryAccountAfter.crank.solBalance.toNumber()).to.equal(treasuryAccountBefore.crank.solBalance.toNumber());
+    console.log("- Frais correctement transférés et distribués à Operations.");
+
+    // --- Vérifications existantes pour la proposition ---
     const proposal = await program.account.tokenProposal.fetch(proposalPda);
-
-    // --- Vérification du calcul de supporter_allocation --- 
     const remainingAllocation = 100 - creatorAllocation;
-    const expectedSupporterAllocation = Math.ceil(remainingAllocation / 2); // Calcul attendu
-    console.log("\nVérification Allocation Supporter:");
-    console.log(`- Creator Allocation: ${creatorAllocation}%`);
-    console.log(`- Remaining Allocation: ${remainingAllocation}%`);
-    console.log(`- Expected Supporter Allocation (ceil(remaining/2)): ${expectedSupporterAllocation}%`);
-    console.log(`- Actual Supporter Allocation: ${proposal.supporterAllocation}%`);
+    const expectedSupporterAllocation = Math.ceil(remainingAllocation / 2);
     expect(proposal.supporterAllocation).to.equal(expectedSupporterAllocation);
-    // ------------------------------------------------------
-
-    console.log("\nVérifications pour les nouveaux champs:");
     expect(proposal.description).to.equal(description);
     expect(proposal.imageUrl).to.be.null;
-
-    console.log("\nValeurs attendues pour la proposition:");
-    console.log(`- tokenName: ${tokenName}`);
-    console.log(`- tokenSymbol: ${tokenSymbol}`);
-    console.log(`- totalSupply: ${totalSupply.toString()}`);
-    console.log(`- creatorAllocation: ${creatorAllocation}`);
-    console.log(`- supporterAllocation: ${expectedSupporterAllocation}`);
-    console.log(`- solRaised: 0`);
-    console.log(`- totalContributions: 0`);
-    console.log(`- lockupPeriod: ${lockupPeriod.toString()}`);
-    console.log(`- description: ${description}`);
-    console.log(`- imageUrl: ${imageUrl}`);
-    
-    console.log("Valeurs réelles de la proposition:");
-    console.log(`- tokenName: ${proposal.tokenName}`);
-    console.log(`- tokenSymbol: ${proposal.tokenSymbol}`);
-    console.log(`- totalSupply: ${proposal.totalSupply.toString()}`);
-    console.log(`- creatorAllocation: ${proposal.creatorAllocation}`);
-    console.log(`- supporterAllocation: ${proposal.supporterAllocation}`);
-    console.log(`- solRaised: ${proposal.solRaised.toString()}`);
-    console.log(`- totalContributions: ${proposal.totalContributions.toString()}`);
-    console.log(`- lockupPeriod: ${proposal.lockupPeriod.toString()}`);
-    console.log(`- description: ${proposal.description}`);
-    console.log(`- imageUrl: ${proposal.imageUrl}`);
-    
     expect(proposal.tokenName).to.equal(tokenName);
     expect(proposal.tokenSymbol).to.equal(tokenSymbol);
     expect(proposal.totalSupply.toString()).to.equal(totalSupply.toString());
     expect(proposal.creatorAllocation).to.equal(creatorAllocation);
-    expect(proposal.supporterAllocation).to.equal(expectedSupporterAllocation);
     expect(proposal.solRaised.toString()).to.equal("0");
     expect(proposal.totalContributions.toString()).to.equal("0");
     expect(proposal.lockupPeriod.toString()).to.equal(lockupPeriod.toString());
-    expect(proposal.description).to.equal(description);
-    expect(proposal.imageUrl).to.be.null;
   });
 
   // --- Tests Granulaires pour support_proposal ---

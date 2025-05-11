@@ -93,5 +93,11 @@ pub enum ErrorCode {
 
     #[msg("A calculation resulted in an overflow.")]
     CalculationOverflow,
+
+    #[msg("The support amount is insufficient to cover fees.")]
+    AmountTooLowToCoverFees,
+
+    #[msg("The calculated fee amount cannot be zero.")]
+    FeeCannotBeZero,
 }
 
