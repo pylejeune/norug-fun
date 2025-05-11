@@ -109,6 +109,9 @@ async function checkAndEndEpochs(): Promise<SchedulerResults> {
     // S'assurer que l'IDL est bien l'objet importé.
     const idlForProgram: anchor.Idl = idlContentFromFile as unknown as anchor.Idl;
 
+    // Afficher l'adresse du programme dans l'IDL (si présente)
+    console.log("🔍 IDL.metadata.address =", idlForProgram.metadata?.address);
+
     if (!idlForProgram) {
         console.error("Erreur: L'IDL local (idl/programs.json) n'a pas pu être chargé ou est vide.");
         results.message = "Erreur critique: L'IDL local n'a pas pu être chargé ou est vide.";

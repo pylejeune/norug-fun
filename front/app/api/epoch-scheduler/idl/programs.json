@@ -186,5 +186,8 @@
       "name": "EpochStillActive",
       "msg": "This epoch is still active and cannot be closed yet"
     }
-  ]
+  ],
+  "metadata": {
+    "address": "3HBzNutk8DrRfffCS74S55adJAjgY8NHrWXgRtABaSbF"
+  }
 } 
