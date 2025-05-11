@@ -209,59 +209,111 @@ class CustomProgram {
       
       console.log(`🔍 Nombre total de comptes trouvés: ${programAccounts.length}`);
       
-      // Filtrer pour ne garder que les comptes EpochManagement
-      // Dans une implémentation complète, nous vérifierions le discriminator de chaque compte
-      const epochAccounts = programAccounts.filter(account => {
-        // Ce code assume que les comptes ont un format spécifique
-        // Dans un système réel, vous vérifieriez le discriminator Anchor (les 8 premiers bytes)
-        return account.account.data.length > 8;
+      // Logs des données brutes pour débogage
+      /*
+      programAccounts.forEach((account, i) => {
+        console.log(`📑 Compte #${i+1} - Adresse: ${account.pubkey.toString()}`);
+        console.log(`   Taille des données: ${account.account.data.length} octets`);
+        console.log(`   Discriminator: ${Buffer.from(account.account.data.slice(0, 8)).toString('hex')}`);
+        
+        // Afficher une partie des données brutes pour analyse
+        const dataHex = Buffer.from(account.account.data).toString('hex');
+        console.log(`   Données (hex, premiers 64 bytes): ${dataHex.substring(0, 128)}`);
       });
+      */
+      // Filtrer pour ne garder que les comptes EpochManagement
+      // Selon le fichier mod.rs, nous cherchons le bon discriminateur
+      // Le discriminateur est un hash de 8 bytes de "account:EpochManagement"
+      const epochAccounts = programAccounts.filter(account => {
+        // Dans une implémentation complète, nous vérifierions le discriminator exact d'EpochManagement
+        // Pour l'instant, nous filtrons sur la longueur des données qui devrait correspondre à la structure
+        // EpochManagement: 8 (discriminator) + 8 (epoch_id) + 8 (start_time) + 8 (end_time) + 1 (status) + 1 (processed)
+        return account.account.data.length >= 34;
+      });
+      
+      console.log(`🔍 Nombre de comptes d'époque filtrés: ${epochAccounts.length}`);
       
       // Transformer les données en objets EpochManagement
       return epochAccounts.map((account, index) => {
         try {
-          // Note: Dans une implémentation complète, nous décoderions correctement les données Borsh
           const data = account.account.data;
           
-          // Supposons un format simple pour EpochManagement:
-          // - Un discriminator Anchor de 8 bytes
-          // - epochId (u64) à l'offset 8
-          // - status à l'offset 16 (structure enum avec tag d'1 byte)
-          // - endTime (i64) à un offset ultérieur, approximativement 17+
+          // Structure d'EpochManagement selon mod.rs:
+          // - discriminator: 8 bytes
+          // - epoch_id: u64 (8 bytes) - offset 8
+          // - start_time: i64 (8 bytes) - offset 16
+          // - end_time: i64 (8 bytes) - offset 24
+          // - status: EpochStatus (enum, 1 byte) - offset 32
+          // - processed: bool (1 byte) - offset 33
           
-          // Extrayons l'epochId (u64, 8 bytes)
+          // Extraire epoch_id (u64)
           const epochIdBytes = data.slice(8, 16);
           const epochId = new BN(epochIdBytes, 'le');
           
-          // L'état pourrait être à l'offset 16, assumons qu'il y a un tag (1 byte)
-          // 0 = inactive, 1 = active, etc. selon votre enum
-          const statusTag = data[16];
-          const status = statusTag === 1 ? { active: {} } : { inactive: {} };
+          // Extraire start_time (i64)
+          const startTimeBytes = data.slice(16, 24);
+          const startTime = new BN(startTimeBytes, 'le');
           
-          // Supposons que endTime est à l'offset 17 (ceci est une simplification)
-          const endTimeBytes = data.slice(17, 25); // 8 bytes pour i64
+          // Extraire end_time (i64)
+          const endTimeBytes = data.slice(24, 32);
           const endTime = new BN(endTimeBytes, 'le');
           
-          console.log(`📊 Époque ${index+1}: ID=${epochId.toString()}, Status=${JSON.stringify(status)}, EndTime=${endTime.toString()}`);
+          // Extraire status (enum EpochStatus)
+          const statusByte = data[32];
+          // Selon mod.rs: 0 = Active, 1 = Pending, 2 = Closed
+          let statusStr;
+          let status;
+          
+          switch (statusByte) {
+            case 0:
+              statusStr = "Active";
+              status = { active: {} };
+              break;
+            case 1:
+              statusStr = "Pending";
+              status = { pending: {} };
+              break;
+            case 2:
+              statusStr = "Closed"; 
+              status = { closed: {} };
+              break;
+            default:
+              statusStr = `Inconnu (${statusByte})`;
+              status = { unknown: {} };
+          }
+          
+          // Extraire processed (bool)
+          const processed = data[33] !== 0;
+          
+          console.log(`📊 Époque ${index+1}:`);
+          console.log(`   ID: ${epochId.toString()}`);
+          console.log(`   Début: ${new Date(startTime.toNumber() * 1000).toISOString()}`);
+          console.log(`   Fin: ${new Date(endTime.toNumber() * 1000).toISOString()}`);
+          console.log(`   Statut: ${statusStr} (byte: ${statusByte})`);
+          console.log(`   Traitée: ${processed}`);
+          console.log(`   Adresse PDA: ${account.pubkey.toString()}`);
           
           return {
             publicKey: account.pubkey,
             account: {
               epochId: epochId,
-              status: status,
+              startTime: startTime,
               endTime: endTime,
-              // Autres champs selon votre structure...
+              status: status,
+              processed: processed
             }
           };
         } catch (error) {
           console.error(`⚠️ Erreur lors du décodage du compte ${account.pubkey.toString()}`, error);
-          // Retournons un objet avec des valeurs par défaut
+          // Retournons un objet avec des valeurs par défaut en cas d'erreur
           return {
             publicKey: account.pubkey,
             account: {
               epochId: new BN(0),
-              status: { inactive: {} },
+              startTime: new BN(0),
               endTime: new BN(0),
+              status: { unknown: {} },
+              processed: false
             }
           };
         }
