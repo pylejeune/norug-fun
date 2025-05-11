@@ -16,16 +16,28 @@ const ADMIN_SEED_BASE64 = process.env.ADMIN_SEED_BASE64; // Utiliser la variable
 
 // Fonction pour générer le keypair admin à partir de la seed stockée en Base64
 function getAdminKeypair(): Keypair {
+  console.log("ADMIN_SEED_BASE64 (valeur reçue):", process.env.ADMIN_SEED_BASE64); // Log pour débogage
   if (!ADMIN_SEED_BASE64) {
-    throw new Error("ADMIN_SEED_BASE64 n'est pas défini dans les variables d'environnement");
+    throw new Error("ADMIN_SEED_BASE64 n'est pas défini dans les variables d'environnement ou est vide");
   }
   
   try {
     const seedBuffer = Buffer.from(ADMIN_SEED_BASE64, 'base64');
-    return Keypair.fromSecretKey(seedBuffer);
-  } catch (error) {
-    console.error("Erreur lors de la génération du keypair admin:", error);
-    throw new Error("Impossible de générer le keypair admin");
+    // La seed ADMIN_SEED_BASE64 (AQID...) correspond à une seed de 32 bytes.
+    // Pour une seed de 32 bytes, il faut utiliser Keypair.fromSeed().
+    if (seedBuffer.length === 32) {
+        console.log("Utilisation de Keypair.fromSeed() car seedBuffer fait 32 bytes.");
+        return Keypair.fromSeed(seedBuffer);
+    } else if (seedBuffer.length === 64) {
+        console.log("Utilisation de Keypair.fromSecretKey() car seedBuffer fait 64 bytes.");
+        return Keypair.fromSecretKey(seedBuffer);
+    } else {
+        console.error(`Taille de seedBuffer inattendue: ${seedBuffer.length} bytes. Devrait être 32 ou 64.`);
+        throw new Error(`Taille de seedBuffer après décodage Base64 inattendue: ${seedBuffer.length}`);
+    }
+  } catch (error: any) {
+    console.error("Erreur lors de la génération du keypair admin (détail):", error.message);
+    throw new Error(`Impossible de générer le keypair admin: ${error.message}`);
   }
 }
 
