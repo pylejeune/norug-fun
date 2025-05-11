@@ -1,113 +1,784 @@
 {
-  "version": "0.1.0",
-  "name": "programs",
+  "metadata": {
+    "name": "programs",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "address": "3HBzNutk8DrRfffCS74S55adJAjgY8NHrWXgRtABaSbF",
+    "description": "Created with Anchor"
+  },
   "instructions": [
     {
-      "name": "initializeProgramConfig",
+      "name": "create_proposal",
+      "discriminator": [
+        132,
+        116,
+        68,
+        174,
+        216,
+        160,
+        198,
+        22
+      ],
       "accounts": [
         {
-          "name": "programConfig",
-          "isMut": true,
-          "isSigner": false
+          "name": "creator",
+          "writable": true,
+          "signer": true
         },
         {
-          "name": "authority",
-          "isMut": true,
-          "isSigner": true
+          "name": "token_proposal",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  112,
+                  111,
+                  115,
+                  97,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "creator"
+              },
+              {
+                "kind": "account",
+                "path": "epoch.epoch_id",
+                "account": "EpochManagement"
+              },
+              {
+                "kind": "arg",
+                "path": "token_name"
+              }
+            ]
+          }
         },
         {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
+          "name": "epoch"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         }
       ],
       "args": [
         {
-          "name": "adminAuthority",
-          "type": "publicKey"
+          "name": "token_name",
+          "type": "string"
+        },
+        {
+          "name": "token_symbol",
+          "type": "string"
+        },
+        {
+          "name": "description",
+          "type": "string"
+        },
+        {
+          "name": "image_url",
+          "type": {
+            "option": "string"
+          }
+        },
+        {
+          "name": "total_supply",
+          "type": "u64"
+        },
+        {
+          "name": "creator_allocation",
+          "type": "u8"
+        },
+        {
+          "name": "lockup_period",
+          "type": "i64"
         }
       ]
     },
     {
-      "name": "createEpoch",
+      "name": "end_epoch",
+      "discriminator": [
+        195,
+        166,
+        17,
+        226,
+        105,
+        210,
+        96,
+        216
+      ],
       "accounts": [
         {
-          "name": "epochManagement",
-          "isMut": true,
-          "isSigner": false
+          "name": "epoch_management",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  112,
+                  111,
+                  99,
+                  104
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "epoch_id"
+              }
+            ]
+          }
         },
         {
           "name": "authority",
-          "isMut": true,
-          "isSigner": true
+          "writable": true,
+          "signer": true
         },
         {
-          "name": "programConfig",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         }
       ],
       "args": [
         {
-          "name": "epochId",
-          "type": "u64"
-        },
-        {
-          "name": "startTime",
-          "type": "u64"
-        },
-        {
-          "name": "endTime",
+          "name": "epoch_id",
           "type": "u64"
         }
       ]
     },
     {
-      "name": "endEpoch",
+      "name": "initialize",
+      "discriminator": [
+        175,
+        175,
+        109,
+        31,
+        13,
+        152,
+        155,
+        237
+      ],
+      "accounts": [],
+      "args": []
+    },
+    {
+      "name": "initialize_program_config",
+      "discriminator": [
+        6,
+        131,
+        61,
+        237,
+        40,
+        110,
+        83,
+        124
+      ],
       "accounts": [
         {
-          "name": "epochManagement",
-          "isMut": true,
-          "isSigner": false
+          "name": "program_config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
         },
         {
           "name": "authority",
-          "isMut": true,
-          "isSigner": true
+          "writable": true,
+          "signer": true
         },
         {
-          "name": "programConfig",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         }
       ],
       "args": [
         {
-          "name": "epochId",
+          "name": "admin_authority",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
+      "name": "mark_epoch_processed",
+      "discriminator": [
+        210,
+        48,
+        251,
+        209,
+        224,
+        55,
+        71,
+        59
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "program_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "epoch_management",
+          "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "reclaim_support",
+      "discriminator": [
+        23,
+        123,
+        152,
+        130,
+        171,
+        255,
+        2,
+        10
+      ],
+      "accounts": [
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "token_proposal",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  112,
+                  111,
+                  115,
+                  97,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "token_proposal.creator",
+                "account": "TokenProposal"
+              },
+              {
+                "kind": "account",
+                "path": "token_proposal.epoch_id",
+                "account": "TokenProposal"
+              },
+              {
+                "kind": "account",
+                "path": "token_proposal.token_name",
+                "account": "TokenProposal"
+              }
+            ]
+          }
+        },
+        {
+          "name": "user_proposal_support",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  117,
+                  112,
+                  112,
+                  111,
+                  114,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "token_proposal.epoch_id",
+                "account": "TokenProposal"
+              },
+              {
+                "kind": "account",
+                "path": "user"
+              },
+              {
+                "kind": "account",
+                "path": "token_proposal"
+              }
+            ]
+          }
+        },
+        {
+          "name": "epoch_management",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  112,
+                  111,
+                  99,
+                  104
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "token_proposal.epoch_id",
+                "account": "TokenProposal"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "start_epoch",
+      "discriminator": [
+        204,
+        248,
+        232,
+        82,
+        251,
+        45,
+        164,
+        113
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "epoch_management",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  112,
+                  111,
+                  99,
+                  104
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "epoch_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "epoch_id",
           "type": "u64"
+        },
+        {
+          "name": "start_time",
+          "type": "i64"
+        },
+        {
+          "name": "end_time",
+          "type": "i64"
+        }
+      ]
+    },
+    {
+      "name": "support_proposal",
+      "discriminator": [
+        95,
+        239,
+        233,
+        199,
+        201,
+        62,
+        90,
+        27
+      ],
+      "accounts": [
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "epoch"
+        },
+        {
+          "name": "proposal",
+          "writable": true
+        },
+        {
+          "name": "user_support",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  117,
+                  112,
+                  112,
+                  111,
+                  114,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "proposal.epoch_id",
+                "account": "TokenProposal"
+              },
+              {
+                "kind": "account",
+                "path": "user"
+              },
+              {
+                "kind": "account",
+                "path": "proposal"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "update_proposal_status",
+      "discriminator": [
+        9,
+        171,
+        178,
+        233,
+        228,
+        50,
+        167,
+        206
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "signer": true
+        },
+        {
+          "name": "program_config"
+        },
+        {
+          "name": "epoch_management"
+        },
+        {
+          "name": "proposal",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "new_status",
+          "type": {
+            "defined": {
+              "name": "ProposalStatus"
+            }
+          }
         }
       ]
     }
   ],
   "accounts": [
     {
+      "name": "EpochManagement",
+      "discriminator": [
+        182,
+        45,
+        141,
+        215,
+        61,
+        70,
+        49,
+        206
+      ]
+    },
+    {
       "name": "ProgramConfig",
+      "discriminator": [
+        196,
+        210,
+        90,
+        231,
+        144,
+        149,
+        140,
+        63
+      ]
+    },
+    {
+      "name": "TokenProposal",
+      "discriminator": [
+        192,
+        42,
+        4,
+        79,
+        215,
+        17,
+        144,
+        39
+      ]
+    },
+    {
+      "name": "UserProposalSupport",
+      "discriminator": [
+        255,
+        187,
+        213,
+        25,
+        93,
+        16,
+        197,
+        155
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "EpochEnded",
+      "discriminator": [
+        111,
+        40,
+        102,
+        241,
+        173,
+        233,
+        164,
+        252
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "GenericError",
+      "msg": "Generic error"
+    },
+    {
+      "code": 6001,
+      "name": "EpochMismatch",
+      "msg": "The epoch ID does not match"
+    },
+    {
+      "code": 6002,
+      "name": "TokenNameTooLong",
+      "msg": "The token name is too long"
+    },
+    {
+      "code": 6003,
+      "name": "TokenSymbolTooLong",
+      "msg": "The token symbol is too long"
+    },
+    {
+      "code": 6004,
+      "name": "CreatorAllocationTooHigh",
+      "msg": "Creator allocation cannot exceed 10%"
+    },
+    {
+      "code": 6005,
+      "name": "NegativeLockupPeriod",
+      "msg": "Lockup period cannot be negative"
+    },
+    {
+      "code": 6006,
+      "name": "ProposalNotActive",
+      "msg": "Proposal is not active and cannot be supported"
+    },
+    {
+      "code": 6007,
+      "name": "EpochNotActive",
+      "msg": "Epoch is not active"
+    },
+    {
+      "code": 6008,
+      "name": "EpochNotEnded",
+      "msg": "Epoch has not ended yet"
+    },
+    {
+      "code": 6009,
+      "name": "InvalidAuthority",
+      "msg": "Only the admin authority can perform this action"
+    },
+    {
+      "code": 6010,
+      "name": "InvalidEpochTimeRange",
+      "msg": "La plage de temps de l'époque est invalide"
+    },
+    {
+      "code": 6011,
+      "name": "EpochNotFound",
+      "msg": "L'époque n'a pas été trouvée"
+    },
+    {
+      "code": 6012,
+      "name": "CustomError",
+      "msg": "Erreur personnalisée"
+    },
+    {
+      "code": 6013,
+      "name": "InvalidEpochId",
+      "msg": "ID d'époque invalide"
+    },
+    {
+      "code": 6014,
+      "name": "EpochAlreadyInactive",
+      "msg": "L'époque est déjà inactive"
+    },
+    {
+      "code": 6015,
+      "name": "ProposalEpochMismatch",
+      "msg": "La proposition n'appartient pas à l'époque spécifiée"
+    },
+    {
+      "code": 6016,
+      "name": "AmountMustBeGreaterThanZero",
+      "msg": "Le montant doit être supérieur à zéro"
+    },
+    {
+      "code": 6017,
+      "name": "Overflow",
+      "msg": "Dépassement de capacité lors du calcul"
+    },
+    {
+      "code": 6018,
+      "name": "EpochNotClosed",
+      "msg": "L'époque doit être fermée pour mettre à jour le statut de la proposition"
+    },
+    {
+      "code": 6019,
+      "name": "ProposalNotInEpoch",
+      "msg": "La proposition n'appartient pas à l'époque fournie"
+    },
+    {
+      "code": 6020,
+      "name": "InvalidProposalStatusUpdate",
+      "msg": "Mise à jour du statut de la proposition invalide"
+    },
+    {
+      "code": 6021,
+      "name": "ProposalAlreadyFinalized",
+      "msg": "La proposition a déjà un statut final (Validée ou Rejetée)"
+    },
+    {
+      "code": 6022,
+      "name": "EpochAlreadyProcessed",
+      "msg": "L'époque a déjà été marquée comme traitée par le crank"
+    },
+    {
+      "code": 6023,
+      "name": "Unauthorized",
+      "msg": "Unauthorized: Only the admin can perform this action."
+    },
+    {
+      "code": 6024,
+      "name": "ProposalNotRejected",
+      "msg": "La proposition doit être rejetée pour pouvoir réclamer les fonds."
+    },
+    {
+      "code": 6025,
+      "name": "ProposalMismatch",
+      "msg": "Le compte de support ne correspond pas à la proposition fournie."
+    },
+    {
+      "code": 6026,
+      "name": "NothingToReclaim",
+      "msg": "Il n'y a aucun montant à réclamer dans ce compte de support."
+    },
+    {
+      "code": 6027,
+      "name": "InsufficientProposalFunds",
+      "msg": "Fonds insuffisants dans le compte de la proposition pour effectuer le remboursement."
+    },
+    {
+      "code": 6028,
+      "name": "EpochNotProcessedYet",
+      "msg": "L'époque n'a pas encore été marquée comme traitée par le crank."
+    },
+    {
+      "code": 6029,
+      "name": "CouldNotRetrieveBump",
+      "msg": "Could not retrieve bump seed."
+    }
+  ],
+  "types": [
+    {
+      "name": "EpochEnded",
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "adminAuthority",
-            "type": "publicKey"
+            "name": "epoch_id",
+            "type": "u64"
+          },
+          {
+            "name": "ended_at",
+            "type": "i64"
           }
         ]
       }
@@ -118,28 +789,32 @@
         "kind": "struct",
         "fields": [
           {
-            "name": "epochId",
+            "name": "epoch_id",
             "type": "u64"
           },
           {
-            "name": "startTime",
-            "type": "u64"
+            "name": "start_time",
+            "type": "i64"
           },
           {
-            "name": "endTime",
-            "type": "u64"
+            "name": "end_time",
+            "type": "i64"
           },
           {
             "name": "status",
             "type": {
-              "defined": "EpochStatus"
+              "defined": {
+                "name": "EpochStatus"
+              }
             }
+          },
+          {
+            "name": "processed",
+            "type": "bool"
           }
         ]
       }
-    }
-  ],
-  "types": [
+    },
     {
       "name": "EpochStatus",
       "type": {
@@ -149,45 +824,139 @@
             "name": "Active"
           },
           {
+            "name": "Pending"
+          },
+          {
             "name": "Closed"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ProgramConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin_authority",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ProposalStatus",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Active"
+          },
+          {
+            "name": "Validated"
+          },
+          {
+            "name": "Rejected"
+          }
+        ]
+      }
+    },
+    {
+      "name": "TokenProposal",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "epoch_id",
+            "type": "u64"
+          },
+          {
+            "name": "creator",
+            "type": "pubkey"
+          },
+          {
+            "name": "token_name",
+            "type": "string"
+          },
+          {
+            "name": "token_symbol",
+            "type": "string"
+          },
+          {
+            "name": "description",
+            "type": "string"
+          },
+          {
+            "name": "image_url",
+            "type": {
+              "option": "string"
+            }
+          },
+          {
+            "name": "total_supply",
+            "type": "u64"
+          },
+          {
+            "name": "creator_allocation",
+            "type": "u8"
+          },
+          {
+            "name": "supporter_allocation",
+            "type": "u8"
+          },
+          {
+            "name": "sol_raised",
+            "type": "u64"
+          },
+          {
+            "name": "total_contributions",
+            "type": "u64"
+          },
+          {
+            "name": "lockup_period",
+            "type": "i64"
+          },
+          {
+            "name": "status",
+            "type": {
+              "defined": {
+                "name": "ProposalStatus"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "UserProposalSupport",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "epoch_id",
+            "type": "u64"
+          },
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "proposal",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
           }
         ]
       }
     }
   ],
-  "errors": [
+  "constants": [
     {
-      "code": 6000,
-      "name": "Unauthorized",
-      "msg": "You are not authorized to perform this action"
-    },
-    {
-      "code": 6001,
-      "name": "InvalidTimeRange",
-      "msg": "Invalid time range: start time must be before end time"
-    },
-    {
-      "code": 6002,
-      "name": "EpochAlreadyExists",
-      "msg": "An epoch with this ID already exists"
-    },
-    {
-      "code": 6003,
-      "name": "EpochNotFound",
-      "msg": "Epoch not found"
-    },
-    {
-      "code": 6004,
-      "name": "EpochAlreadyClosed",
-      "msg": "This epoch is already closed"
-    },
-    {
-      "code": 6005,
-      "name": "EpochStillActive",
-      "msg": "This epoch is still active and cannot be closed yet"
+      "name": "SEED",
+      "type": "string",
+      "value": "\"anchor\""
     }
-  ],
-  "metadata": {
-    "address": "3HBzNutk8DrRfffCS74S55adJAjgY8NHrWXgRtABaSbF"
-  }
-} 
+  ]
+}
