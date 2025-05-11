@@ -12,6 +12,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey } from "@solana/web3.js";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -346,9 +347,12 @@ export default function ProposalDetailPage() {
               </div>
               <div className="bg-gray-900/50 p-3 rounded-lg">
                 <p className="text-sm text-gray-400 mb-1">{t("creator")}</p>
-                <p className="font-mono break-all">
-                  {proposal.creator.toBase58()}
-                </p>
+                <Link
+                  href={`/${locale}/profile/${proposal.creator.toString()}`}
+                  className="font-mono break-all hover:underline hover:text-[#e6d3ba] transition-colors"
+                >
+                  {proposal.creator.toString()}
+                </Link>
               </div>
               <div className="bg-gray-900/50 p-3 rounded-lg">
                 <p className="text-sm text-gray-400 mb-1">

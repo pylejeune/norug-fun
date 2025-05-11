@@ -446,8 +446,6 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
           await (
             program as Program<Programs>
           ).account.userProposalSupport.fetch(userSupportPDA);
-          // If we get here, account already exists
-          throw new Error("You have already supported this proposal");
         } catch (err: any) {
           // If account doesn't exist, continue
           if (!err.message.includes("Account does not exist")) {
