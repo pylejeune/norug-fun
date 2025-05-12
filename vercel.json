@@ -17,7 +17,7 @@
   },
   "crons": [
     {
-      "path": "/api/cron/epoch-scheduler",
+      "path": "/api/cron/epoch-scheduler?auth_token=${API_SECRET_KEY}",
       "schedule": "0 0 * * *"
     }
   ]
