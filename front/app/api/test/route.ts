@@ -21,7 +21,7 @@ interface IDLInstruction {
 }
 
 // Importer l'IDL localement 
-import idlJson from "../epoch-scheduler/idl/programs.json";
+import idlJson from "../cron/epoch-scheduler/idl/programs.json";
 
 // Configuration simple
 const RPC_ENDPOINT = process.env.SOLANA_RPC_ENDPOINT || "http://localhost:8899";

@@ -17,7 +17,7 @@
   },
   "crons": [
     {
-      "path": "/api/cron/epoch-check",
+      "path": "/api/cron/epoch-scheduler",
       "schedule": "0 0 * * *"
     }
   ]
