@@ -487,6 +487,20 @@ export async function GET(request: NextRequest): Promise<Response> {
   console.log("📡 Configuration RPC:", RPC_ENDPOINT);
   
   try {
+    // Pour l'approche Vercel cron (paramètre URL)
+    const { searchParams } = new URL(request.url);
+    const authToken = searchParams.get('auth_token');
+    if (authToken !== process.env.API_SECRET_KEY) {
+      return new Response('Unauthorized', { status: 401 });
+    }
+
+    // Pour l'approche Bearer (si vous utilisez curl manuellement)
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader?.startsWith('Bearer ') || 
+        authHeader.substring(7) !== process.env.API_SECRET_KEY) {
+      return new Response('Unauthorized', { status: 401 });
+    }
+
     // Vérifier et simuler la fermeture des époques si nécessaire
     const results = await checkAndSimulateEndEpoch();
     
