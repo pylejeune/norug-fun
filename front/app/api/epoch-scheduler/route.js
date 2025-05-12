@@ -285,13 +285,41 @@ class CustomProgram {
           // Extraire processed (bool)
           const processed = data[33] !== 0;
           
+          // Fonction de sécurité pour convertir les BN en Date
+          const bnToDate = (bn) => {
+            try {
+              // Vérifier si le nombre est trop grand pour JavaScript
+              if (bn.gt(new BN(Number.MAX_SAFE_INTEGER))) {
+                return `Valeur trop grande pour affichage: ${bn.toString()}`;
+              }
+              
+              // Conversion sécurisée
+              const timestamp = bn.toNumber();
+              return new Date(timestamp * 1000).toISOString();
+            } catch (error) {
+              return `Erreur de conversion: ${bn.toString()}`;
+            }
+          };
+          
           console.log(`📊 Époque ${index+1}:`);
           console.log(`   ID: ${epochId.toString()}`);
-          console.log(`   Début: ${new Date(startTime.toNumber() * 1000).toISOString()}`);
-          console.log(`   Fin: ${new Date(endTime.toNumber() * 1000).toISOString()}`);
+          console.log(`   Début: ${bnToDate(startTime)}`);
+          console.log(`   Fin: ${bnToDate(endTime)}`);
           console.log(`   Statut: ${statusStr} (byte: ${statusByte})`);
           console.log(`   Traitée: ${processed}`);
           console.log(`   Adresse PDA: ${account.pubkey.toString()}`);
+          
+          // Pour filtrer les époques actives, on vérifie l'heure actuelle par rapport à end_time
+          // en utilisant les BN directement pour éviter les erreurs de conversion
+          const currentTimeBN = new BN(Math.floor(Date.now() / 1000));
+          const isActive = statusByte === 0 && currentTimeBN.lt(endTime);
+          const needsClosing = statusByte === 0 && currentTimeBN.gte(endTime);
+          
+          if (isActive) {
+            console.log(`   ⏳ Cette époque est ACTIVE et en cours`);
+          } else if (needsClosing) {
+            console.log(`   🔔 Cette époque est ACTIVE mais DÉPASSÉE - à fermer!`);
+          }
           
           return {
             publicKey: account.pubkey,
@@ -300,7 +328,9 @@ class CustomProgram {
               startTime: startTime,
               endTime: endTime,
               status: status,
-              processed: processed
+              processed: processed,
+              // Ajouter des métadonnées pour faciliter le filtrage ultérieur
+              needsClosing: needsClosing
             }
           };
         } catch (error) {
@@ -313,7 +343,8 @@ class CustomProgram {
               startTime: new BN(0),
               endTime: new BN(0),
               status: { unknown: {} },
-              processed: false
+              processed: false,
+              needsClosing: false
             }
           };
         }
@@ -547,52 +578,71 @@ async function checkAndEndEpochs() {
     
     // Pour chaque époque active
     for (const epoch of activeEpochs) {
-      const endTimeUnix = epoch.account.endTime.toNumber();
-      const currentTime = Math.floor(Date.now() / 1000);
-      
-      console.log(`\n📅 Vérification de l'époque ${epoch.account.epochId.toString()}:`);
-      console.log(`⏰ Heure actuelle: ${new Date(currentTime * 1000).toISOString()}`);
-      console.log(`⌛ Heure de fin: ${new Date(endTimeUnix * 1000).toISOString()}`);
-      
-      // Vérifier si l'époque doit être terminée
-      if (currentTime >= endTimeUnix) {
-        console.log(`🔔 L'époque ${epoch.account.epochId.toString()} doit être fermée`);
+      try {
+        const endTimeStr = epoch.account.endTime.toString();
+        const currentTime = Math.floor(Date.now() / 1000);
+        
+        console.log(`\n📅 Vérification de l'époque ${epoch.account.epochId.toString()}:`);
+        
+        // Utiliser une conversion sécurisée pour les dates
+        let endTimeDisplay = "";
         try {
-          // Dériver la PDA pour l'époque
-          const epochId = epoch.account.epochId;
-          const [epochPDA] = PublicKey.findProgramAddressSync(
-            [
-              Buffer.from("epoch"),
-              new BN(epochId).toArrayLike(Buffer, "le", 8)
-            ],
-            program.programId
-          );
-          console.log("📍 PDA de l'époque:", epochPDA.toString());
-          
-          // Préparer les comptes pour la transaction
-          const accounts = {
-            epochManagement: epochPDA,
-            authority: adminKeypair.publicKey,
-            program_config: configPDA,
-            system_program: SystemProgram.programId,
-          };
-          
-          console.log("📝 Préparation de la transaction...");
-          // Appeler l'instruction end_epoch
-          await program.methods
-            .endEpoch(new BN(epoch.account.epochId))
-            .accounts(accounts)
-            .signers([adminKeypair])
-            .rpc();
-          
-          console.log("✅ Transaction réussie");
-          results.details.epochsClosed++;
+          if (epoch.account.endTime.lt(new BN(Number.MAX_SAFE_INTEGER))) {
+            const endTimeNum = epoch.account.endTime.toNumber();
+            endTimeDisplay = new Date(endTimeNum * 1000).toISOString();
+          } else {
+            endTimeDisplay = `Timestamp trop grand: ${endTimeStr}`;
+          }
         } catch (error) {
-          console.error(`❌ Erreur lors de la fermeture de l'époque:`, error);
-          results.details.errors.push(`Erreur lors de la fermeture de l'époque ${epoch.account.epochId.toString()}: ${error?.message || JSON.stringify(error)}`);
+          endTimeDisplay = `Erreur de conversion: ${endTimeStr}`;
         }
-      } else {
-        console.log(`⏳ L'époque ${epoch.account.epochId.toString()} est toujours active`);
+        
+        console.log(`⏰ Heure actuelle: ${new Date(currentTime * 1000).toISOString()}`);
+        console.log(`⌛ Heure de fin: ${endTimeDisplay}`);
+        
+        // Vérifier si l'époque doit être terminée en utilisant directement la propriété calculée
+        if (epoch.account.needsClosing) {
+          console.log(`🔔 L'époque ${epoch.account.epochId.toString()} doit être fermée`);
+          try {
+            // Dériver la PDA pour l'époque
+            const epochId = epoch.account.epochId;
+            const [epochPDA] = PublicKey.findProgramAddressSync(
+              [
+                Buffer.from("epoch"),
+                new BN(epochId).toArrayLike(Buffer, "le", 8)
+              ],
+              program.programId
+            );
+            console.log("📍 PDA de l'époque:", epochPDA.toString());
+            
+            // Préparer les comptes pour la transaction
+            const accounts = {
+              epochManagement: epochPDA,
+              authority: adminKeypair.publicKey,
+              program_config: configPDA,
+              system_program: SystemProgram.programId,
+            };
+            
+            console.log("📝 Préparation de la transaction...");
+            // Appeler l'instruction end_epoch
+            await program.methods
+              .endEpoch(new BN(epoch.account.epochId))
+              .accounts(accounts)
+              .signers([adminKeypair])
+              .rpc();
+            
+            console.log("✅ Transaction réussie");
+            results.details.epochsClosed++;
+          } catch (error) {
+            console.error(`❌ Erreur lors de la fermeture de l'époque:`, error);
+            results.details.errors.push(`Erreur lors de la fermeture de l'époque ${epoch.account.epochId.toString()}: ${error?.message || JSON.stringify(error)}`);
+          }
+        } else {
+          console.log(`⏳ L'époque ${epoch.account.epochId.toString()} est toujours active`);
+        }
+      } catch (error) {
+        console.error(`❌ Erreur lors de la vérification de l'époque:`, error);
+        results.details.errors.push(`Erreur lors de la vérification de l'époque ${epoch.account.epochId.toString()}: ${error?.message || JSON.stringify(error)}`);
       }
     }
 
