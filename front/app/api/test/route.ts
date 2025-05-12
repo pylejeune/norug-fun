@@ -32,6 +32,9 @@ const idlAddress = "address" in idlJson
   ? (idlJson as any).address
   : (idlJson as any).metadata?.address || "3HBzNutk8DrRfffCS74S55adJAjgY8NHrWXgRtABaSbF";
 
+// Récupération de la seed admin depuis les variables d'environnement
+const ADMIN_SEED_BASE64 = process.env.ADMIN_SEED_BASE64;
+
 console.log("📝 Adresse du programme trouvée:", idlAddress);
 const PROGRAM_ID = new PublicKey(idlAddress);
 
@@ -71,9 +74,28 @@ interface TestResults {
   rpcEndpoint?: string;
 }
 
-// Fonction pour générer un keypair aléatoire pour les tests
-function getTestKeypair(): Keypair {
-  return Keypair.generate();
+// Fonction pour générer le keypair admin à partir de la seed stockée en Base64
+function getAdminKeypair(): Keypair {
+  if (!ADMIN_SEED_BASE64) {
+    throw new Error("ADMIN_SEED_BASE64 n'est pas défini dans les variables d'environnement ou est vide");
+  }
+  
+  try {
+    const seedBuffer = Buffer.from(ADMIN_SEED_BASE64, 'base64');
+    if (seedBuffer.length === 32) {
+        console.log("✅ Utilisation de Keypair.fromSeed() car seedBuffer fait 32 bytes.");
+        return Keypair.fromSeed(seedBuffer);
+    } else if (seedBuffer.length === 64) {
+        console.log("✅ Utilisation de Keypair.fromSecretKey() car seedBuffer fait 64 bytes.");
+        return Keypair.fromSecretKey(seedBuffer);
+    } else {
+        console.error(`❌ Taille de seedBuffer inattendue: ${seedBuffer.length} bytes. Devrait être 32 ou 64.`);
+        throw new Error(`Taille de seedBuffer après décodage Base64 inattendue: ${seedBuffer.length}`);
+    }
+  } catch (error) {
+    console.error("❌ Erreur lors de la génération du keypair admin (détail):", error instanceof Error ? error.message : String(error));
+    throw new Error(`Impossible de générer le keypair admin: ${error instanceof Error ? error.message : String(error)}`);
+  }
 }
 
 // Fonction pour obtenir le programme Anchor - Identique à program.ts
@@ -116,13 +138,35 @@ async function checkAndSimulateEndEpoch(): Promise<TestResults> {
   
   try {
     const connection = new Connection(RPC_ENDPOINT);
-    const keypair = getTestKeypair();
+    let adminKeypair;
     
-    // Création du wallet de test compatible AnchorProvider
+    try {
+      adminKeypair = getAdminKeypair();
+      console.log("🔑 Admin keypair généré avec succès:", adminKeypair.publicKey.toString());
+    } catch (error) {
+      console.error("❌ Impossible d'obtenir le keypair admin:", error instanceof Error ? error.message : String(error));
+      results.success = false;
+      results.details.errors.push(`Erreur avec le keypair admin: ${error instanceof Error ? error.message : String(error)}`);
+      return results;
+    }
+    
+    // Création du wallet avec le keypair admin
     const wallet: AnchorWallet = {
-      publicKey: keypair.publicKey,
-      signTransaction: async <T>(tx: T): Promise<T> => tx,
-      signAllTransactions: async <T>(txs: T[]): Promise<T[]> => txs,
+      publicKey: adminKeypair.publicKey,
+      signTransaction: async <T>(tx: T): Promise<T> => {
+        if (tx instanceof Transaction) {
+          tx.partialSign(adminKeypair);
+        }
+        return tx;
+      },
+      signAllTransactions: async <T>(txs: T[]): Promise<T[]> => {
+        return txs.map(tx => {
+          if (tx instanceof Transaction) {
+            tx.partialSign(adminKeypair);
+          }
+          return tx;
+        });
+      },
     };
     
     const program = getProgram(connection, wallet);
@@ -192,7 +236,7 @@ async function checkAndSimulateEndEpoch(): Promise<TestResults> {
             results.details.epochsToClose++;
             
             // Simuler l'appel à endEpoch
-            const simResult = await simulateEndEpoch(program, connection, wallet, epochId);
+            const simResult = await simulateEndEpoch(program, connection, wallet, adminKeypair, epochId);
             if (!simResult.success) {
               results.details.errors = results.details.errors.concat(simResult.errors);
             }
@@ -221,7 +265,7 @@ async function checkAndSimulateEndEpoch(): Promise<TestResults> {
 }
 
 // Fonction pour simuler l'appel à endEpoch
-async function simulateEndEpoch(program: any, connection: Connection, wallet: AnchorWallet, epochId: any): Promise<{success: boolean, errors: string[]}> {
+async function simulateEndEpoch(program: any, connection: Connection, wallet: AnchorWallet, adminKeypair: Keypair, epochId: any): Promise<{success: boolean, errors: string[]}> {
   const errors: string[] = [];
   
   if (program && program.methods && program.methods.endEpoch) {
@@ -428,6 +472,7 @@ async function getAllEpochs(connection: Connection, wallet: AnchorWallet) {
 // Handler pour les requêtes GET
 export async function GET(request: NextRequest): Promise<Response> {
   console.log("🚀 Démarrage de la vérification des époques...");
+  console.log("📡 Configuration RPC:", RPC_ENDPOINT);
   
   try {
     // Vérifier et simuler la fermeture des époques si nécessaire
