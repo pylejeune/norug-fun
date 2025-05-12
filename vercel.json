@@ -8,8 +8,8 @@
   ],
   "routes": [
     {
-      "src": "/api/cron/epoch-check",
-      "dest": "/api/cron/epoch-check"
+      "src": "/api/cron/epoch-scheduler",
+      "dest": "/api/cron/epoch-scheduler"
     }
   ],
   "env": {

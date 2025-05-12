@@ -2,6 +2,12 @@ import * as anchor from "@coral-xyz/anchor";
 import { PublicKey, Keypair, Connection, SystemProgram, Transaction } from "@solana/web3.js";
 import { BN, Program, AnchorProvider } from "@coral-xyz/anchor";
 import { NextRequest } from "next/server";
+import { fileURLToPath } from 'url';
+import path from 'path';
+
+// Polyfill pour __dirname en ESM
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Définir une interface complète pour l'IDL pour résoudre les problèmes de typage
 interface IDLInstruction {
