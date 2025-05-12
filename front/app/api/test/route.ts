@@ -309,7 +309,23 @@ async function simulateEndEpoch(program: any, connection: Connection, wallet: An
       
       // Essayer avec format camelCase (comme dans route.js)
       try {
-        const tx = await program.methods
+        // Construction complète de la transaction
+        console.log("🛠️ Reconstruction manuelle de la transaction...");
+        
+        // 1. Obtention d'un blockhash récent
+        console.log("📡 Vérification de la connexion au RPC via getVersion...");
+        const version = await connection.getVersion();
+        console.log(`🔢 Version du RPC: ${JSON.stringify(version)}`);
+        
+        console.log("🔍 Récupération d'un blockhash récent via getLatestBlockhash...");
+        const { blockhash } = await connection.getLatestBlockhash("confirmed");
+        console.log(`📝 Blockhash récupéré: ${blockhash}`);
+        
+        // 2. Création d'une nouvelle transaction
+        console.log("🏗️ Création d'une nouvelle transaction...");
+        // Construire directement l'instruction
+        console.log("⚙️ Construction de l'instruction endEpoch...");
+        const instruction = await program.methods
           .endEpoch(bnEpochId)
           .accounts({
             epochManagement: epochManagementPDA,
@@ -317,78 +333,71 @@ async function simulateEndEpoch(program: any, connection: Connection, wallet: An
             program_config: configPDA,
             systemProgram: SystemProgram.programId,
           })
-          .transaction();
+          .instruction();
         
-        console.log("✅ Transaction créée:", tx.instructions.length, "instructions");
+        // Créer une nouvelle transaction avec cette instruction
+        const newTransaction = new Transaction({
+          feePayer: adminKeypair.publicKey,
+          recentBlockhash: blockhash
+        }).add(instruction);
         
-        // Ajouter le payeur de frais
-        tx.feePayer = wallet.publicKey;
+        // 3. Vérification de l'instruction
+        console.log("🔍 Vérification de l'instruction:");
+        console.log(`- Programme: ${instruction.programId.toString()}`);
+        console.log(`- Nombre de clés: ${instruction.keys.length}`);
         
-        // Simuler la transaction
-        const simulationResult = await connection.simulateTransaction(tx);
+        // 4. Signer la transaction DIRECTEMENT avec adminKeypair
+        console.log("🔑 Signature directe de la transaction avec adminKeypair...");
+        newTransaction.sign(adminKeypair);
         
-        // Afficher les résultats de la simulation
-        const simValue = {
-          err: simulationResult.value.err,
-          logs: simulationResult.value.logs && simulationResult.value.logs.slice(0, 5) + "..." // Tronquer les logs
-        };
-        console.log("⚙️ Résultat simulation:", JSON.stringify(simValue, null, 2));
+        console.log("✅ Transaction signée avec succès");
+        console.log(`🔑 Signatures présentes: ${newTransaction.signatures.length}`);
         
-        if (simulationResult.value.err) {
-          throw new Error(`Simulation error: ${JSON.stringify(simulationResult.value.err)}`);
-        }
+        // 5. Vérification des comptes de l'instruction
+        console.log("\n📋 Détail des comptes dans l'instruction:");
+        instruction.keys.forEach((keyObj: { pubkey: PublicKey, isSigner: boolean, isWritable: boolean }, idx: number) => {
+          console.log(`Compte ${idx}: ${keyObj.pubkey.toString()} (signer: ${keyObj.isSigner}, writable: ${keyObj.isWritable})`);
+        });
         
-        console.log("✅ Simulation réussie pour l'époque", epochId);
-        
-        // Exécuter réellement la transaction si la simulation a réussi
-        console.log("🚀 Exécution réelle de la transaction pour modifier le statut de l'époque...");
-        
+        // 6. Envoi avec sendRawTransaction (plus simple et direct)
+        console.log("\n🚀 Envoi de la transaction avec sendRawTransaction...");
         try {
-          // Obtenir un blockhash récent
-          const { blockhash } = await connection.getLatestBlockhash('processed');
-          tx.recentBlockhash = blockhash;
+          const serialized = newTransaction.serialize();
+          console.log(`📦 Taille de la transaction sérialisée: ${serialized.length} bytes`);
           
-          // Vérifier que toutes les instructions nécessaires sont présentes
-          console.log(`📋 Nombre d'instructions dans la transaction: ${tx.instructions.length}`);
-          tx.instructions.forEach((instr: any, idx: number) => {
-            console.log(`📌 Instruction ${idx}: Programme ${instr.programId.toString()}`);
-          });
+          const signature = await connection.sendRawTransaction(
+            serialized,
+            {
+              skipPreflight: true,
+              maxRetries: 5,
+              preflightCommitment: 'confirmed'
+            }
+          );
           
-          // Signer la transaction avec le keypair admin (authority)
-          console.log("🔑 Signature de la transaction avec l'authority:", adminKeypair.publicKey.toString());
-          tx.sign(adminKeypair);
+          console.log(`✅ Transaction envoyée! Signature: ${signature}`);
+          console.log(`🔍 Vérification immédiate du statut...`);
           
-          // Définir explicitement la priorité de la transaction pour garantir son exécution
-          tx.feePayer = adminKeypair.publicKey;
-          
-          // Envoyer la transaction signée au réseau sans attendre la confirmation
-          console.log("📤 Envoi de la transaction pour mettre à jour le statut de l'époque...");
-          const signature = await connection.sendRawTransaction(tx.serialize(), {
-            skipPreflight: true, // Désactiver les vérifications préliminaires pour accélérer
-            maxRetries: 5, // Augmenter le nombre de tentatives
-            preflightCommitment: 'processed' // Utiliser un commitment plus léger
-          });
-          
-          console.log("✅ Transaction envoyée! Signature:", signature);
-          console.log("📝 Le statut de l'époque sera modifié une fois la transaction traitée");
-          
-          return { 
-            success: true, 
-            errors: [],
-            signature: signature,
-            message: "Transaction pour modifier le statut de l'époque envoyée" 
-          };
-        } catch (txError) {
-          console.error("❌ Erreur lors de l'envoi de la transaction:", txError);
-          
-          // Essayer d'extraire plus de détails sur l'erreur
-          let errorDetail = txError instanceof Error ? txError.message : String(txError);
-          if (txError instanceof Error && txError.stack) {
-            console.error("📚 Stack trace:", txError.stack);
+          // Vérification immédiate sans attendre
+          try {
+            const status = await connection.getSignatureStatus(signature);
+            console.log(`📊 Statut initial: ${JSON.stringify(status || {})}`);
+          } catch (statusErr) {
+            console.log(`⚠️ Impossible de récupérer le statut initial: ${statusErr instanceof Error ? statusErr.message : String(statusErr)}`);
           }
           
-          errors.push(`Erreur lors de la modification du statut de l'époque ${epochId}: ${errorDetail}`);
-          return { success: false, errors };
+          // 7. Retour du résultat sans attendre la confirmation
+          console.log(`\n📝 La transaction a été envoyée au réseau.`);
+          console.log(`📝 Vérifiez son statut sur l'explorateur: https://explorer.solana.com/tx/${signature}?cluster=devnet`);
+          
+          return {
+            success: true,
+            errors: [],
+            signature: signature,
+            message: "Transaction envoyée au réseau. Le traitement peut prendre quelques instants."
+          };
+        } catch (sendError) {
+          console.error("❌ Erreur lors de l'envoi de la transaction:", sendError instanceof Error ? sendError.message : String(sendError));
+          throw new Error(`Erreur lors de l'envoi de la transaction: ${sendError instanceof Error ? sendError.message : String(sendError)}`);
         }
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : String(error);
