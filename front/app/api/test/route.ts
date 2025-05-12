@@ -1,5 +1,5 @@
 import * as anchor from "@coral-xyz/anchor";
-import { PublicKey, Keypair, Connection } from "@solana/web3.js";
+import { PublicKey, Keypair, Connection, SystemProgram, Transaction } from "@solana/web3.js";
 import { BN, Program, AnchorProvider } from "@coral-xyz/anchor";
 import { NextRequest } from "next/server";
 
@@ -48,7 +48,7 @@ console.log("📝 IDL Details:", {
 });
 
 // Log des instructions disponibles
-console.log("📝 Available instructions:", idl.instructions.map((ix: any) => ix.name));
+console.log("📝 Instructions disponibles:", idl.instructions.map((ix: any) => ix.name));
 
 // Définir l'interface pour le wallet Anchor
 interface AnchorWallet {
@@ -60,12 +60,12 @@ interface AnchorWallet {
 // Résultats des tests
 interface TestResults {
   success: boolean;
-  tests: {
-    idlVerification: boolean;
-    programInstantiation: boolean;
-    endEpochMethodTest: boolean;
+  details: {
+    epochsChecked: number;
+    epochsToClose: number;
+    errors: string[];
   };
-  details: Record<string, any>;
+  epochs?: any[];
   timestamp?: string;
   environment?: string;
   rpcEndpoint?: string;
@@ -103,284 +103,224 @@ function getProgram(connection: Connection, wallet?: AnchorWallet | null) {
   }
 }
 
-// Test 1: Vérification des instructions disponibles
-function testInstructionsAvailable(): void {
-  const instructionNames = idl.instructions.map((ix: any) => ix.name);
-  console.log("🔍 Vérification de la présence de 'end_epoch':", instructionNames.includes("end_epoch"));
-  
-  // Chercher l'instruction end_epoch
-  const endEpochInstruction = idl.instructions.find((ix: any) => ix.name === "end_epoch");
-  if (endEpochInstruction) {
-    console.log("✅ Instruction end_epoch trouvée:");
-    console.log("   - Discriminator:", endEpochInstruction.discriminator);
-    console.log("   - Comptes requis:", endEpochInstruction.accounts.map((acc: any) => acc.name));
-    console.log("   - Arguments:", endEpochInstruction.args.map((arg: any) => arg.name));
-  } else {
-    console.error("❌ Instruction end_epoch non trouvée dans l'IDL");
-  }
-}
-
-// Test 2: Instantiation du programme
-async function testProgramInstantiation(): Promise<void> {
-  const connection = new Connection(RPC_ENDPOINT);
-  const keypair = getTestKeypair();
-  
-  // Création du wallet de test compatible AnchorProvider
-  const wallet: AnchorWallet = {
-    publicKey: keypair.publicKey,
-    signTransaction: async <T>(tx: T): Promise<T> => tx,
-    signAllTransactions: async <T>(txs: T[]): Promise<T[]> => txs,
-  };
-  
-  const program = getProgram(connection, wallet);
-  
-  if (program) {
-    console.log("✅ Programme instancié avec succès");
-    console.log("   - ProgramId:", program.programId.toString());
-    console.log("   - Méthodes disponibles:", Object.keys(program.methods || {}));
-    
-    // Vérifier la présence de endEpoch
-    if (program.methods && program.methods.endEpoch) {
-      console.log("✅ Méthode endEpoch disponible");
-    } else {
-      console.error("❌ Méthode endEpoch non disponible");
+// Fonction pour vérifier les époques et simuler la fermeture si nécessaire
+async function checkAndSimulateEndEpoch(): Promise<TestResults> {
+  const results: TestResults = {
+    success: true,
+    details: {
+      epochsChecked: 0,
+      epochsToClose: 0,
+      errors: []
     }
-  } else {
-    console.error("❌ Échec de l'instantiation du programme");
+  };
+  
+  try {
+    const connection = new Connection(RPC_ENDPOINT);
+    const keypair = getTestKeypair();
+    
+    // Création du wallet de test compatible AnchorProvider
+    const wallet: AnchorWallet = {
+      publicKey: keypair.publicKey,
+      signTransaction: async <T>(tx: T): Promise<T> => tx,
+      signAllTransactions: async <T>(txs: T[]): Promise<T[]> => txs,
+    };
+    
+    const program = getProgram(connection, wallet);
+    
+    if (!program) {
+      results.success = false;
+      results.details.errors.push("Programme non initialisé");
+      return results;
+    }
+    
+    // Récupérer toutes les époques
+    console.log("\n--- Récupération des époques ---");
+    const epochs = await getAllEpochs(connection, wallet);
+    results.epochs = epochs;
+    
+    // Compter les époques actives
+    let activeEpochs: any[] = [];
+    
+    // Traiter les résultats selon le format retourné
+    if (Array.isArray(epochs)) {
+      // Si c'est un tableau simple d'époques
+      activeEpochs = epochs.filter((epoch) => epoch.status === 'active');
+      results.details.epochsChecked = activeEpochs.length;
+    } else if (epochs && typeof epochs === 'object') {
+      // Si c'est un objet avec différents types d'époques
+      // Chercher les comptes actifs dans les différents types
+      Object.values(epochs).forEach((group: any) => {
+        if (group.accounts && Array.isArray(group.accounts)) {
+          activeEpochs = activeEpochs.concat(group.accounts);
+          results.details.epochsChecked += group.accounts.length;
+        }
+      });
+    }
+    
+    console.log(`📊 Nombre d'époques actives trouvées: ${results.details.epochsChecked}`);
+    
+    // Pour chaque époque active, vérifier si elle doit être fermée
+    for (const epoch of activeEpochs) {
+      try {
+        // Extraire les informations de l'époque selon le format
+        const epochId = epoch.epochId || epoch.data?.epochId?.toString() || 'N/A';
+        const endTimeStr = epoch.endTime || epoch.data?.endTime?.toString() || 'N/A';
+        let endTime;
+        
+        // Convertir l'endTime en nombre si possible
+        try {
+          if (epoch.data?.endTime && typeof epoch.data.endTime.toNumber === 'function') {
+            endTime = epoch.data.endTime.toNumber();
+          } else if (endTimeStr !== 'N/A') {
+            endTime = new Date(endTimeStr).getTime() / 1000;
+          }
+        } catch (err) {
+          console.error(`❌ Erreur lors de la conversion de endTime pour l'époque ${epochId}:`, err);
+        }
+        
+        const currentTime = Math.floor(Date.now() / 1000);
+        
+        console.log(`\n📅 Vérification de l'époque ${epochId}:`);
+        console.log(`⏰ Heure actuelle: ${new Date(currentTime * 1000).toISOString()}`);
+        
+        if (endTime) {
+          console.log(`⌛ Heure de fin: ${new Date(endTime * 1000).toISOString()}`);
+          
+          // Vérifier si l'époque doit être terminée
+          if (currentTime >= endTime) {
+            console.log(`🔔 L'époque ${epochId} doit être fermée`);
+            results.details.epochsToClose++;
+            
+            // Simuler l'appel à endEpoch
+            const simResult = await simulateEndEpoch(program, connection, wallet, epochId);
+            if (!simResult.success) {
+              results.details.errors = results.details.errors.concat(simResult.errors);
+            }
+          } else {
+            console.log(`⏳ L'époque ${epochId} est toujours active (temps restant: ${Math.floor((endTime - currentTime) / 60)} minutes)`);
+          }
+        } else {
+          console.log(`⚠️ Impossible de déterminer l'heure de fin pour l'époque ${epochId}`);
+        }
+      } catch (error) {
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        console.error(`❌ Erreur lors de la vérification de l'époque:`, errorMsg);
+        results.details.errors.push(`Erreur lors de la vérification d'une époque: ${errorMsg}`);
+      }
+    }
+    
+    return results;
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    console.error("❌ Erreur lors de la vérification des époques:", errorMsg);
+    
+    results.success = false;
+    results.details.errors.push(`Erreur globale: ${errorMsg}`);
+    return results;
   }
 }
 
-// Type pour les comptes d'instruction (utilisé uniquement pour la documentation)
-interface EndEpochAccounts {
-  epoch_management: PublicKey;
-  authority: PublicKey;
-  system_program: PublicKey;
-}
-
-// Type pour les comptes d'instruction camelCase (utilisé uniquement pour la documentation)
-interface EndEpochAccountsCamel {
-  epochManagement: PublicKey;
-  authority: PublicKey;
-  systemProgram: PublicKey;
-}
-
-// Test 3: Simuler un appel à endEpoch (sans l'exécuter)
-async function testEndEpochMethod(): Promise<{success: boolean, errors: string[]}> {
-  const connection = new Connection(RPC_ENDPOINT);
-  const keypair = getTestKeypair();
-  
-  // Création du wallet de test compatible AnchorProvider
-  const wallet: AnchorWallet = {
-    publicKey: keypair.publicKey,
-    signTransaction: async <T>(tx: T): Promise<T> => tx,
-    signAllTransactions: async <T>(txs: T[]): Promise<T[]> => txs,
-  };
-  
-  const program = getProgram(connection, wallet);
+// Fonction pour simuler l'appel à endEpoch
+async function simulateEndEpoch(program: any, connection: Connection, wallet: AnchorWallet, epochId: any): Promise<{success: boolean, errors: string[]}> {
   const errors: string[] = [];
   
   if (program && program.methods && program.methods.endEpoch) {
-    console.log("🧪 Test de construction d'appel à endEpoch...");
-    
-    // Simuler un epochId
-    const epochId = new BN(123);
+    console.log(`🧪 Simulation d'appel à endEpoch pour l'époque ${epochId}...`);
     
     try {
-      // Génération des seeds pour dériver le PDA
-      const epochManagementSeed = Buffer.from("epoch");
+      // Convertir epochId en BN si nécessaire
+      let bnEpochId = epochId;
+      if (typeof epochId === 'string' && epochId !== 'N/A') {
+        bnEpochId = new BN(epochId);
+      } else if (typeof epochId === 'number') {
+        bnEpochId = new BN(epochId);
+      }
       
-      // Dériver le PDA pour epoch_management
+      // Dériver la PDA pour epoch_management avec l'epochId
       const [epochManagementPDA] = await PublicKey.findProgramAddressSync(
-        [epochManagementSeed],
+        [
+          Buffer.from("epoch"),
+          new BN(bnEpochId).toArrayLike(Buffer, "le", 8)
+        ],
         program.programId
       );
       
       console.log("🔑 PDA généré pour epoch_management:", epochManagementPDA.toString());
       
-      // Vérifier si le compte existe déjà
-      try {
-        const accountInfo = await connection.getAccountInfo(epochManagementPDA);
-        console.log("ℹ️ État du compte:", accountInfo ? "Existant" : "N'existe pas encore");
-      } catch (err) {
-        console.log("❌ Erreur lors de la vérification du compte:", err);
+      // Vérifier si le compte existe
+      const accountInfo = await connection.getAccountInfo(epochManagementPDA);
+      console.log("ℹ️ État du compte:", accountInfo ? "Existant" : "N'existe pas");
+      
+      if (!accountInfo) {
+        errors.push(`Le compte pour l'époque ${epochId} n'existe pas`);
+        return { success: false, errors };
       }
       
-      // Essayer les deux formats possibles de nommage des comptes
-      console.log("🧪 Test avec format snake_case:");
-      try {
-        // On utilise un objet générique pour les comptes pour éviter les erreurs de type
-        const tx = await program.methods
-          .endEpoch(epochId)
-          .accounts({
-            epoch_management: epochManagementPDA,
-            authority: wallet.publicKey,
-            system_program: anchor.web3.SystemProgram.programId,
-          })
-          .transaction();
-        
-        console.log("✅ Transaction snake_case créée:", tx.instructions.length, "instructions");
-        
-        // Ajouter le payeur de frais (l'autorité dans ce cas)
-        tx.feePayer = wallet.publicKey;
-        
-        const simulationResult = await connection.simulateTransaction(tx);
-        
-        // Afficher seulement les informations pertinentes de la simulation
-        const simValue = {
-          err: simulationResult.value.err,
-          logs: simulationResult.value.logs,
-        };
-        console.log("⚙️ Résultat simulation snake_case:", JSON.stringify(simValue));
-        
-        if (simulationResult.value.err) {
-          throw new Error(`Simulation error: ${JSON.stringify(simulationResult.value.err)}`);
-        }
-        
-        console.log("✅ Format snake_case accepté");
-      } catch (error) {
-        const errorMsg = error instanceof Error ? error.message : String(error);
-        console.error("❌ Format snake_case rejeté:", errorMsg);
-        
-        // Ajouter l'info de logs si disponible
-        const anchorError = error instanceof Error && "logs" in error ? 
-          `\nLogs: ${(error as any).logs?.join("\n")}` : "";
-          
-        errors.push(`Snake case error: ${errorMsg}${anchorError}`);
-      }
+      // Dériver la PDA pour la configuration
+      const [configPDA] = PublicKey.findProgramAddressSync(
+        [Buffer.from("config")],
+        program.programId
+      );
+      console.log("🔑 PDA de configuration:", configPDA.toString());
       
-      console.log("🧪 Test avec format camelCase:");
+      // Essayer avec format camelCase (comme dans route.js)
       try {
-        // On utilise un objet générique pour les comptes pour éviter les erreurs de type
         const tx = await program.methods
-          .endEpoch(epochId)
+          .endEpoch(bnEpochId)
           .accounts({
             epochManagement: epochManagementPDA,
             authority: wallet.publicKey,
-            systemProgram: anchor.web3.SystemProgram.programId,
+            program_config: configPDA,
+            systemProgram: SystemProgram.programId,
           })
           .transaction();
         
-        console.log("✅ Transaction camelCase créée:", tx.instructions.length, "instructions");
+        console.log("✅ Transaction créée:", tx.instructions.length, "instructions");
         
-        // Ajouter le payeur de frais (l'autorité dans ce cas)
+        // Ajouter le payeur de frais
         tx.feePayer = wallet.publicKey;
         
+        // Simuler la transaction
         const simulationResult = await connection.simulateTransaction(tx);
         
-        // Afficher seulement les informations pertinentes de la simulation
+        // Afficher les résultats de la simulation
         const simValue = {
           err: simulationResult.value.err,
-          logs: simulationResult.value.logs,
+          logs: simulationResult.value.logs && simulationResult.value.logs.slice(0, 5) + "..." // Tronquer les logs
         };
-        console.log("⚙️ Résultat simulation camelCase:", JSON.stringify(simValue));
+        console.log("⚙️ Résultat simulation:", JSON.stringify(simValue, null, 2));
         
         if (simulationResult.value.err) {
           throw new Error(`Simulation error: ${JSON.stringify(simulationResult.value.err)}`);
         }
         
-        console.log("✅ Format camelCase accepté");
+        console.log("✅ Simulation réussie pour l'époque", epochId);
+        return { success: true, errors: [] };
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : String(error);
-        console.error("❌ Format camelCase rejeté:", errorMsg);
+        console.error("❌ Erreur lors de la simulation:", errorMsg);
         
-        // Ajouter l'info de logs si disponible
-        const anchorError = error instanceof Error && "logs" in error ? 
-          `\nLogs: ${(error as any).logs?.join("\n")}` : "";
-          
-        errors.push(`Camel case error: ${errorMsg}${anchorError}`);
+        errors.push(`Erreur de simulation pour l'époque ${epochId}: ${errorMsg}`);
+        return { success: false, errors };
       }
-      
-      console.log("✅ Tests de construction des instructions terminés");
-      return { success: errors.length === 0, errors };
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
-      console.error("❌ Erreur lors de la construction de l'instruction:", errorMsg);
-      errors.push(`Construction error: ${errorMsg}`);
+      console.error("❌ Erreur lors de la préparation de l'instruction:", errorMsg);
+      
+      errors.push(`Erreur de préparation pour l'époque ${epochId}: ${errorMsg}`);
       return { success: false, errors };
     }
   } else {
     const errorMsg = "La méthode endEpoch n'est pas disponible sur le programme";
     console.error("❌ " + errorMsg);
+    
     errors.push(errorMsg);
     return { success: false, errors };
   }
 }
 
-// Handler pour les requêtes GET
-export async function GET(request: NextRequest): Promise<Response> {
-  console.log("🚀 Démarrage des tests de l'IDL et du programme...");
-  
-  // Résultats des tests
-  const results: TestResults = {
-    success: true,
-    tests: {
-      idlVerification: true,
-      programInstantiation: true,
-      endEpochMethodTest: true
-    },
-    details: {}
-  };
-  
-  try {
-    // Test 1: Vérification des instructions disponibles
-    console.log("\n--- Test 1: Vérification des instructions disponibles ---");
-    testInstructionsAvailable();
-    
-    // Test 2: Instantiation du programme
-    console.log("\n--- Test 2: Instantiation du programme ---");
-    await testProgramInstantiation();
-    
-    // Test 3: Simuler un appel à endEpoch
-    console.log("\n--- Test 3: Simuler un appel à endEpoch ---");
-    const endEpochResults = await testEndEpochMethod();
-    results.tests.endEpochMethodTest = endEpochResults.success;
-    results.details.endEpochErrors = endEpochResults.errors;
-    
-    // Récupération de la liste des époques
-    console.log("\n--- Liste des époques ---");
-    const epochs = await getAllEpochs();
-    results.details.epochs = epochs;
-    
-    console.log("\n✅ Tous les tests terminés");
-    
-    return new Response(JSON.stringify({
-      ...results,
-      timestamp: new Date().toISOString(),
-      environment: process.env.NODE_ENV,
-      rpcEndpoint: RPC_ENDPOINT
-    }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  } catch (error) {
-    console.error("❌ Erreur lors de l'exécution des tests:", error instanceof Error ? error.message : String(error));
-    
-    return new Response(JSON.stringify({
-      success: false,
-      error: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
-      timestamp: new Date().toISOString(),
-      environment: process.env.NODE_ENV,
-      rpcEndpoint: RPC_ENDPOINT
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
-}
-
 // Fonction pour récupérer toutes les époques
-async function getAllEpochs() {
-  const connection = new Connection(RPC_ENDPOINT);
-  const keypair = getTestKeypair();
-  
-  // Création du wallet de test compatible AnchorProvider
-  const wallet: AnchorWallet = {
-    publicKey: keypair.publicKey,
-    signTransaction: async (tx: any): Promise<any> => tx,
-    signAllTransactions: async (txs: any[]): Promise<any[]> => txs,
-  };
-  
+async function getAllEpochs(connection: Connection, wallet: AnchorWallet) {
   const program = getProgram(connection, wallet);
   
   if (!program) {
@@ -451,6 +391,11 @@ async function getAllEpochs() {
       })
       .map((epoch: any) => {
         try {
+          // Ajouter un indicateur si l'époque est dépassée
+          const currentTime = Math.floor(Date.now() / 1000);
+          const endTime = epoch.account.endTime?.toNumber();
+          const needsClosing = endTime && currentTime >= endTime;
+          
           return {
             publicKey: epoch.publicKey.toString(),
             epochId: epoch.account.epochId?.toString() || 'N/A',
@@ -459,7 +404,8 @@ async function getAllEpochs() {
             endTime: epoch.account.endTime ? 
               new Date(epoch.account.endTime.toNumber() * 1000).toISOString() : 'N/A',
             status: 'active', // Nous savons déjà que c'est 'active' grâce au filtre
-            processed: epoch.account.processed !== undefined ? epoch.account.processed : 'N/A'
+            processed: epoch.account.processed !== undefined ? epoch.account.processed : 'N/A',
+            needsClosing // Nouvel indicateur
           };
         } catch (err) {
           return {
@@ -471,11 +417,47 @@ async function getAllEpochs() {
       });
     
     console.log(`📈 Nombre total d'époques actives: ${formattedEpochs.length}`);
-    console.log("📋 Liste des époques actives:", JSON.stringify(formattedEpochs, null, 2));
     
     return formattedEpochs;
   } catch (error) {
     console.error("❌ Erreur lors de la récupération des époques:", error);
     return [];
+  }
+}
+
+// Handler pour les requêtes GET
+export async function GET(request: NextRequest): Promise<Response> {
+  console.log("🚀 Démarrage de la vérification des époques...");
+  
+  try {
+    // Vérifier et simuler la fermeture des époques si nécessaire
+    const results = await checkAndSimulateEndEpoch();
+    
+    console.log("\n✅ Vérification terminée");
+    console.log(`📊 Résumé: ${results.details.epochsChecked} époque(s) vérifiée(s), ${results.details.epochsToClose} époque(s) à fermer`);
+    
+    return new Response(JSON.stringify({
+      ...results,
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV,
+      rpcEndpoint: RPC_ENDPOINT
+    }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch (error) {
+    console.error("❌ Erreur lors de l'exécution:", error instanceof Error ? error.message : String(error));
+    
+    return new Response(JSON.stringify({
+      success: false,
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV,
+      rpcEndpoint: RPC_ENDPOINT
+    }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 } 
