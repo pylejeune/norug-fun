@@ -265,7 +265,7 @@ async function checkAndSimulateEndEpoch(): Promise<TestResults> {
 }
 
 // Fonction pour simuler l'appel à endEpoch
-async function simulateEndEpoch(program: any, connection: Connection, wallet: AnchorWallet, adminKeypair: Keypair, epochId: any): Promise<{success: boolean, errors: string[]}> {
+async function simulateEndEpoch(program: any, connection: Connection, wallet: AnchorWallet, adminKeypair: Keypair, epochId: any): Promise<{success: boolean, errors: string[], signature?: string, message?: string}> {
   const errors: string[] = [];
   
   if (program && program.methods && program.methods.endEpoch) {
@@ -339,12 +339,52 @@ async function simulateEndEpoch(program: any, connection: Connection, wallet: An
         }
         
         console.log("✅ Simulation réussie pour l'époque", epochId);
-        return { success: true, errors: [] };
+        
+        // Exécuter réellement la transaction si la simulation a réussi
+        console.log("🚀 Exécution réelle de la transaction...");
+        
+        try {
+          // Obtenir un blockhash récent
+          const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('confirmed');
+          tx.recentBlockhash = blockhash;
+          
+          // Signer la transaction avec le keypair admin (authority)
+          tx.sign(adminKeypair);
+          
+          // Envoyer la transaction signée au réseau sans attendre la confirmation
+          console.log("📤 Envoi de la transaction...");
+          const signature = await connection.sendRawTransaction(tx.serialize(), {
+            skipPreflight: false, // Activer les vérifications préliminaires
+            preflightCommitment: 'confirmed',
+            maxRetries: 3
+          });
+          
+          console.log("✅ Transaction envoyée avec succès! Signature:", signature);
+          console.log("ℹ️ La confirmation se fera côté client avec l'authority");
+          
+          return { 
+            success: true, 
+            errors: [],
+            signature: signature,
+            message: "Transaction envoyée sans attendre la confirmation" 
+          };
+        } catch (txError) {
+          console.error("❌ Erreur lors de l'envoi de la transaction:", txError);
+          
+          // Essayer d'extraire plus de détails sur l'erreur
+          let errorDetail = txError instanceof Error ? txError.message : String(txError);
+          if (txError instanceof Error && txError.stack) {
+            console.error("📚 Stack trace:", txError.stack);
+          }
+          
+          errors.push(`Erreur d'envoi de transaction pour l'époque ${epochId}: ${errorDetail}`);
+          return { success: false, errors };
+        }
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : String(error);
-        console.error("❌ Erreur lors de la simulation:", errorMsg);
+        console.error("❌ Erreur lors de la simulation ou de l'exécution:", errorMsg);
         
-        errors.push(`Erreur de simulation pour l'époque ${epochId}: ${errorMsg}`);
+        errors.push(`Erreur pour l'époque ${epochId}: ${errorMsg}`);
         return { success: false, errors };
       }
     } catch (error) {
