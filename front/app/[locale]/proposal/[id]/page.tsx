@@ -320,7 +320,7 @@ export default function ProposalDetailPage() {
                       supports.some(
                         (support) =>
                           support.user.toBase58() === publicKey.toBase58() &&
-                          support.amount > 0 // On vérifie juste si l'utilisateur a supporté
+                          support.amount > 0
                       ) && (
                         <button
                           onClick={handleReclaimSupport}
@@ -336,9 +336,7 @@ export default function ProposalDetailPage() {
                   ) : (
                     "active" in proposal.status && (
                       <button
-                        onClick={() => {
-                          /* add wallet connect action */
-                        }}
+                        onClick={() => {}}
                         className="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors"
                       >
                         {t("connectToSupport")}

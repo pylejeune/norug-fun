@@ -27,11 +27,8 @@ export default function ProfilePage() {
   const t = useTranslations("Profile");
   const { locale, id } = useParams();
   const { publicKey } = useWallet();
-  const {
-    getUserProposals,
-    getUserSupportedProposals,
-    reclaimSupport, // Ajout de reclaimSupport
-  } = useProgram();
+  const { getUserProposals, getUserSupportedProposals, reclaimSupport } =
+    useProgram();
   const [viewMode, setViewMode] = useState<ViewMode>("created_proposals");
   const [sortBy, setSortBy] = useState<SortBy>("date");
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
@@ -121,7 +118,6 @@ export default function ProfilePage() {
     }
   };
 
-  // Fonction helper pour obtenir le statut sous forme de chaîne
   const getStatusString = (status: ProposalStatusType): string => {
     if ("active" in status) return "active";
     if ("validated" in status) return "validated";
@@ -314,7 +310,7 @@ export default function ProfilePage() {
                     )}
                   </div>
 
-                  {/* Bouton Claim à droite - ajout de la vérification isCurrentUser */}
+                  {/* Bouton Claim */}
                   {viewMode === "supported_tokens" &&
                     "rejected" in proposal.status &&
                     isCurrentUser && (
