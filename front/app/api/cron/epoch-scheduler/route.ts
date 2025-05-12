@@ -4,6 +4,7 @@ import { BN, Program, AnchorProvider } from "@coral-xyz/anchor";
 import { NextRequest } from "next/server";
 import { fileURLToPath } from 'url';
 import path from 'path';
+import { randomUUID } from 'crypto';
 
 // Polyfill pour __dirname en ESM
 const __filename = fileURLToPath(import.meta.url);
@@ -487,37 +488,75 @@ async function getAllEpochs(connection: Connection, wallet: AnchorWallet) {
   }
 }
 
+// Fonction pour vérifier le token d'authentification
+function verifyAuthToken(request: NextRequest): boolean {
+  const authHeader = request.headers.get('authorization');
+  if (!authHeader) {
+    console.error('❌ En-tête Authorization manquant');
+    return false;
+  }
+
+  const token = authHeader.replace('Bearer ', '');
+  const expectedToken = process.env.API_SECRET_KEY;
+
+  if (!expectedToken) {
+    console.error('❌ API_SECRET_KEY non défini dans les variables d\'environnement');
+    return false;
+  }
+
+  return token === expectedToken;
+}
+
 // Handler pour les requêtes GET
 export async function GET(request: NextRequest): Promise<Response> {
-  console.log("🚀 Démarrage de la vérification des époques...");
-  console.log("📡 Configuration RPC:", RPC_ENDPOINT);
-  
+  const requestId = randomUUID();
+  console.log(`[${requestId}] 🚀 Démarrage de la vérification des époques...`);
+  console.log(`[${requestId}] 📡 Configuration RPC:`, RPC_ENDPOINT);
+
+  // Vérification du token d'authentification
+  if (!verifyAuthToken(request)) {
+    console.error(`[${requestId}] ❌ Authentification échouée`);
+    return new Response(JSON.stringify({
+      success: false,
+      error: 'Non autorisé',
+      errorType: 'AuthenticationError',
+      timestamp: new Date().toISOString(),
+      requestId,
+    }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
   try {
     // Vérifier et simuler la fermeture des époques si nécessaire
     const results = await checkAndSimulateEndEpoch();
-    
-    console.log("\n✅ Vérification terminée");
-    console.log(`📊 Résumé: ${results.details.epochsChecked} époque(s) vérifiée(s), ${results.details.epochsToClose} époque(s) à fermer, ${results.details.epochsClosed} époque(s) fermée(s)`);
-    
+    console.log(`\n[${requestId}] ✅ Vérification terminée`);
+    console.log(`[${requestId}] 📊 Résumé: ${results.details.epochsChecked} époque(s) vérifiée(s), ${results.details.epochsToClose} époque(s) à fermer, ${results.details.epochsClosed} époque(s) fermée(s)`);
     return new Response(JSON.stringify({
       ...results,
       timestamp: new Date().toISOString(),
       environment: process.env.NODE_ENV,
-      rpcEndpoint: RPC_ENDPOINT
+      rpcEndpoint: RPC_ENDPOINT,
+      requestId,
     }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    console.error("❌ Erreur lors de l'exécution:", error instanceof Error ? error.message : String(error));
-    
+    const errorType = error instanceof Error ? error.name : typeof error;
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    console.error(`[${requestId}] ❌ Erreur lors de l'exécution:`, errorMsg, errorStack);
     return new Response(JSON.stringify({
       success: false,
-      error: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
+      error: errorMsg,
+      errorType,
+      stack: errorStack,
       timestamp: new Date().toISOString(),
       environment: process.env.NODE_ENV,
-      rpcEndpoint: RPC_ENDPOINT
+      rpcEndpoint: RPC_ENDPOINT,
+      requestId,
     }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
