@@ -112,6 +112,9 @@ pub fn handler(
     proposal.sol_raised = 0;
     proposal.total_contributions = 0;
     proposal.lockup_period = lockup_period;
+    // Obtenir le timestamp actuel
+    let clock = Clock::get()?;
+    proposal.creation_timestamp = clock.unix_timestamp;
     proposal.status = ProposalStatus::Active;
 
     Ok(())

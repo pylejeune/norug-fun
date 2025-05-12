@@ -36,6 +36,7 @@ pub struct TokenProposal {
     pub sol_raised: u64,              // SOL raised via UserProposalSupport
     pub total_contributions: u64,     // Number of supporters
     pub lockup_period: i64,           // Lock-up period in seconds during which the creator cannot sell
+    pub creation_timestamp: i64,      // Timestamp of the proposal creation
     pub status: ProposalStatus,       // Enum indicating the proposal status
 }
 

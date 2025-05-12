@@ -226,6 +226,11 @@ describe("Tests des propositions de tokens", () => {
     expect(proposal.solRaised.toString()).to.equal("0");
     expect(proposal.totalContributions.toString()).to.equal("0");
     expect(proposal.lockupPeriod.toString()).to.equal(lockupPeriod.toString());
+
+    // --- Vérification ajoutée pour creationTimestamp ---
+    expect(proposal.creationTimestamp).to.exist;
+    expect(proposal.creationTimestamp).to.be.instanceOf(anchor.BN);
+    expect(proposal.creationTimestamp.gtn(0)).to.be.true;
   });
 
   // --- Tests Granulaires pour support_proposal ---
