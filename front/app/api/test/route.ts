@@ -66,6 +66,7 @@ interface TestResults {
   details: {
     epochsChecked: number;
     epochsToClose: number;
+    epochsClosed: number;
     errors: string[];
   };
   epochs?: any[];
@@ -132,6 +133,7 @@ async function checkAndSimulateEndEpoch(): Promise<TestResults> {
     details: {
       epochsChecked: 0,
       epochsToClose: 0,
+      epochsClosed: 0,
       errors: []
     }
   };
@@ -239,6 +241,9 @@ async function checkAndSimulateEndEpoch(): Promise<TestResults> {
             const simResult = await simulateEndEpoch(program, connection, wallet, adminKeypair, epochId);
             if (!simResult.success) {
               results.details.errors = results.details.errors.concat(simResult.errors);
+            } else {
+              // Incrémenter le compteur si l'opération a réussi
+              results.details.epochsClosed++;
             }
           } else {
             console.log(`⏳ L'époque ${epochId} est toujours active (temps restant: ${Math.floor((endTime - currentTime) / 60)} minutes)`);
@@ -486,7 +491,7 @@ export async function GET(request: NextRequest): Promise<Response> {
     const results = await checkAndSimulateEndEpoch();
     
     console.log("\n✅ Vérification terminée");
-    console.log(`📊 Résumé: ${results.details.epochsChecked} époque(s) vérifiée(s), ${results.details.epochsToClose} époque(s) à fermer`);
+    console.log(`📊 Résumé: ${results.details.epochsChecked} époque(s) vérifiée(s), ${results.details.epochsToClose} époque(s) à fermer, ${results.details.epochsClosed} époque(s) fermée(s)`);
     
     return new Response(JSON.stringify({
       ...results,
