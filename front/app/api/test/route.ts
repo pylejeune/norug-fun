@@ -24,7 +24,7 @@ interface IDLInstruction {
 import idlJson from "../epoch-scheduler/idl/programs.json";
 
 // Configuration simple
-const RPC_ENDPOINT = process.env.SOLANA_RPC_ENDPOINT || "https://api.devnet.solana.com";
+const RPC_ENDPOINT = process.env.SOLANA_RPC_ENDPOINT || "http://localhost:8899";
 
 // Note: La structure de l'IDL diffère entre front/context/idl/programs.json (adresse à la racine)
 // et front/app/api/epoch-scheduler/idl/programs.json (adresse dans metadata)
@@ -307,98 +307,46 @@ async function simulateEndEpoch(program: any, connection: Connection, wallet: An
       );
       console.log("🔑 PDA de configuration:", configPDA.toString());
       
-      // Essayer avec format camelCase (comme dans route.js)
       try {
-        // Construction complète de la transaction
-        console.log("🛠️ Reconstruction manuelle de la transaction...");
+        // Construction des comptes pour la transaction
+        const accounts = {
+          epochManagement: epochManagementPDA,
+          authority: adminKeypair.publicKey,
+          program_config: configPDA,
+          systemProgram: SystemProgram.programId,
+        };
         
-        // 1. Obtention d'un blockhash récent
-        console.log("📡 Vérification de la connexion au RPC via getVersion...");
-        const version = await connection.getVersion();
-        console.log(`🔢 Version du RPC: ${JSON.stringify(version)}`);
+        console.log("📋 Comptes utilisés pour la transaction:", accounts);
+        console.log("🔑 Signataire utilisé:", adminKeypair.publicKey.toString());
+        console.log("📝 Argument epochId:", bnEpochId.toString());
         
-        console.log("🔍 Récupération d'un blockhash récent via getLatestBlockhash...");
-        const { blockhash } = await connection.getLatestBlockhash("confirmed");
-        console.log(`📝 Blockhash récupéré: ${blockhash}`);
-        
-        // 2. Création d'une nouvelle transaction
-        console.log("🏗️ Création d'une nouvelle transaction...");
-        // Construire directement l'instruction
-        console.log("⚙️ Construction de l'instruction endEpoch...");
-        const instruction = await program.methods
+        // Utilisation directe de la méthode Anchor comme dans epoch_scheduler.ts
+        console.log("🚀 Envoi de la transaction avec program.methods.endEpoch...");
+        const signature = await program.methods
           .endEpoch(bnEpochId)
-          .accounts({
-            epochManagement: epochManagementPDA,
-            authority: wallet.publicKey,
-            program_config: configPDA,
-            systemProgram: SystemProgram.programId,
-          })
-          .instruction();
+          .accounts(accounts)
+          .signers([adminKeypair])
+          .rpc();
         
-        // Créer une nouvelle transaction avec cette instruction
-        const newTransaction = new Transaction({
-          feePayer: adminKeypair.publicKey,
-          recentBlockhash: blockhash
-        }).add(instruction);
+        console.log(`✅ Transaction envoyée! Signature: ${signature}`);
         
-        // 3. Vérification de l'instruction
-        console.log("🔍 Vérification de l'instruction:");
-        console.log(`- Programme: ${instruction.programId.toString()}`);
-        console.log(`- Nombre de clés: ${instruction.keys.length}`);
-        
-        // 4. Signer la transaction DIRECTEMENT avec adminKeypair
-        console.log("🔑 Signature directe de la transaction avec adminKeypair...");
-        newTransaction.sign(adminKeypair);
-        
-        console.log("✅ Transaction signée avec succès");
-        console.log(`🔑 Signatures présentes: ${newTransaction.signatures.length}`);
-        
-        // 5. Vérification des comptes de l'instruction
-        console.log("\n📋 Détail des comptes dans l'instruction:");
-        instruction.keys.forEach((keyObj: { pubkey: PublicKey, isSigner: boolean, isWritable: boolean }, idx: number) => {
-          console.log(`Compte ${idx}: ${keyObj.pubkey.toString()} (signer: ${keyObj.isSigner}, writable: ${keyObj.isWritable})`);
-        });
-        
-        // 6. Envoi avec sendRawTransaction (plus simple et direct)
-        console.log("\n🚀 Envoi de la transaction avec sendRawTransaction...");
+        // Vérification immédiate sans attendre
         try {
-          const serialized = newTransaction.serialize();
-          console.log(`📦 Taille de la transaction sérialisée: ${serialized.length} bytes`);
-          
-          const signature = await connection.sendRawTransaction(
-            serialized,
-            {
-              skipPreflight: true,
-              maxRetries: 5,
-              preflightCommitment: 'confirmed'
-            }
-          );
-          
-          console.log(`✅ Transaction envoyée! Signature: ${signature}`);
-          console.log(`🔍 Vérification immédiate du statut...`);
-          
-          // Vérification immédiate sans attendre
-          try {
-            const status = await connection.getSignatureStatus(signature);
-            console.log(`📊 Statut initial: ${JSON.stringify(status || {})}`);
-          } catch (statusErr) {
-            console.log(`⚠️ Impossible de récupérer le statut initial: ${statusErr instanceof Error ? statusErr.message : String(statusErr)}`);
-          }
-          
-          // 7. Retour du résultat sans attendre la confirmation
-          console.log(`\n📝 La transaction a été envoyée au réseau.`);
-          console.log(`📝 Vérifiez son statut sur l'explorateur: https://explorer.solana.com/tx/${signature}?cluster=devnet`);
-          
-          return {
-            success: true,
-            errors: [],
-            signature: signature,
-            message: "Transaction envoyée au réseau. Le traitement peut prendre quelques instants."
-          };
-        } catch (sendError) {
-          console.error("❌ Erreur lors de l'envoi de la transaction:", sendError instanceof Error ? sendError.message : String(sendError));
-          throw new Error(`Erreur lors de l'envoi de la transaction: ${sendError instanceof Error ? sendError.message : String(sendError)}`);
+          const status = await connection.getSignatureStatus(signature);
+          console.log(`📊 Statut initial: ${JSON.stringify(status || {})}`);
+        } catch (statusErr) {
+          console.log(`⚠️ Impossible de récupérer le statut initial: ${statusErr instanceof Error ? statusErr.message : String(statusErr)}`);
         }
+        
+        console.log(`\n📝 La transaction a été envoyée au réseau.`);
+        console.log(`📝 Vérifiez son statut sur l'explorateur: https://explorer.solana.com/tx/${signature}?cluster=devnet`);
+        
+        return {
+          success: true,
+          errors: [],
+          signature: signature,
+          message: "Transaction envoyée au réseau. Le traitement peut prendre quelques instants."
+        };
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : String(error);
         console.error("❌ Erreur lors de la simulation ou de l'exécution:", errorMsg);
