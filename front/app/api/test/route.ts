@@ -336,6 +336,11 @@ export async function GET(request: NextRequest): Promise<Response> {
     results.tests.endEpochMethodTest = endEpochResults.success;
     results.details.endEpochErrors = endEpochResults.errors;
     
+    // Récupération de la liste des époques
+    console.log("\n--- Liste des époques ---");
+    const epochs = await getAllEpochs();
+    results.details.epochs = epochs;
+    
     console.log("\n✅ Tous les tests terminés");
     
     return new Response(JSON.stringify({
@@ -361,5 +366,97 @@ export async function GET(request: NextRequest): Promise<Response> {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     });
+  }
+}
+
+// Fonction pour récupérer toutes les époques
+async function getAllEpochs() {
+  const connection = new Connection(RPC_ENDPOINT);
+  const keypair = getTestKeypair();
+  
+  // Création du wallet de test compatible AnchorProvider
+  const wallet: AnchorWallet = {
+    publicKey: keypair.publicKey,
+    signTransaction: async (tx: any): Promise<any> => tx,
+    signAllTransactions: async (txs: any[]): Promise<any[]> => txs,
+  };
+  
+  const program = getProgram(connection, wallet);
+  
+  if (!program) {
+    console.error("❌ Programme non initialisé");
+    return [];
+  }
+  
+  try {
+    console.log("📊 Récupération des époques...");
+    
+    // Vérifier si le programme a la méthode account.epochManagement
+    if (!program.account || !program.account.epochManagement) {
+      console.log("⚠️ Le programme ne possède pas de compte epochManagement");
+      
+      // Alternative: essayer avec d'autres noms possibles
+      const accountTypes = Object.keys(program.account || {});
+      console.log("📋 Types de comptes disponibles:", accountTypes);
+      
+      // Essayer de trouver un compte qui pourrait contenir des informations sur les époques
+      const epochAccounts = [];
+      for (const accountType of accountTypes) {
+        try {
+          // @ts-ignore - Nous savons que nous accédons dynamiquement aux propriétés
+          const accounts = await program.account[accountType].all();
+          console.log(`📊 Comptes de type ${accountType}:`, accounts.length);
+          
+          if (accounts.length > 0) {
+            // Ajouter les comptes avec leur type
+            epochAccounts.push({
+              type: accountType,
+              accounts: accounts.map((acc: any) => ({
+                publicKey: acc.publicKey.toString(),
+                data: acc.account
+              }))
+            });
+          }
+        } catch (error) {
+          console.log(`⚠️ Erreur lors de la récupération des comptes ${accountType}:`, error);
+        }
+      }
+      
+      return epochAccounts;
+    }
+    
+    // Si nous avons bien un compte epochManagement
+    // @ts-ignore - Nous savons que nous accédons à la propriété epochManagement
+    const allEpochs = await program.account.epochManagement.all();
+    
+    // Transformer les données pour un format plus lisible
+    const formattedEpochs = allEpochs.map((epoch: any) => {
+      try {
+        return {
+          publicKey: epoch.publicKey.toString(),
+          epochId: epoch.account.epochId?.toString() || 'N/A',
+          startTime: epoch.account.startTime ? 
+            new Date(epoch.account.startTime.toNumber() * 1000).toISOString() : 'N/A',
+          endTime: epoch.account.endTime ? 
+            new Date(epoch.account.endTime.toNumber() * 1000).toISOString() : 'N/A',
+          status: epoch.account.status ? Object.keys(epoch.account.status)[0] : 'N/A',
+          processed: epoch.account.processed !== undefined ? epoch.account.processed : 'N/A'
+        };
+      } catch (err) {
+        return {
+          publicKey: epoch.publicKey.toString(),
+          error: 'Format inattendu',
+          rawData: JSON.stringify(epoch.account)
+        };
+      }
+    });
+    
+    console.log(`📈 Nombre total d'époques: ${formattedEpochs.length}`);
+    console.log("📋 Liste des époques:", JSON.stringify(formattedEpochs, null, 2));
+    
+    return formattedEpochs;
+  } catch (error) {
+    console.error("❌ Erreur lors de la récupération des époques:", error);
+    return [];
   }
 } 
