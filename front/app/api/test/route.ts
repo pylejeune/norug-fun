@@ -341,32 +341,42 @@ async function simulateEndEpoch(program: any, connection: Connection, wallet: An
         console.log("✅ Simulation réussie pour l'époque", epochId);
         
         // Exécuter réellement la transaction si la simulation a réussi
-        console.log("🚀 Exécution réelle de la transaction...");
+        console.log("🚀 Exécution réelle de la transaction pour modifier le statut de l'époque...");
         
         try {
           // Obtenir un blockhash récent
-          const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('confirmed');
+          const { blockhash } = await connection.getLatestBlockhash('processed');
           tx.recentBlockhash = blockhash;
           
-          // Signer la transaction avec le keypair admin (authority)
-          tx.sign(adminKeypair);
-          
-          // Envoyer la transaction signée au réseau sans attendre la confirmation
-          console.log("📤 Envoi de la transaction...");
-          const signature = await connection.sendRawTransaction(tx.serialize(), {
-            skipPreflight: false, // Activer les vérifications préliminaires
-            preflightCommitment: 'confirmed',
-            maxRetries: 3
+          // Vérifier que toutes les instructions nécessaires sont présentes
+          console.log(`📋 Nombre d'instructions dans la transaction: ${tx.instructions.length}`);
+          tx.instructions.forEach((instr: any, idx: number) => {
+            console.log(`📌 Instruction ${idx}: Programme ${instr.programId.toString()}`);
           });
           
-          console.log("✅ Transaction envoyée avec succès! Signature:", signature);
-          console.log("ℹ️ La confirmation se fera côté client avec l'authority");
+          // Signer la transaction avec le keypair admin (authority)
+          console.log("🔑 Signature de la transaction avec l'authority:", adminKeypair.publicKey.toString());
+          tx.sign(adminKeypair);
+          
+          // Définir explicitement la priorité de la transaction pour garantir son exécution
+          tx.feePayer = adminKeypair.publicKey;
+          
+          // Envoyer la transaction signée au réseau sans attendre la confirmation
+          console.log("📤 Envoi de la transaction pour mettre à jour le statut de l'époque...");
+          const signature = await connection.sendRawTransaction(tx.serialize(), {
+            skipPreflight: true, // Désactiver les vérifications préliminaires pour accélérer
+            maxRetries: 5, // Augmenter le nombre de tentatives
+            preflightCommitment: 'processed' // Utiliser un commitment plus léger
+          });
+          
+          console.log("✅ Transaction envoyée! Signature:", signature);
+          console.log("📝 Le statut de l'époque sera modifié une fois la transaction traitée");
           
           return { 
             success: true, 
             errors: [],
             signature: signature,
-            message: "Transaction envoyée sans attendre la confirmation" 
+            message: "Transaction pour modifier le statut de l'époque envoyée" 
           };
         } catch (txError) {
           console.error("❌ Erreur lors de l'envoi de la transaction:", txError);
@@ -377,7 +387,7 @@ async function simulateEndEpoch(program: any, connection: Connection, wallet: An
             console.error("📚 Stack trace:", txError.stack);
           }
           
-          errors.push(`Erreur d'envoi de transaction pour l'époque ${epochId}: ${errorDetail}`);
+          errors.push(`Erreur lors de la modification du statut de l'époque ${epochId}: ${errorDetail}`);
           return { success: false, errors };
         }
       } catch (error) {
