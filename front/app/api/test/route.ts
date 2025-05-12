@@ -408,14 +408,25 @@ async function getAllEpochs() {
           console.log(`📊 Comptes de type ${accountType}:`, accounts.length);
           
           if (accounts.length > 0) {
-            // Ajouter les comptes avec leur type
-            epochAccounts.push({
-              type: accountType,
-              accounts: accounts.map((acc: any) => ({
-                publicKey: acc.publicKey.toString(),
-                data: acc.account
-              }))
+            // Filtrer pour ne garder que les comptes avec statut "active"
+            const activeAccounts = accounts.filter((acc: any) => {
+              try {
+                return acc.account.status && Object.keys(acc.account.status)[0] === 'active';
+              } catch (err) {
+                return false;
+              }
             });
+            
+            // Ajouter les comptes actifs avec leur type
+            if (activeAccounts.length > 0) {
+              epochAccounts.push({
+                type: accountType,
+                accounts: activeAccounts.map((acc: any) => ({
+                  publicKey: acc.publicKey.toString(),
+                  data: acc.account
+                }))
+              });
+            }
           }
         } catch (error) {
           console.log(`⚠️ Erreur lors de la récupération des comptes ${accountType}:`, error);
@@ -429,30 +440,38 @@ async function getAllEpochs() {
     // @ts-ignore - Nous savons que nous accédons à la propriété epochManagement
     const allEpochs = await program.account.epochManagement.all();
     
-    // Transformer les données pour un format plus lisible
-    const formattedEpochs = allEpochs.map((epoch: any) => {
-      try {
-        return {
-          publicKey: epoch.publicKey.toString(),
-          epochId: epoch.account.epochId?.toString() || 'N/A',
-          startTime: epoch.account.startTime ? 
-            new Date(epoch.account.startTime.toNumber() * 1000).toISOString() : 'N/A',
-          endTime: epoch.account.endTime ? 
-            new Date(epoch.account.endTime.toNumber() * 1000).toISOString() : 'N/A',
-          status: epoch.account.status ? Object.keys(epoch.account.status)[0] : 'N/A',
-          processed: epoch.account.processed !== undefined ? epoch.account.processed : 'N/A'
-        };
-      } catch (err) {
-        return {
-          publicKey: epoch.publicKey.toString(),
-          error: 'Format inattendu',
-          rawData: JSON.stringify(epoch.account)
-        };
-      }
-    });
+    // Transformer les données pour un format plus lisible et filtrer pour ne garder que les époques actives
+    const formattedEpochs = allEpochs
+      .filter((epoch: any) => {
+        try {
+          return epoch.account.status && Object.keys(epoch.account.status)[0] === 'active';
+        } catch (err) {
+          return false;
+        }
+      })
+      .map((epoch: any) => {
+        try {
+          return {
+            publicKey: epoch.publicKey.toString(),
+            epochId: epoch.account.epochId?.toString() || 'N/A',
+            startTime: epoch.account.startTime ? 
+              new Date(epoch.account.startTime.toNumber() * 1000).toISOString() : 'N/A',
+            endTime: epoch.account.endTime ? 
+              new Date(epoch.account.endTime.toNumber() * 1000).toISOString() : 'N/A',
+            status: 'active', // Nous savons déjà que c'est 'active' grâce au filtre
+            processed: epoch.account.processed !== undefined ? epoch.account.processed : 'N/A'
+          };
+        } catch (err) {
+          return {
+            publicKey: epoch.publicKey.toString(),
+            error: 'Format inattendu',
+            rawData: JSON.stringify(epoch.account)
+          };
+        }
+      });
     
-    console.log(`📈 Nombre total d'époques: ${formattedEpochs.length}`);
-    console.log("📋 Liste des époques:", JSON.stringify(formattedEpochs, null, 2));
+    console.log(`📈 Nombre total d'époques actives: ${formattedEpochs.length}`);
+    console.log("📋 Liste des époques actives:", JSON.stringify(formattedEpochs, null, 2));
     
     return formattedEpochs;
   } catch (error) {
