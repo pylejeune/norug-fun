@@ -388,7 +388,7 @@ async function getAllEpochs(connection: Connection, wallet: AnchorWallet) {
     console.log("📊 Récupération des époques...");
     
     // Vérifier si le programme a la méthode account.epochManagement
-    if (!program.account || !program.account.epochManagement) {
+    if (!program.account || !(program.account as any)['epochManagement']) {
       console.log("⚠️ Le programme ne possède pas de compte epochManagement");
       
       // Alternative: essayer avec d'autres noms possibles
