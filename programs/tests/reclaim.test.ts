@@ -22,16 +22,23 @@ describe("Tests de la fonctionnalité reclaim_support", () => {
   let epochPda: PublicKey;
   let proposalPda: PublicKey;
   let userSupportPda: PublicKey;
+  let treasuryPda: PublicKey; // Ajout pour la trésorerie
   let userKp: Keypair; // Le Keypair de l'utilisateur qui supporte et réclame
   let proposalCreatorKp: Keypair; // Le Keypair du créateur de la proposition
   const epochId = generateRandomId();
   const tokenName = "reclaimTestToken";
   const tokenSymbol = "RTT";
-  const supportAmount = new BN(0.5 * LAMPORTS_PER_SOL); // 0.5 SOL
+  const supportAmount = new BN(0.5 * LAMPORTS_PER_SOL); // 0.5 SOL (montant BRUT initial)
+
+  // Constantes pour les frais de support (dupliquées de constants.rs pour usage dans les tests)
+  const SUPPORT_FEE_PERCENTAGE_NUMERATOR = new BN(5);
+  const SUPPORT_FEE_PERCENTAGE_DENOMINATOR = new BN(1000);
+  let TREASURY_SEED: Buffer; // Sera initialisé dans le before
 
   // --- Setup Général (Exécuté une fois avant tous les tests de ce describe) ---
   before(async () => {
     console.log("--- Démarrage du setup général `before` pour reclaim.test.ts ---");
+    TREASURY_SEED = Buffer.from("treasury"); // Initialisation de la seed
     // Initialiser les Keypairs nécessaires
     userKp = Keypair.generate();
     proposalCreatorKp = Keypair.generate(); // Un créateur distinct
@@ -95,6 +102,19 @@ describe("Tests de la fonctionnalité reclaim_support", () => {
 
     // --- Setup initial pour le cas de SUCCÈS: Epoch, Proposal, Support, Close, Reject, Process ---
     console.log("\n--- Configuration spécifique pour le cas de succès ---");
+
+    // Initialiser le PDA de la trésorerie (s'il n'est pas déjà fait par un autre test)
+    [treasuryPda] = PublicKey.findProgramAddressSync([TREASURY_SEED], program.programId);
+    try {
+      await program.account.treasury.fetch(treasuryPda);
+      console.log("   Treasury account already initialized (reclaim.test.ts setup).");
+    } catch (e) {
+      console.log("   Initializing Treasury account (reclaim.test.ts setup)...");
+      await program.methods.initializeTreasury(provider.wallet.publicKey)
+        .accounts({ treasury: treasuryPda, authority: provider.wallet.publicKey, systemProgram: SystemProgram.programId })
+        .rpc();
+    }
+
     // 1. Créer une époque
     const startTime = new BN(Math.floor(Date.now() / 1000) - 60); // Passé
     const endTime = new BN(startTime.toNumber() + 30); // Déjà terminée ou très proche
@@ -103,11 +123,30 @@ describe("Tests de la fonctionnalité reclaim_support", () => {
     console.log(`   Epoch ${epochId.toString()} créée (Success Case).`);
     // 2. Créer une proposition
     [proposalPda] = PublicKey.findProgramAddressSync([Buffer.from("proposal"), proposalCreatorKp.publicKey.toBuffer(), epochId.toArrayLike(Buffer, "le", 8), Buffer.from(tokenName)], program.programId);
-    await program.methods.createProposal(tokenName, tokenSymbol, "Proposal for reclaim test (Success)", null, new BN(1000), 10, new BN(0)).accounts({ creator: proposalCreatorKp.publicKey, tokenProposal: proposalPda, epoch: epochPda, systemProgram: SystemProgram.programId }).signers([proposalCreatorKp]).rpc();
+    await program.methods.createProposal(tokenName, tokenSymbol, "Proposal for reclaim test (Success)", null, new BN(1000), 10, new BN(0))
+      .accounts({ 
+        creator: proposalCreatorKp.publicKey, 
+        tokenProposal: proposalPda, 
+        epoch: epochPda, 
+        treasury: treasuryPda,
+        systemProgram: SystemProgram.programId 
+      })
+      .signers([proposalCreatorKp])
+      .rpc();
     console.log(`   Proposal ${tokenName} créée par ${proposalCreatorKp.publicKey.toBase58()} (Success Case).`);
     // 3. Supporter la proposition
     [userSupportPda] = PublicKey.findProgramAddressSync([Buffer.from("support"), epochId.toArrayLike(Buffer, "le", 8), userKp.publicKey.toBuffer(), proposalPda.toBuffer()], program.programId);
-    await program.methods.supportProposal(supportAmount).accounts({ user: userKp.publicKey, epoch: epochPda, proposal: proposalPda, userSupport: userSupportPda, systemProgram: SystemProgram.programId }).signers([userKp]).rpc();
+    await program.methods.supportProposal(supportAmount)
+      .accounts({ 
+        user: userKp.publicKey, 
+        epoch: epochPda, 
+        proposal: proposalPda, 
+        userSupport: userSupportPda, 
+        treasury: treasuryPda,
+        systemProgram: SystemProgram.programId 
+      })
+      .signers([userKp])
+      .rpc();
     console.log(`   User ${userKp.publicKey.toBase58()} a supporté ${proposalPda.toBase58()} avec ${supportAmount.toString()} lamports (Success Case).`);
     // 4. Attendre et fermer l'époque
     const epochInfo = await program.account.epochManagement.fetch(epochPda);
@@ -143,6 +182,7 @@ describe("Tests de la fonctionnalité reclaim_support", () => {
     let userSupportAccountInfoAfter: anchor.web3.AccountInfo<Buffer> | null;
     let expectedProposalBalance: number;
     let expectedUserBalanceAfter: number;
+    let netAmountActuallySupported: anchor.BN; // Déclarer ici
 
     // Exécuter la transaction reclaim une seule fois pour ce bloc describe
     // (Equivalent à beforeAll)
@@ -154,6 +194,11 @@ describe("Tests de la fonctionnalité reclaim_support", () => {
       const proposalInfo = await program.account.tokenProposal.fetch(proposalPda);
       expect(epochInfo.processed).to.be.true;
       expect(proposalInfo.status).to.deep.equal({ rejected: {} });
+
+      // Récupérer le userSupportAccount pour obtenir le montant net réellement stocké
+      const userSupportAccountBeforeReclaim = await program.account.userProposalSupport.fetch(userSupportPda);
+      netAmountActuallySupported = userSupportAccountBeforeReclaim.amount; // Assigner ici
+      console.log(`   Montant Net réellement supporté et stocké dans UserProposalSupport: ${netAmountActuallySupported.toString()}`);
 
       // Sauvegarder les états avant
       userBalanceBefore = await provider.connection.getBalance(userKp.publicKey);
@@ -183,15 +228,15 @@ describe("Tests de la fonctionnalité reclaim_support", () => {
       proposalBalanceAfter = await provider.connection.getBalance(proposalPda);
       userSupportAccountInfoAfter = await provider.connection.getAccountInfo(userSupportPda); // Devrait être null
 
-      // Calculer les attentes
-      expectedProposalBalance = proposalBalanceBefore - supportAmount.toNumber();
-      const expectedUserGain = supportAmount.toNumber() + userSupportRent;
+      // Calculer les attentes en utilisant le netAmountActuallySupported
+      expectedProposalBalance = proposalBalanceBefore - netAmountActuallySupported.toNumber();
+      const expectedUserGain = netAmountActuallySupported.toNumber() + userSupportRent;
       const txDetails = await provider.connection.getTransaction(reclaimTxSignature, { commitment: 'confirmed', maxSupportedTransactionVersion: 0 });
       const txFee = txDetails?.meta?.fee ?? 5000; // Estimation frais si non récupérable
       expectedUserBalanceAfter = userBalanceBefore + expectedUserGain - txFee;
 
       console.log(`     Balances Avant: User=${userBalanceBefore}, Proposal=${proposalBalanceBefore}, SupportRent=${userSupportRent}`);
-      console.log(`     Montant Réclamé: ${supportAmount.toNumber()}, Gain User Attendu (avec rente): ${expectedUserGain}`);
+      console.log(`     Montant Net Réclamé (depuis UserProposalSupport.amount): ${netAmountActuallySupported.toNumber()}, Gain User Attendu (avec rente): ${expectedUserGain}`);
       console.log(`     Tx Fee: ${txFee}`);
       console.log(`     Balances Après: User=${userBalanceAfter}, Proposal=${proposalBalanceAfter}`);
       console.log(`     Attentes Après: User=${expectedUserBalanceAfter}, Proposal=${expectedProposalBalance}`);
@@ -200,13 +245,17 @@ describe("Tests de la fonctionnalité reclaim_support", () => {
     it("devrait diminuer le solde du compte TokenProposal du montant supporté", () => {
       console.log(`   Vérif Solde Proposal: Attendu=${expectedProposalBalance}, Actuel=${proposalBalanceAfter}`);
       // Utiliser closeTo pour la comparaison de SOL à cause des micro-fluctuations possibles
-      expect(proposalBalanceAfter).to.be.closeTo(expectedProposalBalance, 100); // Tolérance très faible
+      // Le montant réclamé est le netAmountActuallySupported
+      expect(proposalBalanceAfter).to.be.closeTo(proposalBalanceBefore - netAmountActuallySupported.toNumber(), 100);
     });
 
     it("devrait augmenter le solde de l'utilisateur (user) du montant supporté + rente (moins frais tx)", () => {
       console.log(`   Vérif Solde User: Attendu=${expectedUserBalanceAfter}, Actuel=${userBalanceAfter}`);
-      // Tolérance pour les frais de transaction qui peuvent varier légèrement
-      expect(userBalanceAfter).to.be.closeTo(expectedUserBalanceAfter, 50000); // Tolérance raisonnable pour frais tx
+      // Le gain est basé sur netAmountActuallySupported
+      const expectedGainForUser = netAmountActuallySupported.toNumber() + userSupportRent;
+      const txFee = (userBalanceBefore + expectedGainForUser) - userBalanceAfter; // Calcul plus précis des frais de tx
+      console.log(`     Frais de transaction réels (calculés): ${txFee}`);
+      expect(userBalanceAfter).to.be.closeTo(userBalanceBefore + expectedGainForUser - txFee, 100); // Tolérance faible
     });
 
     it("devrait fermer le compte UserProposalSupport (compte inexistant après)", () => {

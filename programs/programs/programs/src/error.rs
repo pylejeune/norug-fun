@@ -84,5 +84,20 @@ pub enum ErrorCode {
 
     #[msg("Could not retrieve bump seed.")]
     CouldNotRetrieveBump,
+
+    #[msg("Ce rôle existe déjà pour ce wallet.")]
+    RoleAlreadyExists,
+
+    #[msg("The maximum number of roles has been reached.")]
+    RolesCapacityExceeded,
+
+    #[msg("A calculation resulted in an overflow.")]
+    CalculationOverflow,
+
+    #[msg("The support amount is insufficient to cover fees.")]
+    AmountTooLowToCoverFees,
+
+    #[msg("The calculated fee amount cannot be zero.")]
+    FeeCannotBeZero,
 }
 

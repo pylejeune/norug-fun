@@ -55,11 +55,61 @@ pub struct UserProposalSupport {
     pub amount: u64,                  // SOL invested
 }
 
+// --- Catégories de la Trésorerie ---
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, PartialEq, Eq, InitSpace, Debug)]
+pub enum TreasuryCategory {
+    Marketing,
+    Team,
+    Operations,
+    Investments,
+    Crank,
+}
+
+// --- Sous-compte de Trésorerie ---
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, InitSpace, Debug)]
+pub struct TreasurySubAccount {
+    pub sol_balance: u64,           // SOL détenu dans ce sous-compte
+    pub last_withdrawal: i64,       // Timestamp du dernier retrait
+}
+
+// --- Nouvelle structure Treasury avec sous-comptes ---
 #[account]
 #[derive(InitSpace)]
 pub struct Treasury {
-    pub authority: Pubkey,     // Public key authorized to manage the treasury
-    pub platform_fees: u64,    // Total platform fees collected in lamports
+    pub authority: Pubkey,          // Public key autorisée à gérer la trésorerie globale
+    pub marketing: TreasurySubAccount,
+    pub team: TreasurySubAccount,
+    pub operations: TreasurySubAccount,
+    pub investments: TreasurySubAccount,
+    pub crank: TreasurySubAccount,
+}
+
+// --- Types de rôles pour la gestion ---
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, PartialEq, Eq, InitSpace, Debug)]
+pub enum RoleType {
+    Admin,
+    CategoryManager(TreasuryCategory),
+    Withdrawer(TreasuryCategory),
+}
+
+// --- Structure d'un rôle ---
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, InitSpace, Debug)]
+pub struct TreasuryRole {
+    pub role_type: RoleType,
+    pub pubkey: Pubkey,             // Détenteur du rôle
+    pub withdrawal_limit: Option<u64>, // Limite de retrait (optionnelle)
+    pub withdrawal_period: Option<i64>, // Période de retrait (optionnelle)
+}
+
+// --- Mapping des rôles ---
+#[account]
+#[derive(InitSpace)]
+pub struct TreasuryRoles {
+    /// List of up to 3 admin authorities allowed to manage roles
+    #[max_len(3)]
+    pub authorities: Vec<Pubkey>,
+    #[max_len(16)]
+    pub roles: Vec<TreasuryRole>,   // Liste des rôles attribués
 }
 
 // --- Nouveau compte de configuration globale ---
