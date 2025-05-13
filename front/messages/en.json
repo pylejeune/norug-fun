@@ -363,7 +363,18 @@
     "invalidAddress": "Invalid address",
     "errorLoadingProposals": "Error loading proposals",
     "addressCopied": "Address copied to clipboard",
-    "copyFailed": "Failed to copy address"
+    "copyFailed": "Failed to copy address",
+    "epochId": "Epoch",
+    "proposalStatus": {
+      "active": "Active",
+      "validated": "Validated",
+      "rejected": "Rejected"
+    },
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next",
+      "showing": "Showing {start} to {end} of {total} tokens"
+    }
   },
   "WalletButton": {
     "connect": "Connect Wallet",
@@ -377,5 +388,10 @@
     "title": "Connect Wallet",
     "moreWallets": "More Wallets",
     "connectMessage": "Connect your wallet to start using NoRug.fun"
+  },
+  "Proposal": {
+    "claimButton": "Claim",
+    "claimSuccess": "Funds claimed successfully!",
+    "claimError": "Error claiming funds"
   }
 }

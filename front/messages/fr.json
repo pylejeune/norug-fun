@@ -360,7 +360,18 @@
     "invalidAddress": "Adresse invalide",
     "errorLoadingProposals": "Erreur lors du chargement des propositions",
     "addressCopied": "Adresse copiée dans le presse-papiers",
-    "copyFailed": "Échec de la copie de l'adresse"
+    "copyFailed": "Échec de la copie de l'adresse",
+    "epochId": "Epoch",
+    "proposalStatus": {
+      "active": "Active",
+      "validated": "Validée",
+      "rejected": "Rejetée"
+    },
+    "pagination": {
+      "previous": "Précédent",
+      "next": "Suivant",
+      "showing": "Affichage de {start} à {end} sur {total} tokens"
+    }
   },
   "WalletButton": {
     "connect": "Connecter Wallet",
@@ -374,5 +385,10 @@
     "title": "Connecter un Wallet",
     "moreWallets": "Plus de Wallets",
     "connectMessage": "Connectez votre wallet pour utiliser NoRug.fun"
+  },
+  "Proposal": {
+    "claimButton": "Récupérer",
+    "claimSuccess": "Fonds récupérés avec succès !",
+    "claimError": "Erreur lors de la récupération des fonds"
   }
 }
