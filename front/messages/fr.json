@@ -361,5 +361,18 @@
     "errorLoadingProposals": "Erreur lors du chargement des propositions",
     "addressCopied": "Adresse copiée dans le presse-papiers",
     "copyFailed": "Échec de la copie de l'adresse"
+  },
+  "WalletButton": {
+    "connect": "Connecter Wallet",
+    "copyAddress": "Copier l'adresse",
+    "addressCopied": "Adresse copiée",
+    "copyFailed": "Échec de la copie",
+    "viewProfile": "Voir le profil",
+    "disconnect": "Déconnecter"
+  },
+  "WalletModal": {
+    "title": "Connecter un Wallet",
+    "moreWallets": "Plus de Wallets",
+    "connectMessage": "Connectez votre wallet pour utiliser NoRug.fun"
   }
 }
