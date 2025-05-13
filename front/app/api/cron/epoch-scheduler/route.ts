@@ -80,6 +80,12 @@ interface TestResults {
   timestamp?: string;
   environment?: string;
   rpcEndpoint?: string;
+  newEpochCreated?: {
+    success: boolean;
+    epochId?: string;
+    signature?: string;
+    errors?: string[];
+  };
 }
 
 // Fonction pour générer le keypair admin à partir de la seed stockée en Base64
@@ -130,6 +136,99 @@ function getProgram(connection: Connection, wallet?: AnchorWallet | null) {
   } catch (error) {
     console.error("❌ Error creating program:", error);
     return null;
+  }
+}
+
+// Fonction pour simuler l'appel à startEpoch
+async function createNewEpoch(program: any, connection: Connection, wallet: AnchorWallet, adminKeypair: Keypair): Promise<{success: boolean, errors: string[], signature?: string, message?: string, epochId?: string}> {
+  const errors: string[] = [];
+  
+  if (program && program.methods && program.methods.startEpoch) {
+    console.log(`🔄 Création d'une nouvelle époque...`);
+    
+    try {
+      // Générer un nouvel ID d'époque (timestamp actuel)
+      const newEpochId = new BN(Math.floor(Date.now() / 1000));
+      
+      // Définir les heures de début et de fin
+      const startTime = new BN(Math.floor(Date.now() / 1000));
+      const oneDay = 60 * 60 * 24; // 24 heures en secondes
+      const endTime = new BN(startTime.toNumber() + oneDay * 7); // 7 jours
+      
+      // Dériver la PDA pour epoch_management avec l'epochId
+      const [epochManagementPDA] = await PublicKey.findProgramAddressSync(
+        [
+          Buffer.from("epoch"),
+          newEpochId.toArrayLike(Buffer, "le", 8)
+        ],
+        program.programId
+      );
+      
+      console.log("🔑 PDA généré pour la nouvelle epoch_management:", epochManagementPDA.toString());
+      console.log(`⏰ Paramètres de la nouvelle époque:`);
+      console.log(`- ID: ${newEpochId.toString()}`);
+      console.log(`- Début: ${new Date(startTime.toNumber() * 1000).toISOString()}`);
+      console.log(`- Fin: ${new Date(endTime.toNumber() * 1000).toISOString()}`);
+      
+      try {
+        // Construction des comptes pour la transaction
+        const accounts = {
+          authority: adminKeypair.publicKey,
+          epochManagement: epochManagementPDA,
+          systemProgram: SystemProgram.programId,
+        };
+        
+        console.log("📋 Comptes utilisés pour la transaction:", accounts);
+        console.log("🔑 Signataire utilisé:", adminKeypair.publicKey.toString());
+        
+        // Utilisation directe de la méthode Anchor
+        console.log("🚀 Envoi de la transaction avec program.methods.startEpoch...");
+        const signature = await program.methods
+          .startEpoch(newEpochId, startTime, endTime)
+          .accounts(accounts)
+          .signers([adminKeypair])
+          .rpc();
+        
+        console.log(`✅ Transaction pour créer une nouvelle époque envoyée! Signature: ${signature}`);
+        
+        // Vérification immédiate sans attendre
+        try {
+          const status = await connection.getSignatureStatus(signature);
+          console.log(`📊 Statut initial: ${JSON.stringify(status || {})}`);
+        } catch (statusErr) {
+          console.log(`⚠️ Impossible de récupérer le statut initial: ${statusErr instanceof Error ? statusErr.message : String(statusErr)}`);
+        }
+        
+        console.log(`\n📝 La nouvelle époque a été créée sur le réseau.`);
+        console.log(`📝 Vérifiez son statut sur l'explorateur: https://explorer.solana.com/tx/${signature}?cluster=devnet`);
+        
+        return {
+          success: true,
+          errors: [],
+          signature: signature,
+          epochId: newEpochId.toString(),
+          message: "Nouvelle époque créée. Le traitement peut prendre quelques instants."
+        };
+      } catch (error) {
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        console.error("❌ Erreur lors de la création de l'époque:", errorMsg);
+        
+        errors.push(`Erreur lors de la création de l'époque: ${errorMsg}`);
+        return { success: false, errors };
+      }
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      console.error("❌ Erreur lors de la préparation de l'instruction:", errorMsg);
+      
+      errors.push(`Erreur de préparation pour la création de l'époque: ${errorMsg}`);
+      return { success: false, errors };
+    }
+  } else {
+    const errorMsg = "La méthode startEpoch n'est pas disponible sur le programme";
+    console.error("❌ " + errorMsg);
+    
+    errors.push(errorMsg);
+    return { success: false, errors };
   }
 }
 
@@ -262,6 +361,50 @@ async function checkAndSimulateEndEpoch(): Promise<TestResults> {
         const errorMsg = error instanceof Error ? error.message : String(error);
         console.error(`❌ Erreur lors de la vérification de l'époque:`, errorMsg);
         results.details.errors.push(`Erreur lors de la vérification d'une époque: ${errorMsg}`);
+      }
+    }
+
+    // Vérifier s'il reste des époques actives après les fermetures
+    // Si toutes les époques ont été fermées, créer une nouvelle époque
+    console.log(`\n--- Vérification du besoin de créer une nouvelle époque ---`);
+    
+    // Récupérer à nouveau les époques pour s'assurer que nous avons l'état le plus récent
+    const updatedEpochs = await getAllEpochs(connection, wallet);
+    let remainingActiveEpochs = 0;
+    
+    // Compter les époques actives restantes
+    if (Array.isArray(updatedEpochs)) {
+      remainingActiveEpochs = updatedEpochs.filter(epoch => epoch.status === 'active').length;
+    } else if (updatedEpochs && typeof updatedEpochs === 'object') {
+      Object.values(updatedEpochs).forEach((group: any) => {
+        if (group.accounts && Array.isArray(group.accounts)) {
+          remainingActiveEpochs += group.accounts.length;
+        }
+      });
+    }
+    
+    console.log(`📊 Époques actives restantes après fermeture: ${remainingActiveEpochs}`);
+    
+    // S'il n'y a plus d'époques actives, en créer une nouvelle
+    if (remainingActiveEpochs === 0) {
+      console.log(`⚠️ Aucune époque active restante. Création d'une nouvelle époque...`);
+      
+      const createResult = await createNewEpoch(program, connection, wallet, adminKeypair);
+      if (createResult.success) {
+        console.log(`✅ Nouvelle époque créée avec l'ID: ${createResult.epochId}`);
+        // Ajouter l'information dans les résultats
+        results.newEpochCreated = {
+          success: true,
+          epochId: createResult.epochId,
+          signature: createResult.signature
+        };
+      } else {
+        console.error(`❌ Échec de la création d'une nouvelle époque:`, createResult.errors);
+        results.details.errors = results.details.errors.concat(createResult.errors);
+        results.newEpochCreated = {
+          success: false,
+          errors: createResult.errors
+        };
       }
     }
     
@@ -533,6 +676,15 @@ export async function GET(request: NextRequest): Promise<Response> {
     const results = await checkAndSimulateEndEpoch();
     console.log(`\n[${requestId}] ✅ Vérification terminée`);
     console.log(`[${requestId}] 📊 Résumé: ${results.details.epochsChecked} époque(s) vérifiée(s), ${results.details.epochsToClose} époque(s) à fermer, ${results.details.epochsClosed} époque(s) fermée(s)`);
+    
+    // Ajouter information sur la création d'une nouvelle époque si applicable
+    if (results.newEpochCreated) {
+      console.log(`[${requestId}] 🆕 Nouvelle époque créée: ${results.newEpochCreated.success ? 'Oui' : 'Non'}`);
+      if (results.newEpochCreated.success) {
+        console.log(`[${requestId}] 🆔 ID de la nouvelle époque: ${results.newEpochCreated.epochId}`);
+      }
+    }
+    
     return new Response(JSON.stringify({
       ...results,
       timestamp: new Date().toISOString(),
