@@ -383,6 +383,19 @@
       "showing": "Showing {start} to {end} of {total} tokens"
     }
   },
+  "WalletButton": {
+    "connect": "Connect Wallet",
+    "copyAddress": "Copy Address",
+    "addressCopied": "Address copied to clipboard",
+    "copyFailed": "Failed to copy address",
+    "viewProfile": "View Profile",
+    "disconnect": "Disconnect"
+  },
+  "WalletModal": {
+    "title": "Connect Wallet",
+    "moreWallets": "More Wallets",
+    "connectMessage": "Connect your wallet to start using NoRug.fun"
+  },
   "Proposal": {
     "claimButton": "Claim",
     "claimSuccess": "Funds claimed successfully!",
