@@ -153,7 +153,7 @@ async function createNewEpoch(program: any, connection: Connection, wallet: Anch
       // Définir les heures de début et de fin
       const startTime = new BN(Math.floor(Date.now() / 1000));
       const oneDay = 60 * 60 * 24; // 24 heures en secondes
-      const endTime = new BN(startTime.toNumber() + oneDay * 7); // 7 jours
+      const endTime = new BN(startTime.toNumber() + oneDay); // 24 heures (1 jour)
       
       // Dériver la PDA pour epoch_management avec l'epochId
       const [epochManagementPDA] = await PublicKey.findProgramAddressSync(
