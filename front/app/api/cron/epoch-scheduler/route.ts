@@ -387,23 +387,58 @@ async function checkAndSimulateEndEpoch(): Promise<TestResults> {
     
     // S'il n'y a plus d'époques actives, en créer une nouvelle
     if (remainingActiveEpochs === 0) {
-      console.log(`⚠️ Aucune époque active restante. Création d'une nouvelle époque...`);
+      console.log(`⚠️ Aucune époque active restante. Vérification du solde du wallet admin...`);
       
-      const createResult = await createNewEpoch(program, connection, wallet, adminKeypair);
-      if (createResult.success) {
-        console.log(`✅ Nouvelle époque créée avec l'ID: ${createResult.epochId}`);
-        // Ajouter l'information dans les résultats
-        results.newEpochCreated = {
-          success: true,
-          epochId: createResult.epochId,
-          signature: createResult.signature
-        };
-      } else {
-        console.error(`❌ Échec de la création d'une nouvelle époque:`, createResult.errors);
-        results.details.errors = results.details.errors.concat(createResult.errors);
+      // Vérifier le solde du wallet admin avant de créer une nouvelle époque
+      try {
+        const adminBalance = await connection.getBalance(adminKeypair.publicKey);
+        const adminBalanceSOL = adminBalance / 1_000_000_000; // Convertir lamports en SOL
+        console.log(`💰 Solde du wallet admin: ${adminBalanceSOL} SOL (${adminBalance} lamports)`);
+        
+        // Estimation du coût minimum pour créer un compte (époque)
+        // La taille approximative du compte EpochManagement + frais de transaction
+        const rentExemptionAmount = await connection.getMinimumBalanceForRentExemption(100); // Taille approximative en bytes
+        const estimatedFees = 5000; // Frais de transaction estimés en lamports
+        const estimatedCost = rentExemptionAmount + estimatedFees;
+        
+        console.log(`💸 Coût estimé pour créer une époque: ${estimatedCost / 1_000_000_000} SOL (${estimatedCost} lamports)`);
+        
+        if (adminBalance >= estimatedCost) {
+          console.log(`✅ Le wallet admin a suffisamment de fonds pour créer une nouvelle époque`);
+          
+          const createResult = await createNewEpoch(program, connection, wallet, adminKeypair);
+          if (createResult.success) {
+            console.log(`✅ Nouvelle époque créée avec l'ID: ${createResult.epochId}`);
+            // Ajouter l'information dans les résultats
+            results.newEpochCreated = {
+              success: true,
+              epochId: createResult.epochId,
+              signature: createResult.signature
+            };
+          } else {
+            console.error(`❌ Échec de la création d'une nouvelle époque:`, createResult.errors);
+            results.details.errors = results.details.errors.concat(createResult.errors);
+            results.newEpochCreated = {
+              success: false,
+              errors: createResult.errors
+            };
+          }
+        } else {
+          const errorMsg = `Le wallet admin n'a pas assez de fonds pour créer une nouvelle époque. Nécessaire: ${estimatedCost / 1_000_000_000} SOL, Disponible: ${adminBalanceSOL} SOL`;
+          console.error(`❌ ${errorMsg}`);
+          results.details.errors.push(errorMsg);
+          results.newEpochCreated = {
+            success: false,
+            errors: [errorMsg]
+          };
+        }
+      } catch (error) {
+        const errorMsg = `Erreur lors de la vérification du solde: ${error instanceof Error ? error.message : String(error)}`;
+        console.error(`❌ ${errorMsg}`);
+        results.details.errors.push(errorMsg);
         results.newEpochCreated = {
           success: false,
-          errors: createResult.errors
+          errors: [errorMsg]
         };
       }
     }
