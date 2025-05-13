@@ -180,7 +180,11 @@
     "errorLoadingSupports": "Erreur lors du chargement des supporters",
     "ofTokens": "des tokens",
     "creatorWallet": "Portefeuille du créateur",
-    "showingTop20": "affichage du top 20"
+    "showingTop20": "affichage du top 20",
+    "proposalNotActive": "Cette proposition n'est plus active",
+    "claimButton": "Récupérer",
+    "claimSuccess": "Fonds récupérés avec succès !",
+    "claimError": "Erreur lors de la récupération des fonds"
   },
   "EpochForm": {
     "title": "Créer un Nouvel Epoch",
@@ -360,6 +364,25 @@
     "invalidAddress": "Adresse invalide",
     "errorLoadingProposals": "Erreur lors du chargement des propositions",
     "addressCopied": "Adresse copiée dans le presse-papiers",
-    "copyFailed": "Échec de la copie de l'adresse"
+    "copyFailed": "Échec de la copie de l'adresse",
+    "epochId": "Epoch",
+    "proposalStatus": {
+      "active": "Active",
+      "validated": "Validée",
+      "rejected": "Rejetée"
+    },
+    "claimButton": "Récupérer",
+    "claimSuccess": "Fonds récupérés avec succès !",
+    "claimError": "Erreur lors de la récupération des fonds",
+    "pagination": {
+      "previous": "Précédent",
+      "next": "Suivant",
+      "showing": "Affichage de {start} à {end} sur {total} tokens"
+    }
+  },
+  "Proposal": {
+    "claimButton": "Récupérer",
+    "claimSuccess": "Fonds récupérés avec succès !",
+    "claimError": "Erreur lors de la récupération des fonds"
   }
 }
