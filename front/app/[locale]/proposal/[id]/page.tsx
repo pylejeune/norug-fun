@@ -2,11 +2,7 @@
 
 import ProposalSupportList from "@/components/proposal/ProposalSupportList";
 import BackButton from "@/components/ui/BackButton";
-import {
-  ProposalStatus,
-  ProposalSupport,
-  useProgram,
-} from "@/context/ProgramContext";
+import { ProposalSupport, useProgram } from "@/context/ProgramContext";
 import { ipfsToHttp } from "@/utils/ImageStorage";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey } from "@solana/web3.js";
@@ -16,6 +12,12 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+
+type ProposalStatusType = {
+  active?: {};
+  validated?: {};
+  rejected?: {};
+};
 
 export type DetailedProposal = {
   id: string;
@@ -29,10 +31,11 @@ export type DetailedProposal = {
   totalSupply: number;
   creatorAllocation: number;
   supporterAllocation: number;
-  status: ProposalStatus;
+  status: ProposalStatusType;
   totalContributions: number;
   lockupPeriod: number;
   publicKey: PublicKey;
+  supporters: PublicKey[];
 };
 
 export default function ProposalDetailPage() {
@@ -40,8 +43,12 @@ export default function ProposalDetailPage() {
   const t = useTranslations("ProposalDetail");
   const { locale, id } = useParams();
   const { publicKey } = useWallet();
-  const { getProposalDetails, supportProposal, getProposalSupports } =
-    useProgram();
+  const {
+    getProposalDetails,
+    supportProposal,
+    getProposalSupports,
+    reclaimSupport,
+  } = useProgram();
 
   // 2. States
   const [supportAmount, setSupportAmount] = useState<string>("");
@@ -50,6 +57,7 @@ export default function ProposalDetailPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [supports, setSupports] = useState<ProposalSupport[]>([]);
   const [isLoadingSupports, setIsLoadingSupports] = useState(true);
+  const [isCurrentUser, setIsCurrentUser] = useState(false);
 
   // 3. Callbacks
   const loadProposal = useCallback(async () => {
@@ -76,10 +84,11 @@ export default function ProposalDetailPage() {
         totalSupply: details.totalSupply,
         creatorAllocation: details.creatorAllocation,
         supporterAllocation: details.supporterAllocation,
-        status: details.status as ProposalStatus,
+        status: details.status as unknown as ProposalStatusType,
         totalContributions: details.totalContributions,
         lockupPeriod: details.lockupPeriod,
         publicKey: details.publicKey,
+        supporters: details.supporters,
       });
     } catch (error) {
       toast.error(t("errorLoadingProposal"));
@@ -127,6 +136,19 @@ export default function ProposalDetailPage() {
     [proposal, supportAmount, supportProposal, t, loadSupports]
   );
 
+  const handleReclaimSupport = async () => {
+    if (!publicKey || !proposal) return;
+
+    try {
+      await reclaimSupport(proposal.publicKey, parseInt(proposal.epoch_id));
+      toast.success(t("claimSuccess"));
+      await loadProposal();
+    } catch (error) {
+      console.error("Failed to reclaim support:", error);
+      toast.error(t("claimError"));
+    }
+  };
+
   // 4. Effects
   useEffect(() => {
     loadProposal();
@@ -138,6 +160,11 @@ export default function ProposalDetailPage() {
     }
   }, [proposal, loadSupports]);
 
+  useEffect(() => {
+    if (!publicKey) return;
+    setIsCurrentUser(publicKey.toBase58() === id);
+  }, [publicKey, id]);
+
   // 5. Render helpers
   const formatNumber = useCallback(
     (number: number) => {
@@ -147,25 +174,22 @@ export default function ProposalDetailPage() {
   );
 
   // Helper function to get status string
-  const getStatusString = (status: any): ProposalStatus => {
-    if (typeof status === "object") {
-      // If status is an object, take the first key
-      return Object.keys(status)[0] as ProposalStatus;
-    }
-    return status as ProposalStatus;
+  const getStatusString = (status: any): string => {
+    if ("active" in status) return "active";
+    if ("validated" in status) return "validated";
+    if ("rejected" in status) return "rejected";
+    return "unknown";
   };
 
   // Helper function to get status color
-  const getStatusColor = (status: ProposalStatus) => {
-    switch (status) {
-      case "active":
-        return "bg-blue-500 text-white";
-      case "validated":
-        return "bg-green-500 text-white";
-      case "rejected":
-        return "bg-red-500 text-white";
-    }
+  const getStatusColor = (status: ProposalStatusType) => {
+    if ("active" in status) return "bg-blue-500 text-white";
+    if ("validated" in status) return "bg-green-500 text-white";
+    if ("rejected" in status) return "bg-red-500 text-white";
+    return "bg-gray-500 text-white";
   };
+
+  const isFullyLoaded = !loading && !isLoadingSupports && proposal && supports;
 
   // Loading state
   if (loading) {
@@ -230,77 +254,100 @@ export default function ProposalDetailPage() {
 
             {/* Stats Section */}
             <div className="flex flex-col items-center lg:items-start gap-2 mb-6">
-              <p className="text-xl font-medium text-green-500">
-                {t("solanaRaised", {
-                  amount: proposal.solRaised.toLocaleString(locale, {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  }),
-                })}
-              </p>
-              <p
-                className={`text-base font-medium ${
-                  getStatusString(proposal.status) === "validated"
-                    ? "text-green-500"
-                    : getStatusString(proposal.status) === "active"
-                    ? "text-blue-500"
-                    : "text-red-500"
-                }`}
-              >
-                {t(`status.${getStatusString(proposal.status)}`)}
-              </p>
-
-              {/* Support Form */}
-              {publicKey ? (
-                getStatusString(proposal.status) !== "active" ? (
-                  <p className="text-sm text-gray-400">
-                    {t("proposalNotActive")}
+              {isFullyLoaded ? (
+                <>
+                  <p className="text-xl font-medium text-green-500">
+                    {t("solanaRaised", {
+                      amount: proposal.solRaised.toLocaleString(locale, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      }),
+                    })}
                   </p>
-                ) : (
-                  <div className="w-full max-w-sm mt-4">
-                    <form
-                      onSubmit={handleSupport}
-                      className="flex flex-col gap-3"
-                    >
-                      <div className="relative">
-                        <input
-                          type="number"
-                          value={supportAmount}
-                          onChange={(e) => setSupportAmount(e.target.value)}
-                          min="0.001"
-                          step="0.001"
-                          required
-                          placeholder="0.0"
-                          className="w-full bg-gray-800/50 border border-gray-700 rounded-lg px-4 py-2 pr-12 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
-                          SOL
-                        </span>
+                  <p
+                    className={`text-base font-medium ${
+                      getStatusString(proposal.status) === "validated"
+                        ? "text-green-500"
+                        : getStatusString(proposal.status) === "active"
+                        ? "text-blue-500"
+                        : "text-red-500"
+                    }`}
+                  >
+                    {t(`status.${getStatusString(proposal.status)}`)}
+                  </p>
+
+                  {/* Support Form */}
+                  {publicKey ? (
+                    "active" in proposal.status ? (
+                      <div className="w-full max-w-sm mt-4">
+                        <form
+                          onSubmit={handleSupport}
+                          className="flex flex-col gap-3"
+                        >
+                          <div className="relative">
+                            <input
+                              type="number"
+                              value={supportAmount}
+                              onChange={(e) => setSupportAmount(e.target.value)}
+                              min="0.001"
+                              step="0.001"
+                              required
+                              placeholder="0.0"
+                              className="w-full bg-gray-800/50 border border-gray-700 rounded-lg px-4 py-2 pr-12 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+                              SOL
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-400">
+                            {t("minAmount")}
+                          </p>
+                          <button
+                            type="submit"
+                            disabled={
+                              isSubmitting ||
+                              !supportAmount ||
+                              parseFloat(supportAmount) < 0.001
+                            }
+                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {isSubmitting ? t("supporting") : t("support")}
+                          </button>
+                        </form>
                       </div>
-                      <p className="text-xs text-gray-400">{t("minAmount")}</p>
+                    ) : (
+                      "rejected" in proposal.status &&
+                      supports.some(
+                        (support) =>
+                          support.user.toBase58() === publicKey.toBase58() &&
+                          support.amount > 0
+                      ) && (
+                        <button
+                          onClick={handleReclaimSupport}
+                          disabled={loading}
+                          className="w-full px-6 py-3 rounded-lg font-medium 
+                                  bg-red-900/50 hover:bg-red-900 text-red-100 
+                                  transition-colors hover:bg-opacity-80"
+                        >
+                          {t("claimButton")}
+                        </button>
+                      )
+                    )
+                  ) : (
+                    "active" in proposal.status && (
                       <button
-                        type="submit"
-                        disabled={
-                          isSubmitting ||
-                          !supportAmount ||
-                          parseFloat(supportAmount) < 0.001
-                        }
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        onClick={() => {}}
+                        className="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors"
                       >
-                        {isSubmitting ? t("supporting") : t("support")}
+                        {t("connectToSupport")}
                       </button>
-                    </form>
-                  </div>
-                )
+                    )
+                  )}
+                </>
               ) : (
-                <button
-                  onClick={() => {
-                    /* add wallet connect action */
-                  }}
-                  className="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors"
-                >
-                  {t("connectToSupport")}
-                </button>
+                <div className="w-full flex justify-center py-4">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white" />
+                </div>
               )}
             </div>
           </div>
