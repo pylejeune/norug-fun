@@ -180,7 +180,11 @@
     "errorLoadingSupports": "Error loading supporters",
     "ofTokens": "of tokens",
     "creatorWallet": "Creator's wallet",
-    "showingTop20": "showing top 20"
+    "showingTop20": "showing top 20",
+    "proposalNotActive": "This proposal is no longer active",
+    "claimButton": "Claim",
+    "claimSuccess": "Funds claimed successfully!",
+    "claimError": "Error claiming funds"
   },
   "EpochForm": {
     "title": "Create New Epoch",
@@ -370,6 +374,9 @@
       "validated": "Validated",
       "rejected": "Rejected"
     },
+    "claimButton": "Claim",
+    "claimSuccess": "Funds claimed successfully!",
+    "claimError": "Error claiming funds",
     "pagination": {
       "previous": "Previous",
       "next": "Next",

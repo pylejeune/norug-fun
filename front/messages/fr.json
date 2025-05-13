@@ -180,7 +180,11 @@
     "errorLoadingSupports": "Erreur lors du chargement des supporters",
     "ofTokens": "des tokens",
     "creatorWallet": "Portefeuille du créateur",
-    "showingTop20": "affichage du top 20"
+    "showingTop20": "affichage du top 20",
+    "proposalNotActive": "Cette proposition n'est plus active",
+    "claimButton": "Récupérer",
+    "claimSuccess": "Fonds récupérés avec succès !",
+    "claimError": "Erreur lors de la récupération des fonds"
   },
   "EpochForm": {
     "title": "Créer un Nouvel Epoch",
@@ -367,6 +371,10 @@
       "validated": "Validée",
       "rejected": "Rejetée"
     },
+
+    "claimButton": "Récupérer",
+    "claimSuccess": "Fonds récupérés avec succès !",
+    "claimError": "Erreur lors de la récupération des fonds",
     "pagination": {
       "previous": "Précédent",
       "next": "Suivant",
