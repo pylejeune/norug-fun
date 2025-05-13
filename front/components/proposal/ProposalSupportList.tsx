@@ -1,6 +1,7 @@
 import { DetailedProposal } from "@/app/[locale]/proposal/[id]/page";
 import { ProposalSupport, useProgram } from "@/context/ProgramContext";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -80,10 +81,13 @@ export default function ProposalSupportList({
                     <span className="text-sm text-gray-500">#{index + 1}</span>
                     <div>
                       <div className="flex items-center gap-2">
-                        <p className="font-mono text-sm text-gray-400">
+                        <Link
+                          href={`/${locale}/profile/${support.user.toString()}`}
+                          className="font-mono text-sm text-gray-400 hover:underline hover:text-[#e6d3ba] transition-colors"
+                        >
                           {support.user.toBase58().slice(0, 4)}...
                           {support.user.toBase58().slice(-4)}
-                        </p>
+                        </Link>
                         {isCreator && (
                           <span
                             className="text-green-400 cursor-help"

@@ -17,6 +17,7 @@ describe("Simulation du traitement d'époque par le Crank", () => {
   const { provider, program } = setupTestEnvironment();
   let adminAuthority: Keypair;
   let programConfigPda: PublicKey;
+  let treasuryPda: PublicKey; // Ajout de la variable pour le PDA de la trésorerie
   const testEpochId = generateRandomId(); // ID unique pour cette suite de tests
 
   before(async () => {
@@ -65,6 +66,31 @@ describe("Simulation du traitement d'époque par le Crank", () => {
         }
     }
      // --- Fin Initialisation ProgramConfig ---
+
+    // --- Initialisation de Treasury ---
+    [treasuryPda] = PublicKey.findProgramAddressSync(
+      [Buffer.from("treasury")],
+      program.programId
+    );
+    try {
+      await program.methods
+        .initializeTreasury(provider.wallet.publicKey) // Utiliser le portefeuille du provider comme autorité
+        .accounts({
+          treasury: treasuryPda,
+          authority: provider.wallet.publicKey, // Le payeur est aussi l'autorité ici
+          systemProgram: SystemProgram.programId,
+        })
+        .rpc();
+      console.log("Treasury initialisé pour la simulation Crank.");
+    } catch (e) {
+      console.log("Treasury probablement déjà initialisé.");
+      // Optionnel : vérifier l'autorité si nécessaire, mais moins critique ici que pour ProgramConfig
+      const treasuryAccount = await program.account.treasury.fetch(treasuryPda);
+      if (!treasuryAccount.authority.equals(provider.wallet.publicKey)) {
+        console.warn("L'autorité de la trésorerie on-chain ne correspond pas à provider.wallet.publicKey !");
+      }
+    }
+    // --- Fin Initialisation Treasury ---
   });
 
   it("devrait traiter une époque avec >10 propositions, trier, et mettre à jour les statuts correctement", async () => {
@@ -113,7 +139,13 @@ describe("Simulation du traitement d'époque par le Crank", () => {
             5, 
             new anchor.BN(0)
             )
-            .accounts({ creator: provider.wallet.publicKey, tokenProposal: pda, epoch: epochPda, systemProgram: SystemProgram.programId })
+            .accounts({ 
+              creator: provider.wallet.publicKey, 
+              tokenProposal: pda, 
+              epoch: epochPda, 
+              treasury: treasuryPda, // Ajout du compte treasury
+              systemProgram: SystemProgram.programId 
+            })
             .rpc();
     }
     console.log(`      ${numberOfProposals} propositions créées.`);
@@ -139,6 +171,7 @@ describe("Simulation du traitement d'époque par le Crank", () => {
                     epoch: epochPda,
                     proposal: propData.pda,
                     userSupport: userSupportPda,
+                    treasury: treasuryPda, // Ajout du compte treasury
                     systemProgram: SystemProgram.programId,
                 })
                 .signers([supporter]) // Le supporter signe

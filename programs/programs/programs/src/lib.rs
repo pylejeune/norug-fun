@@ -5,12 +5,14 @@ pub mod constants;
 pub mod error;
 pub mod instructions;
 pub mod state;
+pub mod utils;
 
 use anchor_lang::prelude::*;
 
 pub use constants::*;
 pub use instructions::*;
 pub use state::*;
+pub use utils::*;
 
 declare_id!("3HBzNutk8DrRfffCS74S55adJAjgY8NHrWXgRtABaSbF");
 
@@ -24,7 +26,7 @@ pub mod programs {
         ctx: Context<InitializeProgramConfig>,
         admin_authority: Pubkey,
     ) -> Result<()> {
-        initialize_program_config::handler(ctx, admin_authority)
+        instructions::initialize_program_config::handler(ctx, admin_authority)
     }
 
     pub fn initialize(_ctx: Context<Initialize>) -> Result<()> {
@@ -84,5 +86,58 @@ pub mod programs {
         ctx: Context<ReclaimSupport>
     ) -> Result<()> {
         reclaim_support::handler(ctx)
+    }
+
+    pub fn initialize_treasury_roles(
+        ctx: Context<InitializeTreasuryRoles>,
+        authorities: Vec<Pubkey>,
+    ) -> Result<()> {
+        instructions::manage_treasury_role::initialize_treasury_roles(ctx, authorities)
+    }
+
+    pub fn initialize_treasury(ctx: Context<InitializeTreasury>, initial_authority: Pubkey) -> Result<()> {
+        instructions::initialize_treasury::initialize_treasury(ctx, initial_authority)
+    }
+
+    pub fn add_admin(
+        ctx: Context<AddAdmin>,
+        new_admin: Pubkey,
+    ) -> Result<()> {
+        manage_treasury_role::add_admin(ctx, new_admin)
+    }
+
+    pub fn remove_admin(
+        ctx: Context<RemoveAdmin>,
+        admin_to_remove: Pubkey,
+    ) -> Result<()> {
+        manage_treasury_role::remove_admin(ctx, admin_to_remove)
+    }
+
+    pub fn add_treasury_role(
+        ctx: Context<AddTreasuryRole>,
+        role_type: RoleType,
+        pubkey: Pubkey,
+        withdrawal_limit: Option<u64>,
+        withdrawal_period: Option<i64>,
+    ) -> Result<()> {
+        manage_treasury_role::add_treasury_role(ctx, role_type, pubkey, withdrawal_limit, withdrawal_period)
+    }
+
+    pub fn remove_treasury_role(
+        ctx: Context<RemoveTreasuryRole>,
+        role_type: RoleType,
+        pubkey: Pubkey,
+    ) -> Result<()> {
+        manage_treasury_role::remove_treasury_role(ctx, role_type, pubkey)
+    }
+
+    pub fn update_treasury_role(
+        ctx: Context<UpdateTreasuryRole>,
+        role_type: RoleType,
+        pubkey: Pubkey,
+        withdrawal_limit: Option<u64>,
+        withdrawal_period: Option<i64>,
+    ) -> Result<()> {
+        manage_treasury_role::update_treasury_role(ctx, role_type, pubkey, withdrawal_limit, withdrawal_period)
     }
 }
