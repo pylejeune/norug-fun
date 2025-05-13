@@ -1,12 +1,20 @@
 {
     "version": 2,
+    "headers": [
+        {
+            "source": "/api/cron/epoch-scheduler",
+            "headers": [
+                {
+                    "key": "Authorization",
+                    "value": "Bearer ${API_SECRET_KEY}"
+                }
+            ]
+        }
+    ],
     "crons": [
       {
         "path": "/api/cron/epoch-scheduler",
-        "schedule": "0 0 * * *",
-        "headers": {
-          "Authorization": "Bearer ${API_SECRET_KEY}"
-        }
+        "schedule": "0 0 * * *"
       }
     ]
   } 
