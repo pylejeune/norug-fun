@@ -89,7 +89,6 @@ type ProgramContextType = {
     userAddress: PublicKey
   ) => Promise<ProposalState[]>;
   getProposalSupports: (proposalId: string) => Promise<ProposalSupport[]>;
-  reclaimSupport: (proposal: PublicKey, epochId: number) => Promise<string>;
 };
 
 const ProgramContext = createContext<ProgramContextType | null>(null);
@@ -307,7 +306,7 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
         const [proposalPDA] = PublicKey.findProgramAddressSync(
           [
             Buffer.from("proposal"),
-            wallet.publicKey.toBytes(),
+            wallet.publicKey.toBuffer(),
             new BN(epochId).toArrayLike(Buffer, "le", 8),
             Buffer.from(tokenName),
           ],
@@ -438,8 +437,8 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
             [
               Buffer.from("support"),
               new BN(proposal.epochId).toArrayLike(Buffer, "le", 8),
-              wallet.publicKey.toBytes(),
-              proposal.publicKey.toBytes(),
+              wallet.publicKey.toBuffer(),
+              proposal.publicKey.toBuffer(),
             ],
             program.programId
           );
@@ -468,8 +467,8 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
           [
             Buffer.from("support"),
             new BN(proposal.epochId).toArrayLike(Buffer, "le", 8),
-            wallet.publicKey.toBytes(),
-            proposal.publicKey.toBytes(),
+            wallet.publicKey.toBuffer(),
+            proposal.publicKey.toBuffer(),
           ],
           program.programId
         );
@@ -481,7 +480,7 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
             user: wallet.publicKey,
             epoch: epochState.publicKey,
             proposal: proposal.publicKey,
-            user_support: userSupportPDA,
+            userSupport: userSupportPDA,
             system_program: SystemProgram.programId,
           })
           .rpc();
@@ -531,8 +530,8 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
               [
                 Buffer.from("support"),
                 new BN(proposal.epochId).toArrayLike(Buffer, "le", 8),
-                userAddress.toBytes(),
-                proposal.publicKey.toBytes(),
+                userAddress.toBuffer(),
+                proposal.publicKey.toBuffer(),
               ],
               program.programId
             );
@@ -630,47 +629,6 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
     [program]
   );
 
-  const reclaimSupport = async (
-    proposal: PublicKey,
-    epochId: number
-  ): Promise<string> => {
-    if (!wallet?.publicKey || !program) throw new Error("Wallet not connected");
-
-    try {
-      // Dériver le PDA pour user support
-      const [userSupportPda] = PublicKey.findProgramAddressSync(
-        [
-          Buffer.from("support"),
-          new BN(epochId).toArrayLike(Buffer, "le", 8),
-          wallet.publicKey.toBytes(),
-          proposal.toBytes(),
-        ],
-        program.programId
-      );
-
-      const [epochPda] = PublicKey.findProgramAddressSync(
-        [Buffer.from("epoch"), new BN(epochId).toArrayLike(Buffer, "le", 8)],
-        program.programId
-      );
-
-      const tx = await (program as Program).methods
-        .reclaimSupport()
-        .accounts({
-          user: wallet.publicKey,
-          tokenProposal: proposal,
-          user_support: userSupportPda,
-          epoch_management: epochPda,
-          system_program: SystemProgram.programId,
-        })
-        .rpc();
-
-      return tx;
-    } catch (error) {
-      console.error("Error reclaiming support:", error);
-      throw error;
-    }
-  };
-
   const value = useMemo(
     () => ({
       program,
@@ -690,7 +648,6 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
       getUserProposals,
       getUserSupportedProposals,
       getProposalSupports,
-      reclaimSupport,
     }),
     [program, isConnected, error, success]
   );

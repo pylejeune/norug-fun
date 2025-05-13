@@ -4,11 +4,19 @@ import {
   ConnectionProvider,
   WalletProvider,
 } from "@solana/wallet-adapter-react";
-import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
+import {
+  BitgetWalletAdapter,
+  CoinbaseWalletAdapter,
+  LedgerWalletAdapter,
+  MathWalletAdapter,
+  PhantomWalletAdapter,
+  SolflareWalletAdapter,
+  TorusWalletAdapter,
+} from "@solana/wallet-adapter-wallets";
 import React, { useMemo } from "react";
+import { WalletModalProvider } from "./CustomWalletModalProvider";
 // import { UnsafeBurnerWalletAdapter } from "@solana/wallet-adapter-wallets";
 
-import "@solana/wallet-adapter-react-ui/styles.css";
 import { clusterApiUrl } from "@solana/web3.js";
 
 // Récupérer l'environnement depuis les variables d'environnement
@@ -27,7 +35,18 @@ export default function AppWalletProvider({
   console.log(SOLANA_NETWORK);
   const network = endpoint;
 
-  const wallets = useMemo(() => [], []);
+  const wallets = useMemo(
+    () => [
+      new PhantomWalletAdapter(),
+      new SolflareWalletAdapter(),
+      new BitgetWalletAdapter(),
+      new LedgerWalletAdapter(),
+      new CoinbaseWalletAdapter(),
+      new TorusWalletAdapter(),
+      new MathWalletAdapter(),
+    ],
+    []
+  );
 
   return (
     <ConnectionProvider endpoint={network}>

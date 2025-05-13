@@ -180,11 +180,7 @@
     "errorLoadingSupports": "Erreur lors du chargement des supporters",
     "ofTokens": "des tokens",
     "creatorWallet": "Portefeuille du créateur",
-    "showingTop20": "affichage du top 20",
-    "proposalNotActive": "Cette proposition n'est plus active",
-    "claimButton": "Récupérer",
-    "claimSuccess": "Fonds récupérés avec succès !",
-    "claimError": "Erreur lors de la récupération des fonds"
+    "showingTop20": "affichage du top 20"
   },
   "EpochForm": {
     "title": "Créer un Nouvel Epoch",
@@ -371,14 +367,24 @@
       "validated": "Validée",
       "rejected": "Rejetée"
     },
-    "claimButton": "Récupérer",
-    "claimSuccess": "Fonds récupérés avec succès !",
-    "claimError": "Erreur lors de la récupération des fonds",
     "pagination": {
       "previous": "Précédent",
       "next": "Suivant",
       "showing": "Affichage de {start} à {end} sur {total} tokens"
     }
+  },
+  "WalletButton": {
+    "connect": "Connecter Wallet",
+    "copyAddress": "Copier l'adresse",
+    "addressCopied": "Adresse copiée",
+    "copyFailed": "Échec de la copie",
+    "viewProfile": "Voir le profil",
+    "disconnect": "Déconnecter"
+  },
+  "WalletModal": {
+    "title": "Connecter un Wallet",
+    "moreWallets": "Plus de Wallets",
+    "connectMessage": "Connectez votre wallet pour utiliser NoRug.fun"
   },
   "Proposal": {
     "claimButton": "Récupérer",
