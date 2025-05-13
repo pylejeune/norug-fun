@@ -141,26 +141,28 @@ export const WalletModal = () => {
             {/* Dropdown for other wallets */}
             {showAllWallets && (
               <div className="absolute left-0 right-0 mt-1 rounded-lg border border-[#4a5334] bg-[#2d3720] overflow-hidden">
-                {otherWallets.map((wallet) => (
-                  <button
-                    key={wallet.adapter.name}
-                    onClick={() => handleWalletClick(wallet.adapter.name)}
-                    className="flex w-full items-center gap-3 p-3 hover:bg-[#3d4829] transition-colors"
-                  >
-                    <div className="relative h-6 w-6 rounded-full bg-[#1f2714] p-1">
-                      <Image
-                        src={wallet.adapter.icon}
-                        alt={wallet.adapter.name}
-                        width={24}
-                        height={24}
-                        className="h-full w-full"
-                      />
-                    </div>
-                    <span className="flex-1 text-left font-medium text-[#e6d3ba]">
-                      {wallet.adapter.name}
-                    </span>
-                  </button>
-                ))}
+                <div className="max-h-[200px] overflow-y-auto scrollbar-thin scrollbar-thumb-[#4a5334] scrollbar-track-[#1f2714]">
+                  {otherWallets.map((wallet) => (
+                    <button
+                      key={wallet.adapter.name}
+                      onClick={() => handleWalletClick(wallet.adapter.name)}
+                      className="flex w-full items-center gap-3 p-3 hover:bg-[#3d4829] transition-colors"
+                    >
+                      <div className="relative h-6 w-6 rounded-full bg-[#1f2714] p-1 flex items-center justify-center">
+                        <Image
+                          src={wallet.adapter.icon}
+                          alt={wallet.adapter.name}
+                          width={24}
+                          height={24}
+                          className="h-full w-full"
+                        />
+                      </div>
+                      <span className="flex-1 text-left font-medium text-[#e6d3ba]">
+                        {wallet.adapter.name}
+                      </span>
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
           </div>
