@@ -1,14 +1,45 @@
 import * as anchor from "@coral-xyz/anchor";
-import { PublicKey, Keypair, Connection, SystemProgram, Transaction } from "@solana/web3.js";
-import { BN, Program, AnchorProvider } from "@coral-xyz/anchor";
+import { PublicKey, Connection, Keypair, SystemProgram, Transaction } from "@solana/web3.js";
+import { BN } from "@coral-xyz/anchor";
 import { NextRequest } from "next/server";
 import { fileURLToPath } from 'url';
 import path from 'path';
 import { randomUUID } from 'crypto';
+import idlJson from "../shared/programs.json";
+import { 
+  getAdminKeypair, 
+  getProgram, 
+  createAnchorWallet, 
+  verifyAuthToken,
+  RPC_ENDPOINT,
+  idl as sharedIdl,
+  AnchorWallet
+} from "../shared/utils";
 
 // Polyfill pour __dirname en ESM
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Résultats des tests
+interface TestResults {
+  success: boolean;
+  details: {
+    epochsChecked: number;
+    epochsToClose: number;
+    epochsClosed: number;
+    errors: string[];
+  };
+  epochs?: any[];
+  timestamp?: string;
+  environment?: string;
+  rpcEndpoint?: string;
+  newEpochCreated?: {
+    success: boolean;
+    epochId?: string;
+    signature?: string;
+    errors?: string[];
+  };
+}
 
 // Définir une interface complète pour l'IDL pour résoudre les problèmes de typage
 interface IDLInstruction {
@@ -27,11 +58,7 @@ interface IDLInstruction {
   }[];
 }
 
-// Importer l'IDL localement 
-import idlJson from "../shared/programs.json";
-
 // Configuration simple
-const RPC_ENDPOINT = process.env.SOLANA_RPC_ENDPOINT || "https://api.devnet.solana.com";
 
 // Note: La structure de l'IDL diffère entre front/context/idl/programs.json (adresse à la racine)
 // et front/app/api/epoch-scheduler/idl/programs.json (adresse dans metadata)
@@ -60,13 +87,6 @@ console.log("📝 IDL Details:", {
 // Log des instructions disponibles
 console.log("📝 Instructions disponibles:", idl.instructions.map((ix: any) => ix.name));
 
-// Définir l'interface pour le wallet Anchor
-interface AnchorWallet {
-  publicKey: PublicKey;
-  signTransaction: <T>(tx: T) => Promise<T>;
-  signAllTransactions: <T>(txs: T[]) => Promise<T[]>;
-}
-
 // Résultats des tests
 interface TestResults {
   success: boolean;
@@ -86,57 +106,6 @@ interface TestResults {
     signature?: string;
     errors?: string[];
   };
-}
-
-// Fonction pour générer le keypair admin à partir de la seed stockée en Base64
-function getAdminKeypair(): Keypair {
-  if (!ADMIN_SEED_BASE64) {
-    throw new Error("ADMIN_SEED_BASE64 n'est pas défini dans les variables d'environnement ou est vide");
-  }
-  
-  try {
-    const seedBuffer = Buffer.from(ADMIN_SEED_BASE64, 'base64');
-    if (seedBuffer.length === 32) {
-        console.log("✅ Utilisation de Keypair.fromSeed() car seedBuffer fait 32 bytes.");
-        return Keypair.fromSeed(seedBuffer);
-    } else if (seedBuffer.length === 64) {
-        console.log("✅ Utilisation de Keypair.fromSecretKey() car seedBuffer fait 64 bytes.");
-        return Keypair.fromSecretKey(seedBuffer);
-    } else {
-        console.error(`❌ Taille de seedBuffer inattendue: ${seedBuffer.length} bytes. Devrait être 32 ou 64.`);
-        throw new Error(`Taille de seedBuffer après décodage Base64 inattendue: ${seedBuffer.length}`);
-    }
-  } catch (error) {
-    console.error("❌ Erreur lors de la génération du keypair admin (détail):", error instanceof Error ? error.message : String(error));
-    throw new Error(`Impossible de générer le keypair admin: ${error instanceof Error ? error.message : String(error)}`);
-  }
-}
-
-// Fonction pour obtenir le programme Anchor - Identique à program.ts
-function getProgram(connection: Connection, wallet?: AnchorWallet | null) {
-  try {
-    // Création du provider avec le wallet et la connexion
-    const provider = new AnchorProvider(
-      connection,
-      wallet ?? ({} as AnchorWallet), // allow "read-only" mode comme dans program.ts
-      { preflightCommitment: "processed" }
-    );
-
-    if (wallet) {
-      console.log("⚙️ Création du provider avec wallet:", wallet.publicKey.toString());
-    } else {
-      console.log("⚙️ Création du provider en mode lecture seule");
-    }
-    
-    // Création du programme - EXACTEMENT comme dans program.ts
-    console.log("⚙️ Création du programme avec IDL complet...");
-    const program = new Program(idl as any, provider);
-    
-    return program;
-  } catch (error) {
-    console.error("❌ Error creating program:", error);
-    return null;
-  }
 }
 
 // Fonction pour simuler l'appel à startEpoch
@@ -259,23 +228,7 @@ async function checkAndSimulateEndEpoch(): Promise<TestResults> {
     }
     
     // Création du wallet avec le keypair admin
-    const wallet: AnchorWallet = {
-      publicKey: adminKeypair.publicKey,
-      signTransaction: async <T>(tx: T): Promise<T> => {
-        if (tx instanceof Transaction) {
-          tx.partialSign(adminKeypair);
-        }
-        return tx;
-      },
-      signAllTransactions: async <T>(txs: T[]): Promise<T[]> => {
-        return txs.map(tx => {
-          if (tx instanceof Transaction) {
-            tx.partialSign(adminKeypair);
-          }
-          return tx;
-        });
-      },
-    };
+    const wallet = createAnchorWallet(adminKeypair);
     
     const program = getProgram(connection, wallet);
     
@@ -664,25 +617,6 @@ async function getAllEpochs(connection: Connection, wallet: AnchorWallet) {
     console.error("❌ Erreur lors de la récupération des époques:", error);
     return [];
   }
-}
-
-// Fonction pour vérifier le token d'authentification
-function verifyAuthToken(request: NextRequest): boolean {
-  const authHeader = request.headers.get('authorization');
-  if (!authHeader) {
-    console.error('❌ En-tête Authorization manquant');
-    return false;
-  }
-
-  const token = authHeader.replace('Bearer ', '');
-  const expectedToken = process.env.API_SECRET_KEY;
-
-  if (!expectedToken) {
-    console.error('❌ API_SECRET_KEY non défini dans les variables d\'environnement');
-    return false;
-  }
-
-  return token === expectedToken;
 }
 
 // Handler pour les requêtes GET
