@@ -28,7 +28,7 @@ interface IDLInstruction {
 }
 
 // Importer l'IDL localement 
-import idlJson from "./idl/programs.json";
+import idlJson from "../shared/programs.json";
 
 // Configuration simple
 const RPC_ENDPOINT = process.env.SOLANA_RPC_ENDPOINT || "https://api.devnet.solana.com";

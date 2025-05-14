@@ -12,7 +12,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Importer l'IDL directement 
-import idlJson from "./idl/programs.json";
+import idlJson from "../shared/programs.json";
 
 // Configuration simple
 const RPC_ENDPOINT = process.env.SOLANA_RPC_ENDPOINT || "https://api.devnet.solana.com";
