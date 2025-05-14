@@ -87,11 +87,13 @@ export function TotalSupplyInfoDialog({ children }: { children: React.ReactNode 
       <DialogContent className="sm:max-w-lg md:max-w-xl bg-white dark:bg-neutral-900 opacity-100">
         <DialogHeader>
           <DialogTitle>{t("title")}</DialogTitle>
-          <DialogDescription className="mb-4 space-y-2">
+          <DialogDescription asChild className="mb-1">
             <p>{t("descriptionPart1")}</p>
-            <p>
-              <strong>{t("formula")}</strong>
-            </p>
+          </DialogDescription>
+          <DialogDescription asChild className="mb-1">
+            <p><strong>{t("formula")}</strong></p>
+          </DialogDescription>
+          <DialogDescription asChild className="mb-4">
             <p>
               {t.rich("descriptionPart2Interactive", {
                 underline: (chunks) => <u>{chunks}</u>,
