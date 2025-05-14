@@ -318,7 +318,7 @@ export default function ProposalForm() {
             <TotalSupplyInfoDialog>
               <DialogTrigger asChild>
                 <button type="button" aria-label={t("totalSupplyInfoAriaLabel")} className="flex items-center">
-                  <Info className="h-4 w-4 text-muted-foreground cursor-pointer hover:text-foreground transition-colors" />
+                  <Info className="h-5 w-5 text-primary cursor-pointer hover:opacity-80 transition-opacity" />
                 </button>
               </DialogTrigger>
             </TotalSupplyInfoDialog>
