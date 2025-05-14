@@ -64,7 +64,21 @@
     "uploadingImage": "Envoi de l'image...",
     "imageUploaded": "Image envoyée avec succès",
     "imageUploadError": "Erreur lors de l'envoi de l'image",
-    "submitProposal": "Créer la proposition"
+    "submitProposal": "Créer la proposition",
+    "totalSupplyPlaceholder": "Ex: 1000000",
+    "totalSupplyInfoAriaLabel": "Plus d'informations sur l'Offre Totale",
+    "totalSupplyInfo": {
+      "title": "Comprendre l'Offre Totale",
+      "descriptionPart1": "L'Offre Totale (Total Supply) est le nombre total de tokens qui existeront pour votre projet.",
+      "formula": "Prix par Token = Capitalisation Boursière Cible / Offre Totale",
+      "descriptionPart2": "Une offre totale plus élevée signifie généralement un prix par token plus bas pour une même valeur de projet (Capitalisation Boursière). Utilisez les exemples ci-dessous pour comprendre les prix potentiels.",
+      "tableTitle": "Exemples de Scénarios",
+      "tableCaption": "Prix estimé du token en fonction de l'Offre Totale et de la Capitalisation Boursière Cible.",
+      "tableHeadTotalSupply": "Offre Totale",
+      "tableHeadMarketCap": "Cap. Boursière Cible",
+      "tableHeadEstimatedPrice": "Prix Est./Token",
+      "closeButton": "Fermer"
+    }
   },
   "EpochManagement": {
     "title": "Gestion des Epochs",

@@ -64,7 +64,21 @@
     "uploadingImage": "Uploading image...",
     "imageUploaded": "Image uploaded successfully",
     "imageUploadError": "Error uploading image",
-    "submitProposal": "Create Proposal"
+    "submitProposal": "Create Proposal",
+    "totalSupplyPlaceholder": "e.g., 1000000",
+    "totalSupplyInfoAriaLabel": "More information about Total Supply",
+    "totalSupplyInfo": {
+      "title": "Understanding Total Supply",
+      "descriptionPart1": "The 'Total Supply' is the total number of tokens that will ever exist for your project.",
+      "formula": "Price per Token = Target Market Cap / Total Supply",
+      "descriptionPart2": "A higher total supply generally means a lower price per token for the same project value (Market Cap). Use the examples below to understand potential pricing.",
+      "tableTitle": "Example Scenarios",
+      "tableCaption": "Estimated token price based on Total Supply and Target Market Cap.",
+      "tableHeadTotalSupply": "Total Supply",
+      "tableHeadMarketCap": "Target Market Cap",
+      "tableHeadEstimatedPrice": "Est. Price/Token",
+      "closeButton": "Close"
+    }
   },
   "EpochManagement": {
     "title": "Epoch Management",

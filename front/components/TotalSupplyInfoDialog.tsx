@@ -9,15 +9,15 @@ import {
   DialogTitle,
   // DialogTrigger, // Sera utilisé dans ProposalForm.tsx
 } from "@/components/ui/dialog"
-// import {
-//   Table,
-//   TableBody,
-//   TableCaption,
-//   TableCell,
-//   TableHead,
-//   TableHeader,
-//   TableRow,
-// } from "@/components/ui/table" // À décommenter une fois table.tsx ajouté
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table" // À décommenter une fois table.tsx ajouté
 import { useTranslations } from "next-intl"
 
 // Définition des props si nécessaire à l'avenir
@@ -39,7 +39,7 @@ export function TotalSupplyInfoDialog({ children }: { children: React.ReactNode 
   return (
     <Dialog>
       {children} {/* DialogTrigger sera passé ici depuis ProposalForm */}
-      <DialogContent className="sm:max-w-md md:max-w-lg">
+      <DialogContent className="sm:max-w-md md:max-w-lg bg-white dark:bg-neutral-900 opacity-100">
         <DialogHeader>
           <DialogTitle>{t("title")}</DialogTitle>
           <DialogDescription>
@@ -53,28 +53,25 @@ export function TotalSupplyInfoDialog({ children }: { children: React.ReactNode 
         
         <div className="mt-4">
           <h3 className="text-md font-semibold mb-2">{t("tableTitle")}</h3>
-          {/* <Table> */}
-          {/*   <TableCaption>{t("tableCaption")}</TableCaption> */}
-          {/*   <TableHeader> */}
-          {/*     <TableRow> */}
-          {/*       <TableHead>{t("tableHeadTotalSupply")}</TableHead> */}
-          {/*       <TableHead>{t("tableHeadMarketCap")}</TableHead> */}
-          {/*       <TableHead className="text-right">{t("tableHeadEstimatedPrice")}</TableHead> */}
-          {/*     </TableRow> */}
-          {/*   </TableHeader> */}
-          {/*   <TableBody> */}
-          {/*     {exampleScenarios.map((scenario) => ( */}
-          {/*       <TableRow key={scenario.id}> */}
-          {/*         <TableCell>{scenario.totalSupply}</TableCell> */}
-          {/*         <TableCell>{scenario.marketCap}</TableCell> */}
-          {/*         <TableCell className="text-right">{scenario.estimatedPrice}</TableCell> */}
-          {/*       </TableRow> */}
-          {/*     ))} */}
-          {/*   </TableBody> */}
-          {/* </Table> */}
-          <p className="text-sm text-muted-foreground p-4 border rounded-md">
-            {t("tablePlaceholder")}
-          </p>
+          <Table>
+            <TableCaption>{t("tableCaption")}</TableCaption>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t("tableHeadTotalSupply")}</TableHead>
+                <TableHead>{t("tableHeadMarketCap")}</TableHead>
+                <TableHead className="text-right">{t("tableHeadEstimatedPrice")}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {exampleScenarios.map((scenario) => (
+                <TableRow key={scenario.id}>
+                  <TableCell>{scenario.totalSupply}</TableCell>
+                  <TableCell>{scenario.marketCap}</TableCell>
+                  <TableCell className="text-right">{scenario.estimatedPrice}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </div>
         
         {/* DialogFooter n'est pas strictement nécessaire si le X de fermeture suffit */}
