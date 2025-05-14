@@ -4,6 +4,10 @@
       {
         "path": "/api/cron/epoch-scheduler",
         "schedule": "0 0 * * *"
+      },
+      {
+        "path": "/api/cron/crank",
+        "schedule": "0 1 * * *"
       }
     ]
   }
