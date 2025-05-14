@@ -68,16 +68,26 @@
     "totalSupplyPlaceholder": "e.g., 1000000",
     "totalSupplyInfoAriaLabel": "More information about Total Supply",
     "totalSupplyInfo": {
-      "title": "Understanding Total Supply",
+      "title": "Understanding Total Supply & Price",
       "descriptionPart1": "The 'Total Supply' is the total number of tokens that will ever exist for your project.",
-      "formula": "Price per Token = Target Market Cap / Total Supply",
-      "descriptionPart2": "A higher total supply generally means a lower price per token for the same project value (Market Cap). Use the examples below to understand potential pricing.",
+      "formula": " Price per Token = Target Market Cap / Total Supply ",
+      "descriptionPart2Interactive": "<underline>A supply that is too low will result in a high token price, which can discourage buyers.</underline>",
       "tableTitle": "Example Scenarios",
       "tableCaption": "Estimated token price based on Total Supply and Target Market Cap.",
       "tableHeadTotalSupply": "Total Supply",
       "tableHeadMarketCap": "Target Market Cap",
       "tableHeadEstimatedPrice": "Est. Price/Token",
-      "closeButton": "Close"
+      "closeButton": "Close",
+      "totalSupplyLabel": "Adjust Total Supply",
+      "marketCapLabel": "Adjust Target Market Cap*",
+      "estimatedPriceLabel": "Estimated Price per Token",
+      "invalidSupplyForPrice": "Invalid total supply for price calculation",
+      "marketCapStagesTitle": "*Memecoin Market Cap Stages",
+      "marketCapStageLaunch": "Launch / Small Buzz: $50k - $500k",
+      "marketCapStageSuccess": "Notable Success / Virality: $500k - $5M",
+      "marketCapStageHugeSuccess": "Huge Success / CEX Listing: $5M - $50M+",
+      "marketCapDisclaimer": "These figures are indicative and can vary greatly.",
+      "pumpFunReference": "Note: Tokens on Pump.fun always have a total supply of 1 billion."
     }
   },
   "EpochManagement": {

@@ -68,16 +68,26 @@
     "totalSupplyPlaceholder": "Ex: 1000000",
     "totalSupplyInfoAriaLabel": "Plus d'informations sur l'Offre Totale",
     "totalSupplyInfo": {
-      "title": "Comprendre l'Offre Totale",
+      "title": "Comprendre l'Offre Totale & le Prix",
       "descriptionPart1": "L'Offre Totale (Total Supply) est le nombre total de tokens qui existeront pour votre projet.",
-      "formula": "Prix par Token = Capitalisation Boursière Cible / Offre Totale",
-      "descriptionPart2": "Une offre totale plus élevée signifie généralement un prix par token plus bas pour une même valeur de projet (Capitalisation Boursière). Utilisez les exemples ci-dessous pour comprendre les prix potentiels.",
+      "formula": " Prix par Token = Capitalisation Boursière Cible / Offre Totale ",
+      "descriptionPart2Interactive": "<underline>Une supply trop faible donnera un prix élevé au token ce qui peut décourager les acheteurs.</underline>",
       "tableTitle": "Exemples de Scénarios",
       "tableCaption": "Prix estimé du token en fonction de l'Offre Totale et de la Capitalisation Boursière Cible.",
       "tableHeadTotalSupply": "Offre Totale",
       "tableHeadMarketCap": "Cap. Boursière Cible",
       "tableHeadEstimatedPrice": "Prix Est./Token",
-      "closeButton": "Fermer"
+      "closeButton": "Fermer",
+      "totalSupplyLabel": "Ajuster l'Offre Totale",
+      "marketCapLabel": "Ajuster la Cap. Boursière Cible*",
+      "estimatedPriceLabel": "Prix Estimé par Token",
+      "invalidSupplyForPrice": "Offre totale invalide pour le calcul du prix",
+      "marketCapStagesTitle": "*Phases de Market Cap d'un Memecoin",
+      "marketCapStageLaunch": "Lancement / Petit Buzz : 50k - 500k $",
+      "marketCapStageSuccess": "Succès notable / Viralité : 500k - 5M $",
+      "marketCapStageHugeSuccess": "Énorme Succès / Listing CEX : 5M - 50M+ $",
+      "marketCapDisclaimer": "Ces chiffres sont indicatifs et peuvent varier considérablement.",
+      "pumpFunReference": "Note : Les tokens sur Pump.fun ont toujours une offre totale de 1 milliard."
     }
   },
   "EpochManagement": {
