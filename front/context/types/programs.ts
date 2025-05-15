@@ -14,6 +14,90 @@ export type Programs = {
   },
   "instructions": [
     {
+      "name": "addAdmin",
+      "discriminator": [
+        177,
+        236,
+        33,
+        205,
+        124,
+        152,
+        55,
+        186
+      ],
+      "accounts": [
+        {
+          "name": "treasuryRoles",
+          "writable": true
+        },
+        {
+          "name": "authority",
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "newAdmin",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
+      "name": "addTreasuryRole",
+      "discriminator": [
+        250,
+        167,
+        53,
+        191,
+        17,
+        177,
+        200,
+        116
+      ],
+      "accounts": [
+        {
+          "name": "treasuryRoles",
+          "docs": [
+            "The TreasuryRoles account (must be mutable)"
+          ],
+          "writable": true
+        },
+        {
+          "name": "authority",
+          "docs": [
+            "The admin authority (must be present in authorities)"
+          ],
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "roleType",
+          "type": {
+            "defined": {
+              "name": "roleType"
+            }
+          }
+        },
+        {
+          "name": "pubkey",
+          "type": "pubkey"
+        },
+        {
+          "name": "withdrawalLimit",
+          "type": {
+            "option": "u64"
+          }
+        },
+        {
+          "name": "withdrawalPeriod",
+          "type": {
+            "option": "i64"
+          }
+        }
+      ]
+    },
+    {
       "name": "createProposal",
       "discriminator": [
         132,
@@ -67,6 +151,27 @@ export type Programs = {
         },
         {
           "name": "epoch"
+        },
+        {
+          "name": "treasury",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
         },
         {
           "name": "systemProgram",
@@ -159,59 +264,6 @@ export type Programs = {
       ]
     },
     {
-      "name": "getEpochState",
-      "discriminator": [
-        143,
-        2,
-        34,
-        250,
-        77,
-        45,
-        31,
-        154
-      ],
-      "accounts": [
-        {
-          "name": "epochManagement"
-        }
-      ],
-      "args": [
-        {
-          "name": "epochId",
-          "type": "u64"
-        }
-      ]
-    },
-    {
-      "name": "getProposalDetails",
-      "discriminator": [
-        236,
-        135,
-        27,
-        97,
-        207,
-        192,
-        173,
-        128
-      ],
-      "accounts": [
-        {
-          "name": "proposal",
-          "writable": true
-        },
-        {
-          "name": "systemProgram",
-          "address": "11111111111111111111111111111111"
-        }
-      ],
-      "args": [
-        {
-          "name": "proposalId",
-          "type": "u64"
-        }
-      ]
-    },
-    {
       "name": "initialize",
       "discriminator": [
         175,
@@ -276,6 +328,116 @@ export type Programs = {
       ]
     },
     {
+      "name": "initializeTreasury",
+      "discriminator": [
+        124,
+        186,
+        211,
+        195,
+        85,
+        165,
+        129,
+        166
+      ],
+      "accounts": [
+        {
+          "name": "treasury",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "initialAuthority",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
+      "name": "initializeTreasuryRoles",
+      "discriminator": [
+        127,
+        138,
+        198,
+        114,
+        99,
+        90,
+        115,
+        181
+      ],
+      "accounts": [
+        {
+          "name": "treasuryRoles",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121,
+                  95,
+                  114,
+                  111,
+                  108,
+                  101,
+                  115
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "authorities",
+          "type": {
+            "vec": "pubkey"
+          }
+        }
+      ]
+    },
+    {
       "name": "markEpochProcessed",
       "discriminator": [
         210,
@@ -317,6 +479,194 @@ export type Programs = {
         }
       ],
       "args": []
+    },
+    {
+      "name": "reclaimSupport",
+      "discriminator": [
+        23,
+        123,
+        152,
+        130,
+        171,
+        255,
+        2,
+        10
+      ],
+      "accounts": [
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "tokenProposal",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  112,
+                  111,
+                  115,
+                  97,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "token_proposal.creator",
+                "account": "tokenProposal"
+              },
+              {
+                "kind": "account",
+                "path": "token_proposal.epoch_id",
+                "account": "tokenProposal"
+              },
+              {
+                "kind": "account",
+                "path": "token_proposal.token_name",
+                "account": "tokenProposal"
+              }
+            ]
+          }
+        },
+        {
+          "name": "userProposalSupport",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  117,
+                  112,
+                  112,
+                  111,
+                  114,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "token_proposal.epoch_id",
+                "account": "tokenProposal"
+              },
+              {
+                "kind": "account",
+                "path": "user"
+              },
+              {
+                "kind": "account",
+                "path": "tokenProposal"
+              }
+            ]
+          }
+        },
+        {
+          "name": "epochManagement",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  112,
+                  111,
+                  99,
+                  104
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "token_proposal.epoch_id",
+                "account": "tokenProposal"
+              }
+            ]
+          }
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "removeAdmin",
+      "discriminator": [
+        74,
+        202,
+        71,
+        106,
+        252,
+        31,
+        72,
+        183
+      ],
+      "accounts": [
+        {
+          "name": "treasuryRoles",
+          "writable": true
+        },
+        {
+          "name": "authority",
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "adminToRemove",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
+      "name": "removeTreasuryRole",
+      "discriminator": [
+        90,
+        106,
+        204,
+        106,
+        66,
+        58,
+        239,
+        74
+      ],
+      "accounts": [
+        {
+          "name": "treasuryRoles",
+          "docs": [
+            "The TreasuryRoles account (must be mutable)"
+          ],
+          "writable": true
+        },
+        {
+          "name": "authority",
+          "docs": [
+            "The admin authority (must be present in authorities)"
+          ],
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "roleType",
+          "type": {
+            "defined": {
+              "name": "roleType"
+            }
+          }
+        },
+        {
+          "name": "pubkey",
+          "type": "pubkey"
+        }
+      ]
     },
     {
       "name": "startEpoch",
@@ -437,6 +787,27 @@ export type Programs = {
           }
         },
         {
+          "name": "treasury",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
           "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         }
@@ -486,6 +857,61 @@ export type Programs = {
           }
         }
       ]
+    },
+    {
+      "name": "updateTreasuryRole",
+      "discriminator": [
+        76,
+        67,
+        55,
+        141,
+        212,
+        110,
+        148,
+        140
+      ],
+      "accounts": [
+        {
+          "name": "treasuryRoles",
+          "docs": [
+            "The TreasuryRoles account (must be mutable)"
+          ],
+          "writable": true
+        },
+        {
+          "name": "authority",
+          "docs": [
+            "The admin authority (must be present in authorities)"
+          ],
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "roleType",
+          "type": {
+            "defined": {
+              "name": "roleType"
+            }
+          }
+        },
+        {
+          "name": "pubkey",
+          "type": "pubkey"
+        },
+        {
+          "name": "withdrawalLimit",
+          "type": {
+            "option": "u64"
+          }
+        },
+        {
+          "name": "withdrawalPeriod",
+          "type": {
+            "option": "i64"
+          }
+        }
+      ]
     }
   ],
   "accounts": [
@@ -529,6 +955,32 @@ export type Programs = {
       ]
     },
     {
+      "name": "treasury",
+      "discriminator": [
+        238,
+        239,
+        123,
+        238,
+        89,
+        1,
+        168,
+        253
+      ]
+    },
+    {
+      "name": "treasuryRoles",
+      "discriminator": [
+        68,
+        16,
+        45,
+        143,
+        74,
+        61,
+        98,
+        193
+      ]
+    },
+    {
       "name": "userProposalSupport",
       "discriminator": [
         255,
@@ -554,19 +1006,6 @@ export type Programs = {
         233,
         164,
         252
-      ]
-    },
-    {
-      "name": "proposalDetailsRetrieved",
-      "discriminator": [
-        81,
-        200,
-        254,
-        55,
-        73,
-        7,
-        79,
-        217
       ]
     }
   ],
@@ -690,6 +1129,61 @@ export type Programs = {
       "code": 6023,
       "name": "unauthorized",
       "msg": "Unauthorized: Only the admin can perform this action."
+    },
+    {
+      "code": 6024,
+      "name": "proposalNotRejected",
+      "msg": "La proposition doit être rejetée pour pouvoir réclamer les fonds."
+    },
+    {
+      "code": 6025,
+      "name": "proposalMismatch",
+      "msg": "Le compte de support ne correspond pas à la proposition fournie."
+    },
+    {
+      "code": 6026,
+      "name": "nothingToReclaim",
+      "msg": "Il n'y a aucun montant à réclamer dans ce compte de support."
+    },
+    {
+      "code": 6027,
+      "name": "insufficientProposalFunds",
+      "msg": "Fonds insuffisants dans le compte de la proposition pour effectuer le remboursement."
+    },
+    {
+      "code": 6028,
+      "name": "epochNotProcessedYet",
+      "msg": "L'époque n'a pas encore été marquée comme traitée par le crank."
+    },
+    {
+      "code": 6029,
+      "name": "couldNotRetrieveBump",
+      "msg": "Could not retrieve bump seed."
+    },
+    {
+      "code": 6030,
+      "name": "roleAlreadyExists",
+      "msg": "Ce rôle existe déjà pour ce wallet."
+    },
+    {
+      "code": 6031,
+      "name": "rolesCapacityExceeded",
+      "msg": "The maximum number of roles has been reached."
+    },
+    {
+      "code": 6032,
+      "name": "calculationOverflow",
+      "msg": "A calculation resulted in an overflow."
+    },
+    {
+      "code": 6033,
+      "name": "amountTooLowToCoverFees",
+      "msg": "The support amount is insufficient to cover fees."
+    },
+    {
+      "code": 6034,
+      "name": "feeCannotBeZero",
+      "msg": "The calculated fee amount cannot be zero."
     }
   ],
   "types": [
@@ -771,72 +1265,6 @@ export type Programs = {
       }
     },
     {
-      "name": "proposalDetailsRetrieved",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "epochId",
-            "type": "u64"
-          },
-          {
-            "name": "creator",
-            "type": "pubkey"
-          },
-          {
-            "name": "tokenName",
-            "type": "string"
-          },
-          {
-            "name": "tokenSymbol",
-            "type": "string"
-          },
-          {
-            "name": "description",
-            "type": "string"
-          },
-          {
-            "name": "imageUrl",
-            "type": {
-              "option": "string"
-            }
-          },
-          {
-            "name": "totalSupply",
-            "type": "u64"
-          },
-          {
-            "name": "creatorAllocation",
-            "type": "u8"
-          },
-          {
-            "name": "supporterAllocation",
-            "type": "u8"
-          },
-          {
-            "name": "solRaised",
-            "type": "u64"
-          },
-          {
-            "name": "totalContributions",
-            "type": "u64"
-          },
-          {
-            "name": "lockupPeriod",
-            "type": "i64"
-          },
-          {
-            "name": "status",
-            "type": {
-              "defined": {
-                "name": "proposalStatus"
-              }
-            }
-          }
-        ]
-      }
-    },
-    {
       "name": "proposalStatus",
       "type": {
         "kind": "enum",
@@ -849,6 +1277,37 @@ export type Programs = {
           },
           {
             "name": "rejected"
+          }
+        ]
+      }
+    },
+    {
+      "name": "roleType",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "admin"
+          },
+          {
+            "name": "categoryManager",
+            "fields": [
+              {
+                "defined": {
+                  "name": "treasuryCategory"
+                }
+              }
+            ]
+          },
+          {
+            "name": "withdrawer",
+            "fields": [
+              {
+                "defined": {
+                  "name": "treasuryCategory"
+                }
+              }
+            ]
           }
         ]
       }
@@ -909,12 +1368,166 @@ export type Programs = {
             "type": "i64"
           },
           {
+            "name": "creationTimestamp",
+            "type": "i64"
+          },
+          {
             "name": "status",
             "type": {
               "defined": {
                 "name": "proposalStatus"
               }
             }
+          }
+        ]
+      }
+    },
+    {
+      "name": "treasury",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "marketing",
+            "type": {
+              "defined": {
+                "name": "treasurySubAccount"
+              }
+            }
+          },
+          {
+            "name": "team",
+            "type": {
+              "defined": {
+                "name": "treasurySubAccount"
+              }
+            }
+          },
+          {
+            "name": "operations",
+            "type": {
+              "defined": {
+                "name": "treasurySubAccount"
+              }
+            }
+          },
+          {
+            "name": "investments",
+            "type": {
+              "defined": {
+                "name": "treasurySubAccount"
+              }
+            }
+          },
+          {
+            "name": "crank",
+            "type": {
+              "defined": {
+                "name": "treasurySubAccount"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "treasuryCategory",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "marketing"
+          },
+          {
+            "name": "team"
+          },
+          {
+            "name": "operations"
+          },
+          {
+            "name": "investments"
+          },
+          {
+            "name": "crank"
+          }
+        ]
+      }
+    },
+    {
+      "name": "treasuryRole",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "roleType",
+            "type": {
+              "defined": {
+                "name": "roleType"
+              }
+            }
+          },
+          {
+            "name": "pubkey",
+            "type": "pubkey"
+          },
+          {
+            "name": "withdrawalLimit",
+            "type": {
+              "option": "u64"
+            }
+          },
+          {
+            "name": "withdrawalPeriod",
+            "type": {
+              "option": "i64"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "treasuryRoles",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authorities",
+            "docs": [
+              "List of up to 3 admin authorities allowed to manage roles"
+            ],
+            "type": {
+              "vec": "pubkey"
+            }
+          },
+          {
+            "name": "roles",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "treasuryRole"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "treasurySubAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "solBalance",
+            "type": "u64"
+          },
+          {
+            "name": "lastWithdrawal",
+            "type": "i64"
           }
         ]
       }
