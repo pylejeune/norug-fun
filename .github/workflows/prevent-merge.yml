@@ -1,0 +1,88 @@
+name: Prevent Merge Without Issue in Review
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize, closed]
+
+jobs:
+  check-issue:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for associated issue
+        id: check_issue
+        run: |
+          ISSUE_NUMBER=$(echo "${{ github.event.pull_request.body }}" | grep -oE "#[0-9]+" | head -n 1 | tr -d '#')
+          if [ -z "$ISSUE_NUMBER" ]; then
+            echo "No issue number found in the pull request description."
+            exit 1
+          fi
+          echo "Issue number found: $ISSUE_NUMBER"
+          echo "::set-output name=issue_number::$ISSUE_NUMBER"
+
+      - name: Check if issue is in review column
+        id: check_review
+        run: |
+          ISSUE_NUMBER=${{ steps.check_issue.outputs.issue_number }}
+          PROJECT_ID="your_project_id" # Remplacez par l'ID de votre projet
+          REVIEW_COLUMN_ID="your_review_column_id" # Remplacez par l'ID de la colonne "review"
+          
+          # Obtenez l'ID de la carte de l'issue
+          CARD_ID=$(gh api graphql -f query='
+            query($issue: ID!) {
+              node(id: $issue) {
+                ... on Issue {
+                  projectCards(first: 1) {
+                    nodes {
+                      id
+                      column {
+                        id
+                      }
+                    }
+                  }
+                }
+              }
+            }' -f issue="MDU6SXNzdWU=$ISSUE_NUMBER" --jq '.data.node.projectCards.nodes[0].id')
+
+          if [ -z "$CARD_ID" ]; then
+            echo "No project card found for issue #$ISSUE_NUMBER."
+            exit 1
+          fi
+
+          # Vérifiez si la carte est dans la colonne "review"
+          COLUMN_ID=$(gh api graphql -f query='
+            query($card: ID!) {
+              node(id: $card) {
+                ... on ProjectCard {
+                  column {
+                    id
+                  }
+                }
+              }
+            }' -f card="$CARD_ID" --jq '.data.node.column.id')
+
+          if [ "$COLUMN_ID" != "$REVIEW_COLUMN_ID" ]; then
+            echo "Issue #$ISSUE_NUMBER is not in the review column."
+            exit 1
+          fi
+
+  move-issue:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
+    needs: check-issue
+    steps:
+      - name: Move issue to done column
+        run: |
+          ISSUE_NUMBER=${{ needs.check-issue.outputs.issue_number }}
+          DONE_COLUMN_ID="your_done_column_id" # Remplacez par l'ID de la colonne "done"
+          
+          # Déplacez la carte de l'issue dans la colonne "done"
+          gh api graphql -f query='
+            mutation($cardId: ID!, $columnId: ID!) {
+              moveProjectCard(input: {cardId: $cardId, columnId: $columnId}) {
+                clientMutationId
+              }
+            }' -f cardId="$CARD_ID" -f columnId="$DONE_COLUMN_ID"
+
+      - name: Approve PR
+        if: success()
+        run: echo "Pull request can be merged."
