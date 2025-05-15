@@ -23,8 +23,8 @@ jobs:
         id: check_review
         run: |
           ISSUE_NUMBER=${{ steps.check_issue.outputs.issue_number }}
-          PROJECT_ID="your_project_id" # Remplacez par l'ID de votre projet
-          REVIEW_COLUMN_ID="your_review_column_id" # Remplacez par l'ID de la colonne "review"
+          PROJECT_ID="1" # Remplacez par l'ID de votre projet
+          REVIEW_COLUMN_ID="5" # Remplacez par l'ID de la colonne "review"
           
           # Obtenez l'ID de la carte de l'issue
           CARD_ID=$(gh api graphql -f query='
@@ -73,7 +73,7 @@ jobs:
       - name: Move issue to done column
         run: |
           ISSUE_NUMBER=${{ needs.check-issue.outputs.issue_number }}
-          DONE_COLUMN_ID="your_done_column_id" # Remplacez par l'ID de la colonne "done"
+          DONE_COLUMN_ID="6" # Remplacez par l'ID de la colonne "done"
           
           # Déplacez la carte de l'issue dans la colonne "done"
           gh api graphql -f query='
