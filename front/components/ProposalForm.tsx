@@ -12,6 +12,9 @@ import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "sonner";
+import { TotalSupplyInfoDialog } from "@/components/TotalSupplyInfoDialog";
+import { Info } from 'lucide-react';
+import { DialogTrigger } from "@/components/ui/dialog";
 
 type FormData = {
   name: string;
@@ -305,12 +308,21 @@ export default function ProposalForm() {
 
         {/* Total Supply */}
         <div>
-          <label
-            htmlFor="totalSupply"
-            className="block text-xs md:text-sm font-medium mb-1 md:mb-2"
-          >
-            {t("totalSupply")}
-          </label>
+          <div className="flex items-center gap-2 mb-1 md:mb-2">
+            <label
+              htmlFor="totalSupply"
+              className="block text-xs md:text-sm font-medium"
+            >
+              {t("totalSupply")}
+            </label>
+            <TotalSupplyInfoDialog>
+              <DialogTrigger asChild>
+                <button type="button" aria-label={t("totalSupplyInfoAriaLabel")} className="flex items-center">
+                  <Info className="h-5 w-5 text-primary cursor-pointer hover:opacity-80 transition-opacity" />
+                </button>
+              </DialogTrigger>
+            </TotalSupplyInfoDialog>
+          </div>
           <Input
             id="totalSupply"
             type="number"
@@ -318,7 +330,7 @@ export default function ProposalForm() {
             onChange={(e) =>
               setFormData({ ...formData, totalSupply: e.target.value })
             }
-            placeholder={t("totalSupply")}
+            placeholder={t("totalSupplyPlaceholder")}
             required
             className="text-sm md:text-base"
           />
