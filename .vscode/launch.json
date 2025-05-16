@@ -1,0 +1,37 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Next.js : déboguer côté serveur",
+        "type": "node-terminal",
+        "request": "launch",
+        "command": "cd front && npm run debug",
+        "sourceMaps": true,
+      "trace": true
+      },
+      {
+        "name": "Next.js : déboguer côté client",
+        "type": "chrome",
+        "request": "launch",
+        "url": "http://localhost:3000",
+        "webRoot": "${workspaceFolder}/front"
+      },
+      {
+        "name": "Next.js : déboguer full stack",
+        "type": "node",
+        "request": "launch",
+        "program": "${workspaceFolder}/front/node_modules/next/dist/bin/next",
+        "runtimeArgs": ["--inspect"],
+        "skipFiles": ["<node_internals>/**"],
+        "sourceMaps": true,
+        "trace": true,
+        "serverReadyAction": {
+          "action": "debugWithChrome",
+          "pattern": "- Local:.+(https?://.+)",
+          "uriFormat": "%s",
+          "webRoot": "${workspaceFolder}/front"
+        }
+      }
+    ]
+  }
+  
