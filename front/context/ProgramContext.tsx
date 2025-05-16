@@ -314,6 +314,12 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
           program.programId
         );
 
+        // Generate PDA for treasury
+        const [treasuryPDA] = PublicKey.findProgramAddressSync(
+          [Buffer.from("treasury")],
+          program.programId
+        );
+
         const tx = await (program as Program).methods
           .createProposal(
             tokenName,
@@ -328,6 +334,7 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
             creator: wallet.publicKey,
             token_proposal: proposalPDA,
             epoch: epochState.publicKey,
+            treasury: treasuryPDA,
             system_program: SystemProgram.programId,
           })
           .rpc();
