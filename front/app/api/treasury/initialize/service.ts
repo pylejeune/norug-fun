@@ -155,23 +155,24 @@ export async function initializeTreasury(): Promise<TreasuryInitializeResult> {
           accounts: {
             marketing: {
               balance: treasuryData.marketing.sol_balance / 1_000_000_000,
-              lastWithdrawal: new Date(treasuryData.marketing.last_withdrawal * 1000).toISOString()
+              lastWithdrawal: new Date(treasuryData.marketing.last_withdrawal * 1000).toString(),
+              publicKey: treasuryPDA.toString()
             },
             team: {
               balance: treasuryData.team.sol_balance / 1_000_000_000,
-              lastWithdrawal: new Date(treasuryData.team.last_withdrawal * 1000).toISOString()
+              lastWithdrawal: new Date(treasuryData.team.last_withdrawal * 1000).toString()
             },
             operations: {
               balance: treasuryData.operations.sol_balance / 1_000_000_000,
-              lastWithdrawal: new Date(treasuryData.operations.last_withdrawal * 1000).toISOString()
+              lastWithdrawal: new Date(treasuryData.operations.last_withdrawal * 1000).toString()
             },
             investments: {
               balance: treasuryData.investments.sol_balance / 1_000_000_000,
-              lastWithdrawal: new Date(treasuryData.investments.last_withdrawal * 1000).toISOString()
+              lastWithdrawal: new Date(treasuryData.investments.last_withdrawal * 1000).toString()
             },
             crank: {
               balance: treasuryData.crank.sol_balance / 1_000_000_000,
-              lastWithdrawal: new Date(treasuryData.crank.last_withdrawal * 1000).toISOString()
+              lastWithdrawal: new Date(treasuryData.crank.last_withdrawal * 1000).toString()
             }
           }
         }

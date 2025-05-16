@@ -2,6 +2,7 @@ import * as anchor from "@coral-xyz/anchor";
 import { PublicKey, Connection, Keypair, Transaction } from "@solana/web3.js";
 import { Program, AnchorProvider } from "@coral-xyz/anchor";
 import { NextRequest } from "next/server";
+import { randomUUID } from 'crypto';
 
 // Import de l'IDL partagé
 import idlJson from "./programs.json";
@@ -180,4 +181,13 @@ export function createSuccessResponse(requestId: string, data: any) {
     status: 200,
     headers: { 'Content-Type': 'application/json' },
   });
-} 
+}
+
+// Fonction pour générer un nom de token aléatoire
+export function generateRandomTokenName(): string {
+  const adjectives = ["Innovative", "Dynamic", "Creative", "Unique", "Visionary"];
+  const nouns = ["Token", "Coin", "Asset", "Fund", "Project"];
+  const randomAdjective = adjectives[Math.floor(Math.random() * adjectives.length)];
+  const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];
+  return `${randomAdjective} ${randomNoun} ${randomUUID().slice(0, 8)}`; // Ajoute un UUID pour l'unicité
+}
