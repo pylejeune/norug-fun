@@ -44,7 +44,7 @@ export async function createProposal(params: ProposalCreateParams) {
 
     // Si epochId est spécifié, chercher cette époque spécifique
     if (epochId) {
-      console.log("�� Recherche de l'époque spécifique:", epochId);
+      console.log("🔍 Recherche de l'époque spécifique:", epochId);
       const specificEpoch = allEpochs.find((epoch: any) => 
         epoch.account.epochId.toString() === epochId
       );
@@ -114,7 +114,7 @@ export async function createProposal(params: ProposalCreateParams) {
   console.log("🔑 PDA de la proposition calculée:", proposalPDA.toString());
 
   // Appel à l'instruction de création de proposition
-  const tx = await program.methods
+  const tx = await (program as any).methods
     .createProposal(
       params.tokenName,
       params.tokenSymbol,

@@ -123,7 +123,7 @@ export async function initializeTreasury(): Promise<TreasuryInitializeResult> {
     }
 
     // Si on arrive ici, la treasury n'existe pas et doit être initialisée
-    const tx = program.methods.initializeTreasury(adminKeypair.publicKey)
+    const tx = (program as any).methods.initializeTreasury(adminKeypair.publicKey)
       .accounts({
         treasury: treasuryPDA,
         authority: adminKeypair.publicKey,
@@ -152,6 +152,7 @@ export async function initializeTreasury(): Promise<TreasuryInitializeResult> {
         treasury: {
           address: treasuryPDA.toString(),
           authority: treasuryData.authority.toString(),
+          balance: treasuryData.sol_balance / 1_000_000_000,
           accounts: {
             marketing: {
               balance: treasuryData.marketing.sol_balance / 1_000_000_000,
@@ -160,19 +161,23 @@ export async function initializeTreasury(): Promise<TreasuryInitializeResult> {
             },
             team: {
               balance: treasuryData.team.sol_balance / 1_000_000_000,
-              lastWithdrawal: new Date(treasuryData.team.last_withdrawal * 1000).toString()
+              lastWithdrawal: new Date(treasuryData.team.last_withdrawal * 1000).toString(),
+              publicKey: treasuryPDA.toString()
             },
             operations: {
               balance: treasuryData.operations.sol_balance / 1_000_000_000,
-              lastWithdrawal: new Date(treasuryData.operations.last_withdrawal * 1000).toString()
+              lastWithdrawal: new Date(treasuryData.operations.last_withdrawal * 1000).toString(),
+              publicKey: treasuryPDA.toString()
             },
             investments: {
               balance: treasuryData.investments.sol_balance / 1_000_000_000,
-              lastWithdrawal: new Date(treasuryData.investments.last_withdrawal * 1000).toString()
+              lastWithdrawal: new Date(treasuryData.investments.last_withdrawal * 1000).toString(),
+              publicKey: treasuryPDA.toString()
             },
             crank: {
               balance: treasuryData.crank.sol_balance / 1_000_000_000,
-              lastWithdrawal: new Date(treasuryData.crank.last_withdrawal * 1000).toString()
+              lastWithdrawal: new Date(treasuryData.crank.last_withdrawal * 1000).toString(),
+              publicKey: treasuryPDA.toString()
             }
           }
         }
