@@ -1,16 +1,16 @@
 // front/app/api/proposal/list/route.ts
 import {
-  createAnchorWallet,
-  createErrorResponse,
-  createSuccessResponse,
-  getAdminKeypair,
-  getProgram,
-  RPC_ENDPOINT,
-  verifyAuthToken,
-} from "@/lib/utils";
-import { Connection } from "@solana/web3.js";
-import { randomUUID } from "crypto";
-import { NextRequest } from "next/server";
+    verifyAuthToken,
+    createSuccessResponse,
+    createErrorResponse,
+    getProgram,
+    getAdminKeypair,
+    createAnchorWallet,
+    RPC_ENDPOINT,
+    SHARED_IDL
+} from "../../../../lib/utils";
+import { ipfsToHttp, getAccessibleImageUrl } from "../create/image-service";
+
 
 export async function GET(request: NextRequest): Promise<Response> {
   const requestId = randomUUID();
@@ -33,7 +33,7 @@ export async function GET(request: NextRequest): Promise<Response> {
     const connection = new Connection(RPC_ENDPOINT);
     const adminKeypair = getAdminKeypair();
     const wallet = createAnchorWallet(adminKeypair);
-    const program = getProgram(connection, wallet);
+    const program = getProgram(connection, SHARED_IDL, wallet);
 
     if (!program) {
       throw new Error("Programme non initialisé");
@@ -46,20 +46,30 @@ export async function GET(request: NextRequest): Promise<Response> {
     );
 
     // Formater la réponse
-    const formattedProposals = proposals.map((proposal: any) => ({
-      publicKey: proposal.publicKey.toString(),
-      tokenName: proposal.account.tokenName,
-      tokenSymbol: proposal.account.tokenSymbol,
-      creator: proposal.account.creator.toString(),
-      epochId: proposal.account.epochId.toString(),
-      totalSupply: proposal.account.totalSupply.toString(),
-      creatorAllocation: proposal.account.creatorAllocation,
-      status: Object.keys(proposal.account.status)[0],
-      creationTimestamp: proposal.account.creationTimestamp.toString(),
-    }));
+    const formattedProposals = proposals.map((proposal: any) => {
+      // Récupérer et convertir l'URL d'image IPFS en URL HTTP
+      const ipfsImageUrl = proposal.account.imageUrl || '';
+      const httpImageUrl = getAccessibleImageUrl(ipfsImageUrl);
+      
+      return {
+        publicKey: proposal.publicKey.toString(),
+        tokenName: proposal.account.tokenName,
+        tokenSymbol: proposal.account.tokenSymbol,
+        description: proposal.account.description || '',
+        creator: proposal.account.creator.toString(),
+        epochId: proposal.account.epochId.toString(),
+        totalSupply: proposal.account.totalSupply.toString(),
+        creatorAllocation: proposal.account.creatorAllocation,
+        status: Object.keys(proposal.account.status)[0],
+        creationTimestamp: proposal.account.creationTimestamp.toString(),
+        imageUrl: ipfsImageUrl,
+        imageHttpUrl: httpImageUrl
+      };
+    });
 
     return createSuccessResponse(requestId, {
       proposals: formattedProposals,
+      total: formattedProposals.length
     });
   } catch (error) {
     console.error(

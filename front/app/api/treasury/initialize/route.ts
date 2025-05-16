@@ -1,17 +1,12 @@
 import { Connection, PublicKey } from "@solana/web3.js";
 import { randomUUID } from "crypto";
 import { NextRequest } from "next/server";
-
-import {
-  createAnchorWallet,
-  createErrorResponse,
-  createSuccessResponse,
-  getAdminKeypair,
-  getProgram,
-  RPC_ENDPOINT,
-  verifyAuthToken,
-} from "@/lib/utils";
+import { randomUUID } from 'crypto';
+import { verifyAuthToken, createSuccessResponse, createErrorResponse } from "../../../../lib/utils";
 import { initializeTreasury } from "./service";
+import { RPC_ENDPOINT } from "../../../../lib/utils";
+import { PublicKey, Connection } from "@solana/web3.js";
+import { getProgram, getAdminKeypair, createAnchorWallet, SHARED_IDL } from "../../../../lib/utils";
 
 export async function GET(request: NextRequest): Promise<Response> {
   const requestId = randomUUID();
@@ -41,7 +36,7 @@ export async function GET(request: NextRequest): Promise<Response> {
       const connection = new Connection(RPC_ENDPOINT);
       const adminKeypair = getAdminKeypair();
       const wallet = createAnchorWallet(adminKeypair);
-      const program = getProgram(connection, wallet);
+      const program = getProgram(connection, SHARED_IDL, wallet);
 
       if (!program) {
         throw new Error("Programme non initialisé");
