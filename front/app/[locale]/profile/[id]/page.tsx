@@ -6,22 +6,20 @@ import { ProposalState, useProgram } from "@/context/ProgramContext";
 import { ipfsToHttp } from "@/utils/ImageStorage";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
+import { format, formatDistanceToNow } from "date-fns";
+import { enUS, fr } from "date-fns/locale";
 import { Copy } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 type SortOrder = "asc" | "desc";
 type SortBy = "date" | "name" | "amount";
 type ViewMode = "created_proposals" | "supported_tokens";
-type ProposalStatusType = {
-  active?: {};
-  validated?: {};
-  rejected?: {};
-};
+type ProposalStatusType = "active" | "validated" | "rejected";
 
 export default function ProfilePage() {
   const t = useTranslations("Profile");
@@ -69,22 +67,34 @@ export default function ProfilePage() {
     loadProposals();
   }, [id, viewMode, getUserProposals, getUserSupportedProposals, t]);
 
-  const sortedProposals = useMemo(() => {
-    if (!proposals) return [];
-
-    return [...proposals].sort((a, b) => {
-      const sortValue = sortOrder === "desc" ? -1 : 1;
+  const sortProposals = useCallback(
+    (proposals: ProposalState[]) => {
+      let sorted = [...proposals];
 
       switch (sortBy) {
+        case "date":
+          sorted = sorted.sort((a, b) => {
+            const comparison = a.creationTimestamp - b.creationTimestamp;
+            return sortOrder === "desc" ? -comparison : comparison;
+          });
+          break;
         case "name":
-          return a.tokenName.localeCompare(b.tokenName) * sortValue;
+          sorted = sorted.sort((a, b) => {
+            const comparison = a.tokenName.localeCompare(b.tokenName);
+            return sortOrder === "desc" ? -comparison : comparison;
+          });
+          break;
         case "amount":
-          return (b.solRaised - a.solRaised) * sortValue;
-        default:
-          return 0;
+          sorted = sorted.sort((a, b) => {
+            const comparison = a.solRaised - b.solRaised;
+            return sortOrder === "desc" ? -comparison : comparison;
+          });
+          break;
       }
-    });
-  }, [proposals, sortBy, sortOrder]);
+      return sorted;
+    },
+    [sortBy, sortOrder]
+  );
 
   const formatSolAmount = (lamports: number) => {
     return (lamports / LAMPORTS_PER_SOL).toFixed(2);
@@ -108,7 +118,6 @@ export default function ProfilePage() {
       await reclaimSupport(proposal.publicKey, parseInt(proposal.epochId));
       toast.success(t("claimSuccess"));
 
-      // Recharger les propositions
       const userPubKey = new PublicKey(id);
       const data = await getUserSupportedProposals(userPubKey);
       setProposals(data);
@@ -118,25 +127,44 @@ export default function ProfilePage() {
     }
   };
 
-  const getStatusString = (status: ProposalStatusType): string => {
+  const getStatusString = (status: any): ProposalStatusType => {
     if ("active" in status) return "active";
     if ("validated" in status) return "validated";
     if ("rejected" in status) return "rejected";
-    return "unknown";
+    return "active"; // fallback
   };
 
   const handleCardClick = (proposalId: string) => {
     router.push(`/${locale}/proposal/${proposalId}`);
   };
 
-  // Calcul pour la pagination
+  // Pagination calculation
   const paginatedProposals = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
     const end = start + itemsPerPage;
-    return sortedProposals.slice(start, end);
-  }, [sortedProposals, currentPage]);
+    return sortProposals(proposals).slice(start, end);
+  }, [proposals, sortBy, sortOrder]);
 
-  const totalPages = Math.ceil(sortedProposals.length / itemsPerPage);
+  const totalPages = Math.ceil(sortProposals(proposals).length / itemsPerPage);
+
+  // Format relative date (e.g. "2 hours ago")
+  const formatRelativeDate = (timestamp: number, locale: string) => {
+    const date = new Date(timestamp * 1000);
+    return formatDistanceToNow(date, {
+      addSuffix: true,
+      locale: locale === "fr" ? fr : enUS,
+    });
+  };
+
+  // Format full date (e.g. "April 1, 2024 at 14:30")
+  const formatFullDate = (timestamp: number, locale: string) => {
+    const date = new Date(timestamp * 1000);
+    return format(
+      date,
+      locale === "fr" ? "d MMMM yyyy 'à' HH:mm" : "MMMM d, yyyy 'at' HH:mm",
+      { locale: locale === "fr" ? fr : enUS }
+    );
+  };
 
   if (!id) {
     return (
@@ -206,22 +234,25 @@ export default function ProfilePage() {
         </div>
 
         {/* Sort Controls */}
-        <div className="flex flex-wrap gap-2 mb-4">
+        <div className="flex items-center gap-4 mb-4">
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as SortBy)}
-            className="bg-gray-800 text-gray-300 px-3 py-2 rounded-lg border border-gray-700"
+            className="bg-gray-800 text-white rounded-lg px-3 py-2"
           >
             <option value="date">{t("sortBy.date")}</option>
             <option value="name">{t("sortBy.name")}</option>
             <option value="amount">{t("sortBy.amount")}</option>
           </select>
-          <button
-            onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-            className="bg-gray-800 text-gray-300 px-3 py-2 rounded-lg border border-gray-700 hover:bg-gray-700"
+
+          <select
+            value={sortOrder}
+            onChange={(e) => setSortOrder(e.target.value as SortOrder)}
+            className="bg-gray-800 text-white rounded-lg px-3 py-2"
           >
-            {sortOrder === "asc" ? "↑" : "↓"}
-          </button>
+            <option value="desc">{t("sortBy.newest")}</option>
+            <option value="asc">{t("sortBy.oldest")}</option>
+          </select>
         </div>
 
         {/* Proposals List */}
@@ -229,7 +260,7 @@ export default function ProfilePage() {
           <div className="flex justify-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white" />
           </div>
-        ) : sortedProposals.length === 0 ? (
+        ) : sortProposals(proposals).length === 0 ? (
           <div className="text-center py-8 text-gray-400">
             {viewMode === "created_proposals"
               ? t("noCreatedTokens")
@@ -296,6 +327,20 @@ export default function ProfilePage() {
                         )}
                       </span>
                     </div>
+                    <div className="text-sm text-gray-500 mt-1 flex flex-col">
+                      <span>
+                        {formatRelativeDate(
+                          proposal.creationTimestamp,
+                          locale as string
+                        )}
+                      </span>
+                      <span className="text-xs opacity-75">
+                        {formatFullDate(
+                          proposal.creationTimestamp,
+                          locale as string
+                        )}
+                      </span>
+                    </div>
                     {viewMode === "supported_tokens" && (
                       <div className="text-sm text-gray-500 mt-1">
                         {(proposal.solRaised / LAMPORTS_PER_SOL).toLocaleString(
@@ -312,7 +357,7 @@ export default function ProfilePage() {
 
                   {/* Bouton Claim */}
                   {viewMode === "supported_tokens" &&
-                    "rejected" in proposal.status &&
+                    getStatusString(proposal.status) === "rejected" &&
                     isCurrentUser && (
                       <div className="flex-shrink-0 flex items-center">
                         <button
@@ -325,7 +370,7 @@ export default function ProfilePage() {
                                     text-red-100 text-sm sm:text-base rounded-lg transition-colors 
                                     font-medium hover:bg-opacity-80"
                         >
-                          Claim
+                          {t("claimButton")}
                         </button>
                       </div>
                     )}
@@ -334,16 +379,16 @@ export default function ProfilePage() {
             ))}
 
             {/* Pagination controls */}
-            {sortedProposals.length > itemsPerPage && (
+            {sortProposals(proposals).length > itemsPerPage && (
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 text-sm">
                 <div className="text-gray-400">
                   {t("pagination.showing", {
                     start: (currentPage - 1) * itemsPerPage + 1,
                     end: Math.min(
                       currentPage * itemsPerPage,
-                      sortedProposals.length
+                      sortProposals(proposals).length
                     ),
-                    total: sortedProposals.length,
+                    total: sortProposals(proposals).length,
                   })}
                 </div>
 
