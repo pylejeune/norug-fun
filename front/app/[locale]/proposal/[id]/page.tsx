@@ -6,6 +6,8 @@ import { ProposalSupport, useProgram } from "@/context/ProgramContext";
 import { ipfsToHttp } from "@/utils/ImageStorage";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey } from "@solana/web3.js";
+import { format } from "date-fns";
+import { enUS, fr } from "date-fns/locale";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
@@ -36,6 +38,7 @@ export type DetailedProposal = {
   lockupPeriod: number;
   publicKey: PublicKey;
   supporters: PublicKey[];
+  creationTimestamp: number;
 };
 
 export default function ProposalDetailPage() {
@@ -89,6 +92,7 @@ export default function ProposalDetailPage() {
         lockupPeriod: details.lockupPeriod,
         publicKey: details.publicKey,
         supporters: details.supporters,
+        creationTimestamp: details.creationTimestamp,
       });
     } catch (error) {
       toast.error(t("errorLoadingProposal"));
@@ -173,7 +177,35 @@ export default function ProposalDetailPage() {
     [locale]
   );
 
-  // Helper function to get status string
+  // Format full date with validation
+  const formatFullDate = (timestamp: number, locale: string) => {
+    try {
+      // Validation plus stricte
+      if (!timestamp || typeof timestamp !== "number") {
+        console.warn("Invalid timestamp:", timestamp);
+        return "-";
+      }
+
+      const date = new Date(timestamp * 1000);
+
+      // Validation de la date
+      if (isNaN(date.getTime())) {
+        console.warn("Invalid date from timestamp:", timestamp);
+        return "-";
+      }
+
+      return format(
+        date,
+        locale === "fr" ? "d MMMM yyyy 'à' HH:mm" : "MMMM d, yyyy 'at' HH:mm",
+        { locale: locale === "fr" ? fr : enUS }
+      );
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return "-";
+    }
+  };
+
+  // Get proposal status string
   const getStatusString = (status: any): string => {
     if ("active" in status) return "active";
     if ("validated" in status) return "validated";
@@ -388,6 +420,14 @@ export default function ProposalDetailPage() {
           <div className="bg-gray-800/50 p-4 rounded-lg">
             <h2 className="text-lg font-medium mb-4">{t("details")}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="bg-gray-900/50 p-3 rounded-lg">
+                <p className="text-sm text-gray-400 mb-1">
+                  {t("creationDate")}
+                </p>
+                <p>
+                  {formatFullDate(proposal.creationTimestamp, locale as string)}
+                </p>
+              </div>
               <div className="bg-gray-900/50 p-3 rounded-lg">
                 <p className="text-sm text-gray-400 mb-1">{t("epochId")}</p>
                 <p>{proposal.epoch_id}</p>
