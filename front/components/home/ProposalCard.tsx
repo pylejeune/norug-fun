@@ -2,8 +2,6 @@ import { ProposalState } from "@/context/ProgramContext";
 import { cn } from "@/lib/utils";
 import { ipfsToHttp } from "@/utils/ImageStorage";
 import { LAMPORTS_PER_SOL } from "@solana/web3.js";
-import { formatDistanceToNow } from "date-fns";
-import { enUS, fr } from "date-fns/locale";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
@@ -21,15 +19,7 @@ export function ProposalCard({
 }: ProposalCardProps) {
   const t = useTranslations("Home");
 
-  // Format relative date (e.g. "2 hours ago")
-  const formatRelativeDate = (timestamp: number) => {
-    const date = new Date(timestamp * 1000);
-    return formatDistanceToNow(date, {
-      addSuffix: true,
-      locale: locale === "fr" ? fr : enUS,
-    });
-  };
-
+  // Card content definition remains the same
   const CardContent = (
     <>
       <div className="relative w-24 h-24 bg-gray-800 rounded-lg overflow-hidden">
@@ -59,23 +49,16 @@ export function ProposalCard({
           ${proposal.tokenSymbol}
         </p>
         <h3 className="text-md text-gray-200">{proposal.tokenName}</h3>
-        <div className="space-y-0.5">
-          <p className="text-xs text-gray-500">
-            {t("by")}{" "}
-            <Link
-              href={`/${locale}/profile/${proposal.creator.toString()}`}
-              className="hover:underline hover:text-[#e6d3ba] transition-colors"
-            >
-              {proposal.creator.toString().slice(0, 4)}...
-              {proposal.creator.toString().slice(-4)}
-            </Link>
-          </p>
-          <p className="text-xs text-gray-500">
-            {t("createdAgo", {
-              time: formatRelativeDate(proposal.creationTimestamp),
-            })}
-          </p>
-        </div>
+        <p className="text-xs text-gray-500 pt-1">
+          {t("by")}{" "}
+          <Link
+            href={`/${locale}/profile/${proposal.creator.toString()}`}
+            className="hover:underline hover:text-[#e6d3ba] transition-colors"
+          >
+            {proposal.creator.toString().slice(0, 4)}...
+            {proposal.creator.toString().slice(-4)}
+          </Link>
+        </p>
       </div>
       {/* Section Droite : Réorganisée en Ligne (Bouton à gauche, Stats à droite) */}
       <div className="flex items-center gap-4 ml-auto flex-shrink-0">

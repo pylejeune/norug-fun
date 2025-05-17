@@ -8,90 +8,6 @@
   },
   "instructions": [
     {
-      "name": "add_admin",
-      "discriminator": [
-        177,
-        236,
-        33,
-        205,
-        124,
-        152,
-        55,
-        186
-      ],
-      "accounts": [
-        {
-          "name": "treasury_roles",
-          "writable": true
-        },
-        {
-          "name": "authority",
-          "signer": true
-        }
-      ],
-      "args": [
-        {
-          "name": "new_admin",
-          "type": "pubkey"
-        }
-      ]
-    },
-    {
-      "name": "add_treasury_role",
-      "discriminator": [
-        250,
-        167,
-        53,
-        191,
-        17,
-        177,
-        200,
-        116
-      ],
-      "accounts": [
-        {
-          "name": "treasury_roles",
-          "docs": [
-            "The TreasuryRoles account (must be mutable)"
-          ],
-          "writable": true
-        },
-        {
-          "name": "authority",
-          "docs": [
-            "The admin authority (must be present in authorities)"
-          ],
-          "signer": true
-        }
-      ],
-      "args": [
-        {
-          "name": "role_type",
-          "type": {
-            "defined": {
-              "name": "RoleType"
-            }
-          }
-        },
-        {
-          "name": "pubkey",
-          "type": "pubkey"
-        },
-        {
-          "name": "withdrawal_limit",
-          "type": {
-            "option": "u64"
-          }
-        },
-        {
-          "name": "withdrawal_period",
-          "type": {
-            "option": "i64"
-          }
-        }
-      ]
-    },
-    {
       "name": "create_proposal",
       "discriminator": [
         132,
@@ -145,27 +61,6 @@
         },
         {
           "name": "epoch"
-        },
-        {
-          "name": "treasury",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  116,
-                  114,
-                  101,
-                  97,
-                  115,
-                  117,
-                  114,
-                  121
-                ]
-              }
-            ]
-          }
         },
         {
           "name": "system_program",
@@ -258,6 +153,59 @@
       ]
     },
     {
+      "name": "get_epoch_state",
+      "discriminator": [
+        143,
+        2,
+        34,
+        250,
+        77,
+        45,
+        31,
+        154
+      ],
+      "accounts": [
+        {
+          "name": "epoch_management"
+        }
+      ],
+      "args": [
+        {
+          "name": "epoch_id",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "get_proposal_details",
+      "discriminator": [
+        236,
+        135,
+        27,
+        97,
+        207,
+        192,
+        173,
+        128
+      ],
+      "accounts": [
+        {
+          "name": "proposal",
+          "writable": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "proposal_id",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "initialize",
       "discriminator": [
         175,
@@ -322,116 +270,6 @@
       ]
     },
     {
-      "name": "initialize_treasury",
-      "discriminator": [
-        124,
-        186,
-        211,
-        195,
-        85,
-        165,
-        129,
-        166
-      ],
-      "accounts": [
-        {
-          "name": "treasury",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  116,
-                  114,
-                  101,
-                  97,
-                  115,
-                  117,
-                  114,
-                  121
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "name": "authority",
-          "writable": true,
-          "signer": true
-        },
-        {
-          "name": "system_program",
-          "address": "11111111111111111111111111111111"
-        }
-      ],
-      "args": [
-        {
-          "name": "initial_authority",
-          "type": "pubkey"
-        }
-      ]
-    },
-    {
-      "name": "initialize_treasury_roles",
-      "discriminator": [
-        127,
-        138,
-        198,
-        114,
-        99,
-        90,
-        115,
-        181
-      ],
-      "accounts": [
-        {
-          "name": "treasury_roles",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  116,
-                  114,
-                  101,
-                  97,
-                  115,
-                  117,
-                  114,
-                  121,
-                  95,
-                  114,
-                  111,
-                  108,
-                  101,
-                  115
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "name": "payer",
-          "writable": true,
-          "signer": true
-        },
-        {
-          "name": "system_program",
-          "address": "11111111111111111111111111111111"
-        }
-      ],
-      "args": [
-        {
-          "name": "authorities",
-          "type": {
-            "vec": "pubkey"
-          }
-        }
-      ]
-    },
-    {
       "name": "mark_epoch_processed",
       "discriminator": [
         210,
@@ -473,194 +311,6 @@
         }
       ],
       "args": []
-    },
-    {
-      "name": "reclaim_support",
-      "discriminator": [
-        23,
-        123,
-        152,
-        130,
-        171,
-        255,
-        2,
-        10
-      ],
-      "accounts": [
-        {
-          "name": "user",
-          "writable": true,
-          "signer": true
-        },
-        {
-          "name": "token_proposal",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  112,
-                  114,
-                  111,
-                  112,
-                  111,
-                  115,
-                  97,
-                  108
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "token_proposal.creator",
-                "account": "TokenProposal"
-              },
-              {
-                "kind": "account",
-                "path": "token_proposal.epoch_id",
-                "account": "TokenProposal"
-              },
-              {
-                "kind": "account",
-                "path": "token_proposal.token_name",
-                "account": "TokenProposal"
-              }
-            ]
-          }
-        },
-        {
-          "name": "user_proposal_support",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  115,
-                  117,
-                  112,
-                  112,
-                  111,
-                  114,
-                  116
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "token_proposal.epoch_id",
-                "account": "TokenProposal"
-              },
-              {
-                "kind": "account",
-                "path": "user"
-              },
-              {
-                "kind": "account",
-                "path": "token_proposal"
-              }
-            ]
-          }
-        },
-        {
-          "name": "epoch_management",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  101,
-                  112,
-                  111,
-                  99,
-                  104
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "token_proposal.epoch_id",
-                "account": "TokenProposal"
-              }
-            ]
-          }
-        },
-        {
-          "name": "system_program",
-          "address": "11111111111111111111111111111111"
-        }
-      ],
-      "args": []
-    },
-    {
-      "name": "remove_admin",
-      "discriminator": [
-        74,
-        202,
-        71,
-        106,
-        252,
-        31,
-        72,
-        183
-      ],
-      "accounts": [
-        {
-          "name": "treasury_roles",
-          "writable": true
-        },
-        {
-          "name": "authority",
-          "signer": true
-        }
-      ],
-      "args": [
-        {
-          "name": "admin_to_remove",
-          "type": "pubkey"
-        }
-      ]
-    },
-    {
-      "name": "remove_treasury_role",
-      "discriminator": [
-        90,
-        106,
-        204,
-        106,
-        66,
-        58,
-        239,
-        74
-      ],
-      "accounts": [
-        {
-          "name": "treasury_roles",
-          "docs": [
-            "The TreasuryRoles account (must be mutable)"
-          ],
-          "writable": true
-        },
-        {
-          "name": "authority",
-          "docs": [
-            "The admin authority (must be present in authorities)"
-          ],
-          "signer": true
-        }
-      ],
-      "args": [
-        {
-          "name": "role_type",
-          "type": {
-            "defined": {
-              "name": "RoleType"
-            }
-          }
-        },
-        {
-          "name": "pubkey",
-          "type": "pubkey"
-        }
-      ]
     },
     {
       "name": "start_epoch",
@@ -781,27 +431,6 @@
           }
         },
         {
-          "name": "treasury",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  116,
-                  114,
-                  101,
-                  97,
-                  115,
-                  117,
-                  114,
-                  121
-                ]
-              }
-            ]
-          }
-        },
-        {
           "name": "system_program",
           "address": "11111111111111111111111111111111"
         }
@@ -851,61 +480,6 @@
           }
         }
       ]
-    },
-    {
-      "name": "update_treasury_role",
-      "discriminator": [
-        76,
-        67,
-        55,
-        141,
-        212,
-        110,
-        148,
-        140
-      ],
-      "accounts": [
-        {
-          "name": "treasury_roles",
-          "docs": [
-            "The TreasuryRoles account (must be mutable)"
-          ],
-          "writable": true
-        },
-        {
-          "name": "authority",
-          "docs": [
-            "The admin authority (must be present in authorities)"
-          ],
-          "signer": true
-        }
-      ],
-      "args": [
-        {
-          "name": "role_type",
-          "type": {
-            "defined": {
-              "name": "RoleType"
-            }
-          }
-        },
-        {
-          "name": "pubkey",
-          "type": "pubkey"
-        },
-        {
-          "name": "withdrawal_limit",
-          "type": {
-            "option": "u64"
-          }
-        },
-        {
-          "name": "withdrawal_period",
-          "type": {
-            "option": "i64"
-          }
-        }
-      ]
     }
   ],
   "accounts": [
@@ -949,32 +523,6 @@
       ]
     },
     {
-      "name": "Treasury",
-      "discriminator": [
-        238,
-        239,
-        123,
-        238,
-        89,
-        1,
-        168,
-        253
-      ]
-    },
-    {
-      "name": "TreasuryRoles",
-      "discriminator": [
-        68,
-        16,
-        45,
-        143,
-        74,
-        61,
-        98,
-        193
-      ]
-    },
-    {
       "name": "UserProposalSupport",
       "discriminator": [
         255,
@@ -1000,6 +548,19 @@
         233,
         164,
         252
+      ]
+    },
+    {
+      "name": "ProposalDetailsRetrieved",
+      "discriminator": [
+        81,
+        200,
+        254,
+        55,
+        73,
+        7,
+        79,
+        217
       ]
     }
   ],
@@ -1123,61 +684,6 @@
       "code": 6023,
       "name": "Unauthorized",
       "msg": "Unauthorized: Only the admin can perform this action."
-    },
-    {
-      "code": 6024,
-      "name": "ProposalNotRejected",
-      "msg": "La proposition doit être rejetée pour pouvoir réclamer les fonds."
-    },
-    {
-      "code": 6025,
-      "name": "ProposalMismatch",
-      "msg": "Le compte de support ne correspond pas à la proposition fournie."
-    },
-    {
-      "code": 6026,
-      "name": "NothingToReclaim",
-      "msg": "Il n'y a aucun montant à réclamer dans ce compte de support."
-    },
-    {
-      "code": 6027,
-      "name": "InsufficientProposalFunds",
-      "msg": "Fonds insuffisants dans le compte de la proposition pour effectuer le remboursement."
-    },
-    {
-      "code": 6028,
-      "name": "EpochNotProcessedYet",
-      "msg": "L'époque n'a pas encore été marquée comme traitée par le crank."
-    },
-    {
-      "code": 6029,
-      "name": "CouldNotRetrieveBump",
-      "msg": "Could not retrieve bump seed."
-    },
-    {
-      "code": 6030,
-      "name": "RoleAlreadyExists",
-      "msg": "Ce rôle existe déjà pour ce wallet."
-    },
-    {
-      "code": 6031,
-      "name": "RolesCapacityExceeded",
-      "msg": "The maximum number of roles has been reached."
-    },
-    {
-      "code": 6032,
-      "name": "CalculationOverflow",
-      "msg": "A calculation resulted in an overflow."
-    },
-    {
-      "code": 6033,
-      "name": "AmountTooLowToCoverFees",
-      "msg": "The support amount is insufficient to cover fees."
-    },
-    {
-      "code": 6034,
-      "name": "FeeCannotBeZero",
-      "msg": "The calculated fee amount cannot be zero."
     }
   ],
   "types": [
@@ -1259,6 +765,72 @@
       }
     },
     {
+      "name": "ProposalDetailsRetrieved",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "epoch_id",
+            "type": "u64"
+          },
+          {
+            "name": "creator",
+            "type": "pubkey"
+          },
+          {
+            "name": "token_name",
+            "type": "string"
+          },
+          {
+            "name": "token_symbol",
+            "type": "string"
+          },
+          {
+            "name": "description",
+            "type": "string"
+          },
+          {
+            "name": "image_url",
+            "type": {
+              "option": "string"
+            }
+          },
+          {
+            "name": "total_supply",
+            "type": "u64"
+          },
+          {
+            "name": "creator_allocation",
+            "type": "u8"
+          },
+          {
+            "name": "supporter_allocation",
+            "type": "u8"
+          },
+          {
+            "name": "sol_raised",
+            "type": "u64"
+          },
+          {
+            "name": "total_contributions",
+            "type": "u64"
+          },
+          {
+            "name": "lockup_period",
+            "type": "i64"
+          },
+          {
+            "name": "status",
+            "type": {
+              "defined": {
+                "name": "ProposalStatus"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
       "name": "ProposalStatus",
       "type": {
         "kind": "enum",
@@ -1271,37 +843,6 @@
           },
           {
             "name": "Rejected"
-          }
-        ]
-      }
-    },
-    {
-      "name": "RoleType",
-      "type": {
-        "kind": "enum",
-        "variants": [
-          {
-            "name": "Admin"
-          },
-          {
-            "name": "CategoryManager",
-            "fields": [
-              {
-                "defined": {
-                  "name": "TreasuryCategory"
-                }
-              }
-            ]
-          },
-          {
-            "name": "Withdrawer",
-            "fields": [
-              {
-                "defined": {
-                  "name": "TreasuryCategory"
-                }
-              }
-            ]
           }
         ]
       }
@@ -1362,166 +903,12 @@
             "type": "i64"
           },
           {
-            "name": "creation_timestamp",
-            "type": "i64"
-          },
-          {
             "name": "status",
             "type": {
               "defined": {
                 "name": "ProposalStatus"
               }
             }
-          }
-        ]
-      }
-    },
-    {
-      "name": "Treasury",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "authority",
-            "type": "pubkey"
-          },
-          {
-            "name": "marketing",
-            "type": {
-              "defined": {
-                "name": "TreasurySubAccount"
-              }
-            }
-          },
-          {
-            "name": "team",
-            "type": {
-              "defined": {
-                "name": "TreasurySubAccount"
-              }
-            }
-          },
-          {
-            "name": "operations",
-            "type": {
-              "defined": {
-                "name": "TreasurySubAccount"
-              }
-            }
-          },
-          {
-            "name": "investments",
-            "type": {
-              "defined": {
-                "name": "TreasurySubAccount"
-              }
-            }
-          },
-          {
-            "name": "crank",
-            "type": {
-              "defined": {
-                "name": "TreasurySubAccount"
-              }
-            }
-          }
-        ]
-      }
-    },
-    {
-      "name": "TreasuryCategory",
-      "type": {
-        "kind": "enum",
-        "variants": [
-          {
-            "name": "Marketing"
-          },
-          {
-            "name": "Team"
-          },
-          {
-            "name": "Operations"
-          },
-          {
-            "name": "Investments"
-          },
-          {
-            "name": "Crank"
-          }
-        ]
-      }
-    },
-    {
-      "name": "TreasuryRole",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "role_type",
-            "type": {
-              "defined": {
-                "name": "RoleType"
-              }
-            }
-          },
-          {
-            "name": "pubkey",
-            "type": "pubkey"
-          },
-          {
-            "name": "withdrawal_limit",
-            "type": {
-              "option": "u64"
-            }
-          },
-          {
-            "name": "withdrawal_period",
-            "type": {
-              "option": "i64"
-            }
-          }
-        ]
-      }
-    },
-    {
-      "name": "TreasuryRoles",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "authorities",
-            "docs": [
-              "List of up to 3 admin authorities allowed to manage roles"
-            ],
-            "type": {
-              "vec": "pubkey"
-            }
-          },
-          {
-            "name": "roles",
-            "type": {
-              "vec": {
-                "defined": {
-                  "name": "TreasuryRole"
-                }
-              }
-            }
-          }
-        ]
-      }
-    },
-    {
-      "name": "TreasurySubAccount",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "sol_balance",
-            "type": "u64"
-          },
-          {
-            "name": "last_withdrawal",
-            "type": "i64"
           }
         ]
       }

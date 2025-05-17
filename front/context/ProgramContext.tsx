@@ -46,7 +46,6 @@ export type ProposalState = {
   status: ProposalStatus;
   publicKey: PublicKey;
   imageUrl?: string;
-  creationTimestamp: number;
 };
 
 export type ProposalSupport = {
@@ -371,14 +370,10 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
           status: p.account.status,
           publicKey: p.publicKey,
           imageUrl: p.account.imageUrl,
-          creationTimestamp: p.account.creationTimestamp.toNumber(),
         };
         console.log("Mapped proposal:", proposal);
         return proposal;
       });
-
-      // Trier les propositions par timestamp (du plus récent au plus ancien)
-      mappedProposals.sort((a, b) => b.creationTimestamp - a.creationTimestamp);
 
       return mappedProposals;
     } catch (err) {
@@ -397,14 +392,9 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
           program as Program<Programs>
         ).account.tokenProposal.fetch(new PublicKey(proposalId));
 
-        // Debug logs pour le timestamp
-        const convertedTimestamp = proposal.creationTimestamp.toNumber();
-        console.log("Converted timestamp:", convertedTimestamp);
-        console.log(
-          "As date:",
-          new Date(convertedTimestamp * 1000).toISOString()
-        );
+        console.log("Raw proposal data:", proposal); // Debug log
 
+        // Transformer les données pour correspondre au format attendu
         return {
           epochId: proposal.epochId.toString(),
           creator: proposal.creator,
@@ -420,11 +410,10 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
           lockupPeriod: proposal.lockupPeriod.toNumber(),
           status: proposal.status,
           publicKey: new PublicKey(proposalId),
-          creationTimestamp: convertedTimestamp,
         };
       } catch (error) {
         console.error("Failed to fetch proposal details:", error);
-        return null;
+        throw error;
       }
     },
     [program]
@@ -517,14 +506,9 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
 
       try {
         const allProposals = await getAllProposals();
-        const proposals = allProposals.filter(
+        return allProposals.filter(
           (proposal) => proposal.creator.toString() === userAddress.toString()
         );
-
-        // Trier les propositions par timestamp
-        proposals.sort((a, b) => b.creationTimestamp - a.creationTimestamp);
-
-        return proposals;
       } catch (error) {
         console.error("Failed to fetch user proposals:", error);
         throw error;
@@ -568,11 +552,6 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
             continue;
           }
         }
-
-        // Trier les propositions par timestamp
-        supportedProposals.sort(
-          (a, b) => b.creationTimestamp - a.creationTimestamp
-        );
 
         return supportedProposals;
       } catch (error) {

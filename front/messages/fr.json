@@ -120,13 +120,9 @@
     "timeLeft": "Temps restant",
     "proposalCount": "{count, plural, =0 {Aucune proposition} one {# proposition} other {# propositions}}",
     "proposalsList": "Propositions",
-    "sortByDesc": "Plus élevé",
-    "sortByAsc": "Plus faible",
     "sortBySolana": "Trier par SOL levés",
     "sortByName": "Trier par nom",
     "sortByDate": "Trier par date",
-    "sortByNewest": "Plus récent",
-    "sortByOldest": "Plus ancien",
     "solanaRaised": "{amount} SOL",
     "epochId": "Epoch",
     "noImage": "Pas d'image",
@@ -146,12 +142,7 @@
     "rank": "Rang #{rank}",
     "qualifiedForPhase2": "Qualifié pour la Phase 2",
     "contributions": "{count, plural, =0 {Aucune contribution} one {# contribution} other {# contributions}}",
-    "errorLoadingProposals": "Erreur lors du chargement des propositions",
-    "proposalStatus": {
-      "active": "Active",
-      "validated": "Validée",
-      "rejected": "Rejetée"
-    }
+    "errorLoadingProposals": "Erreur lors du chargement des propositions"
   },
   "Treasury": {
     "title": "Trésorerie",
@@ -217,8 +208,7 @@
     "proposalNotActive": "Cette proposition n'est plus active",
     "claimButton": "Récupérer",
     "claimSuccess": "Fonds récupérés avec succès !",
-    "claimError": "Erreur lors de la récupération des fonds",
-    "creationDate": "Date de création"
+    "claimError": "Erreur lors de la récupération des fonds"
   },
   "EpochForm": {
     "title": "Créer un Nouvel Epoch",
@@ -390,9 +380,7 @@
     "sortBy": {
       "date": "Trier par Date",
       "name": "Trier par Nom",
-      "amount": "Trier par Montant",
-      "newest": "Plus récent",
-      "oldest": "Plus ancien"
+      "amount": "Trier par Montant"
     },
     "noCreatedTokens": "Aucun token créé",
     "noSupportedTokens": "Aucun token soutenu",
@@ -407,6 +395,7 @@
       "validated": "Validée",
       "rejected": "Rejetée"
     },
+
     "claimButton": "Récupérer",
     "claimSuccess": "Fonds récupérés avec succès !",
     "claimError": "Erreur lors de la récupération des fonds",
@@ -414,8 +403,7 @@
       "previous": "Précédent",
       "next": "Suivant",
       "showing": "Affichage de {start} à {end} sur {total} tokens"
-    },
-    "createdAt": "{date}"
+    }
   },
   "WalletButton": {
     "connect": "Connecter Wallet",
