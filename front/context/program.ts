@@ -1,7 +1,7 @@
 import { AnchorProvider, Program } from "@coral-xyz/anchor";
 import { AnchorWallet } from "@solana/wallet-adapter-react";
 import { Connection, PublicKey } from "@solana/web3.js";
-import idl from "./idl/programs.json";
+import idl from "../idl/programs.json";
 
 // Use Program ID from IDL
 export const PROGRAM_ID = new PublicKey(idl.address);

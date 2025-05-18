@@ -11,7 +11,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import { Programs } from "./types/programs";
+import { Programs } from "../idl/programs";
 
 export type { Programs };
 
