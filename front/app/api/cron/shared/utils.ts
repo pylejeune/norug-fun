@@ -16,7 +16,7 @@ export const idlAddress = "address" in idlJson
 
 // Récupération de la seed admin depuis les variables d'environnement
 export const ADMIN_SEED_BASE64 = process.env.ADMIN_SEED_BASE64;
-
+export const ADMIN_SEED_BASE64_PROGRAMCONFIG = process.env.ADMIN_SEED_BASE64_PROGRAMCONFIG;
 // Logs d'initialisation
 console.log("📝 Adresse du programme trouvée:", idlAddress);
 export const PROGRAM_ID = new PublicKey(idlAddress);
@@ -75,6 +75,32 @@ export function getAdminKeypair(): Keypair {
   
   try {
     const seedBuffer = Buffer.from(ADMIN_SEED_BASE64, 'base64');
+    if (seedBuffer.length === 32) {
+        console.log("✅ Utilisation de Keypair.fromSeed() car seedBuffer fait 32 bytes.");
+        return Keypair.fromSeed(seedBuffer);
+    } else if (seedBuffer.length === 64) {
+        console.log("✅ Utilisation de Keypair.fromSecretKey() car seedBuffer fait 64 bytes.");
+        return Keypair.fromSecretKey(seedBuffer);
+    } else {
+        console.error(`❌ Taille de seedBuffer inattendue: ${seedBuffer.length} bytes. Devrait être 32 ou 64.`);
+        throw new Error(`Taille de seedBuffer après décodage Base64 inattendue: ${seedBuffer.length}`);
+    }
+  } catch (error) {
+    console.error("❌ Erreur lors de la génération du keypair admin (détail):", error instanceof Error ? error.message : String(error));
+    throw new Error(`Impossible de générer le keypair admin: ${error instanceof Error ? error.message : String(error)}`);
+  }
+}
+
+/**
+ * Génère le keypair administrateur à partir de la seed stockée en Base64
+ */
+export function getAdminKeypairProgramConfig(): Keypair {
+  if (!ADMIN_SEED_BASE64) {
+    throw new Error("ADMIN_SEED_BASE64_PROGAMCONFIG n'est pas défini dans les variables d'environnement ou est vide");
+  }
+  
+  try {
+    const seedBuffer = Buffer.from(ADMIN_SEED_BASE64_PROGRAMCONFIG, 'base64');
     if (seedBuffer.length === 32) {
         console.log("✅ Utilisation de Keypair.fromSeed() car seedBuffer fait 32 bytes.");
         return Keypair.fromSeed(seedBuffer);

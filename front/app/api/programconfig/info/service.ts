@@ -1,5 +1,5 @@
 import { PublicKey, Connection } from "@solana/web3.js";
-import { getProgram, getAdminKeypair, createAnchorWallet, RPC_ENDPOINT } from "../../cron/shared/utils";
+import { getProgram, getAdminKeypairProgramConfig, createAnchorWallet, RPC_ENDPOINT } from "../../cron/shared/utils";
 
 interface ProgramConfigInfo {
   success: boolean;
@@ -18,7 +18,7 @@ interface ProgramConfigInfo {
  */
 export async function getProgramConfigInfo(): Promise<ProgramConfigInfo> {
   const connection = new Connection(RPC_ENDPOINT);
-  const adminKeypair = getAdminKeypair();
+  const adminKeypair = getAdminKeypairProgramConfig();
   const wallet = createAnchorWallet(adminKeypair);
   const program = getProgram(connection, wallet);
 
