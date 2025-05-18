@@ -1,6 +1,11 @@
+import { randomUUID } from "crypto";
 import { NextRequest } from "next/server";
-import { randomUUID } from 'crypto';
-import { verifyAuthToken, createSuccessResponse, createErrorResponse, generateRandomTokenName } from "../../shared/utils";
+import {
+  createErrorResponse,
+  createSuccessResponse,
+  generateRandomTokenName,
+  verifyAuthToken,
+} from "../../../../lib/utils";
 import { createProposal } from "./service";
 
 export async function POST(request: NextRequest): Promise<Response> {
@@ -10,16 +15,20 @@ export async function POST(request: NextRequest): Promise<Response> {
   // Vérification du token d'authentification
   if (!verifyAuthToken(request)) {
     console.error(`[${requestId}] ❌ Authentification échouée`);
-    return createErrorResponse(requestId, {
-      message: "Non autorisé",
-      name: "AuthenticationError"
-    }, 401);
+    return createErrorResponse(
+      requestId,
+      {
+        message: "Non autorisé",
+        name: "AuthenticationError",
+      },
+      401
+    );
   }
 
   try {
     // Extraction des données de la requête ou utilisation des valeurs par défaut
     const body = await request.json().catch(() => ({}));
-    
+
     const {
       tokenName = generateRandomTokenName(),
       tokenSymbol = "NORUG",
@@ -28,7 +37,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       creatorAllocation = 5,
       lockupPeriod = 86400, // 1 jour en secondes
       imageUrl = null,
-      epochId = null
+      epochId = null,
     } = body;
 
     console.log(`[${requestId}] 📝 Données de la proposition:`, {
@@ -38,7 +47,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       creatorAllocation,
       lockupPeriod,
       imageUrl,
-      epochId
+      epochId,
     });
 
     const result = await createProposal({
@@ -49,17 +58,20 @@ export async function POST(request: NextRequest): Promise<Response> {
       creatorAllocation,
       lockupPeriod,
       imageUrl,
-      epochId
+      epochId,
     });
 
     console.log(`[${requestId}] ✅ Proposition créée avec succès:`, result);
 
     return createSuccessResponse(requestId, {
       success: true,
-      proposal: result
+      proposal: result,
     });
   } catch (error) {
-    console.error(`[${requestId}] ❌ Erreur lors de la création de la proposition:`, error);
+    console.error(
+      `[${requestId}] ❌ Erreur lors de la création de la proposition:`,
+      error
+    );
     return createErrorResponse(requestId, error);
   }
-} 
+}
