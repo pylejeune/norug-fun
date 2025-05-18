@@ -11,7 +11,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 // Import de l'IDL partagé
-import idlJson from "../idl/programs.json";
+import idlJson from "@/idl/programs.json";
 
 // Configuration simple
 export const RPC_ENDPOINT =

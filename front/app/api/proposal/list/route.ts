@@ -1,7 +1,4 @@
 // front/app/api/proposal/list/route.ts
-import { Connection } from "@solana/web3.js";
-import { randomUUID } from "crypto";
-import { NextRequest } from "next/server";
 import {
   createAnchorWallet,
   createErrorResponse,
@@ -10,7 +7,10 @@ import {
   getProgram,
   RPC_ENDPOINT,
   verifyAuthToken,
-} from "../../../../lib/utils";
+} from "@/lib/utils";
+import { Connection } from "@solana/web3.js";
+import { randomUUID } from "crypto";
+import { NextRequest } from "next/server";
 
 export async function GET(request: NextRequest): Promise<Response> {
   const requestId = randomUUID();

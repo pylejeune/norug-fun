@@ -1,11 +1,11 @@
-import * as anchor from "@coral-xyz/anchor";
-import { Connection, PublicKey } from "@solana/web3.js";
 import {
+  RPC_ENDPOINT,
   createAnchorWallet,
   getAdminKeypair,
   getProgram,
-  RPC_ENDPOINT,
-} from "../../../../lib/utils";
+} from "@/lib/utils";
+import * as anchor from "@coral-xyz/anchor";
+import { Connection, PublicKey } from "@solana/web3.js";
 
 interface TreasurySubAccount {
   sol_balance: number;
