@@ -1,17 +1,16 @@
 // front/app/api/proposal/list/route.ts
-import { NextRequest } from "next/server";
-import { randomUUID } from 'crypto';
-import { Connection } from "@solana/web3.js";
 import {
-    verifyAuthToken,
-    createSuccessResponse,
-    createErrorResponse,
-    getProgram,
-    getAdminKeypair,
-    createAnchorWallet,
-    RPC_ENDPOINT
-} from "../../shared/utils";
-
+  createAnchorWallet,
+  createErrorResponse,
+  createSuccessResponse,
+  getAdminKeypair,
+  getProgram,
+  RPC_ENDPOINT,
+  verifyAuthToken,
+} from "@/lib/utils";
+import { Connection } from "@solana/web3.js";
+import { randomUUID } from "crypto";
+import { NextRequest } from "next/server";
 
 export async function GET(request: NextRequest): Promise<Response> {
   const requestId = randomUUID();
@@ -20,10 +19,14 @@ export async function GET(request: NextRequest): Promise<Response> {
   // Vérification du token d'authentification
   if (!verifyAuthToken(request)) {
     console.error(`[${requestId}] ❌ Authentification échouée`);
-    return createErrorResponse(requestId, {
-      message: "Non autorisé",
-      name: "AuthenticationError"
-    }, 401);
+    return createErrorResponse(
+      requestId,
+      {
+        message: "Non autorisé",
+        name: "AuthenticationError",
+      },
+      401
+    );
   }
 
   try {
@@ -38,7 +41,9 @@ export async function GET(request: NextRequest): Promise<Response> {
 
     // Récupérer toutes les propositions
     const proposals = await (program.account as any).tokenProposal.all();
-    console.log(`[${requestId}] ✅ Nombre de propositions trouvées: ${proposals.length}`);
+    console.log(
+      `[${requestId}] ✅ Nombre de propositions trouvées: ${proposals.length}`
+    );
 
     // Formater la réponse
     const formattedProposals = proposals.map((proposal: any) => ({
@@ -57,7 +62,10 @@ export async function GET(request: NextRequest): Promise<Response> {
       proposals: formattedProposals,
     });
   } catch (error) {
-    console.error(`[${requestId}] ❌ Erreur lors de la récupération des propositions:`, error);
+    console.error(
+      `[${requestId}] ❌ Erreur lors de la récupération des propositions:`,
+      error
+    );
     return createErrorResponse(requestId, error);
   }
 }

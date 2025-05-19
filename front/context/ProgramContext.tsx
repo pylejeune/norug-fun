@@ -1,6 +1,6 @@
 "use client";
-
-import { getProgram } from "@/context/program";
+import { Programs } from "@/idl/programs";
+import { getProgram, AnchorWallet as UtilsAnchorWallet } from "@/lib/utils";
 import { BN, Program } from "@coral-xyz/anchor";
 import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
 import { LAMPORTS_PER_SOL, PublicKey, SystemProgram } from "@solana/web3.js";
@@ -11,7 +11,6 @@ import {
   useMemo,
   useState,
 } from "react";
-import { Programs } from "./types/programs";
 
 export type { Programs };
 
@@ -105,7 +104,18 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
 
   const program = useMemo(() => {
     if (connection) {
-      return getProgram(connection, wallet);
+      // Cast le wallet pour qu'il corresponde au type attendu par utils.ts
+      const compatibleWallet = wallet
+        ? {
+            publicKey: wallet.publicKey,
+            signTransaction:
+              wallet.signTransaction as UtilsAnchorWallet["signTransaction"],
+            signAllTransactions:
+              wallet.signAllTransactions as UtilsAnchorWallet["signAllTransactions"],
+          }
+        : undefined;
+
+      return getProgram(connection, compatibleWallet);
     }
     return null;
   }, [connection, wallet]);
