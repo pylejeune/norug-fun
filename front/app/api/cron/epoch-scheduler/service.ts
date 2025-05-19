@@ -7,6 +7,9 @@ import {
   AnchorWallet,
   CRON_IDL
 } from "@/lib/utils";
+import { Connection, Keypair, PublicKey, SystemProgram } from "@solana/web3.js";
+import BN from "bn.js";
+import { Wallet as UtilsAnchorWallet } from "@project-serum/anchor";
 
 // --- Définition des interfaces ---
 

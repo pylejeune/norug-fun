@@ -9,6 +9,8 @@ import { twMerge } from "tailwind-merge";
 // Import de l'IDL partagé - chemins mis à jour pour refléter la nouvelle structure
 import sharedIdlJson from "../app/idl/programs.json";
 import cronIdlJson from "../app/idl/programs.json";
+// Import de l'IDL partagé
+import idlJson from "@/idl/programs.json";
 
 // Fonction utilitaire pour les classes TailwindCSS
 export function cn(...inputs: ClassValue[]) {
@@ -32,6 +34,19 @@ export const SHARED_IDL = {
     ...(sharedIdlJson as any).metadata,
     address: SHARED_IDL_ADDRESS
   }
+};
+
+// Note: La structure de l'IDL peut différer
+export const idlAddress =
+  "address" in idlJson
+    ? (idlJson as any).address
+    : (idlJson as any).metadata?.address ||
+      "3HBzNutk8DrRfffCS74S55adJAjgY8NHrWXgRtABaSbF";
+
+// IDL préparé pour Anchor
+export const idl = {
+  ...(idlJson as any),
+  address: idlAddress, // S'assurer que l'adresse est toujours disponible à la racine
 };
 
 // Cron API
@@ -154,6 +169,38 @@ export function getProgram(connection: Connection, idl: any, wallet?: AnchorWall
     console.log("⚙️ Création du programme avec IDL complet...");
     const program = new Program(idl, provider);
     
+    return program;
+  } catch (error) {
+    console.error("❌ Error creating program:", error);
+    return null;
+  }
+}
+
+export function getProgramContext(
+  connection: Connection,
+  wallet?: AnchorWallet | null
+) {
+  try {
+    // Création du provider avec le wallet et la connexion
+    const provider = new AnchorProvider(
+      connection,
+      wallet ?? ({} as AnchorWallet), // allow "read-only" mode
+      { preflightCommitment: "processed" }
+    );
+
+    if (wallet) {
+      console.log(
+        "⚙️ Création du provider avec wallet:",
+        wallet.publicKey.toString()
+      );
+    } else {
+      console.log("⚙️ Création du provider en mode lecture seule");
+    }
+
+    // Création du programme
+    console.log("⚙️ Création du programme avec IDL complet...");
+    const program = new Program(idl as any, provider);
+
     return program;
   } catch (error) {
     console.error("❌ Error creating program:", error);
