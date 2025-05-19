@@ -1,6 +1,6 @@
 import * as anchor from "@coral-xyz/anchor";
 import { PublicKey, Connection } from "@solana/web3.js";
-import { getProgram, getAdminKeypairProgramConfig, createAnchorWallet, RPC_ENDPOINT } from "../../cron/shared/utils";
+import { getProgram, getAdminKeypairProgramConfig, createAnchorWallet, RPC_ENDPOINT, SHARED_IDL } from "../../../../lib/utils";
 
 interface ProgramConfigResult {
   success: boolean;
@@ -20,7 +20,7 @@ export async function initializeProgramConfig(): Promise<ProgramConfigResult> {
   const connection = new Connection(RPC_ENDPOINT);
   const adminKeypair = getAdminKeypairProgramConfig();
   const wallet = createAnchorWallet(adminKeypair);
-  const program = getProgram(connection, wallet);
+  const program = getProgram(connection, SHARED_IDL, wallet);
 
   if (!program) {
     throw new Error("Programme non initialisé");

@@ -4,8 +4,9 @@ import {
   getAdminKeypair, 
   getProgram, 
   createAnchorWallet, 
-  RPC_ENDPOINT
-} from "../shared/utils";
+  RPC_ENDPOINT,
+  CRON_IDL
+} from "../../../../lib/utils";
 
 // --- Définition des interfaces ---
 interface EpochManagementAccountInfo {
@@ -74,7 +75,7 @@ export async function runCrankLogic(): Promise<{ success: boolean; message: stri
         // Création du wallet avec le keypair admin
         const wallet = createAnchorWallet(adminKeypair);
         
-        const program = getProgram(connection, wallet);
+        const program = getProgram(connection, CRON_IDL, wallet);
         
         if (!program) {
             return { success: false, message: "Programme non initialisé" };

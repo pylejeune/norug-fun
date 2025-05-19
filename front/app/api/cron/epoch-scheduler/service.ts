@@ -6,8 +6,9 @@ import {
   getProgram, 
   createAnchorWallet, 
   RPC_ENDPOINT,
-  AnchorWallet
-} from "../shared/utils";
+  AnchorWallet,
+  CRON_IDL
+} from "../../../../lib/utils";
 
 // --- Définition des interfaces ---
 

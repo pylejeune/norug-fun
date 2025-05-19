@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { randomUUID } from 'crypto';
-import { verifyAuthToken, createSuccessResponse, createErrorResponse, getAdminKeypair, getAdminKeypairProgramConfig, createAnchorWallet, getProgram, RPC_ENDPOINT } from "../../cron/shared/utils";
+import { verifyAuthToken, createSuccessResponse, createErrorResponse, getAdminKeypair, getAdminKeypairProgramConfig, createAnchorWallet, getProgram, RPC_ENDPOINT, SHARED_IDL } from "../../../../lib/utils";
 import { PublicKey, Connection } from "@solana/web3.js";
 
 export async function GET(request: NextRequest): Promise<Response> {
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest): Promise<Response> {
     // Récupérer l'admin actuel depuis ProgramConfig
     const connection = new Connection(RPC_ENDPOINT);
     const wallet = createAnchorWallet(adminKeypair);
-    const program = getProgram(connection, wallet);
+    const program = getProgram(connection, SHARED_IDL, wallet);
 
     if (!program) {
       throw new Error("Programme non initialisé");

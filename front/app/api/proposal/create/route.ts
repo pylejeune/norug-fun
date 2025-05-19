@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { randomUUID } from 'crypto';
-import { verifyAuthToken, createSuccessResponse, createErrorResponse, generateRandomTokenName } from "../../shared/utils";
+import { verifyAuthToken, createSuccessResponse, createErrorResponse, generateRandomTokenName } from "../../../../lib/utils";
 import { createProposal } from "./service";
 
 export async function POST(request: NextRequest): Promise<Response> {

@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { randomUUID } from 'crypto';
 import { runCrankLogic } from "./service";
-import { verifyAuthToken, createSuccessResponse, createErrorResponse } from "../shared/utils";
+import { verifyAuthToken, createSuccessResponse, createErrorResponse } from "../../../../lib/utils";
 
 // Handler pour les requêtes GET
 export async function GET(request: NextRequest): Promise<Response> {
