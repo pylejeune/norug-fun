@@ -8,6 +8,8 @@ const originalStdoutWrite = process.stdout.write;
 // Configuration des logs
 const ENABLE_FILE_LOGGING =
   process.env.NEXT_PUBLIC_ENABLE_FILE_LOGGING === "true";
+const ENABLE_SCREEN_LOGGING =
+  process.env.NEXT_PUBLIC_ENABLE_SCREEN_LOGGING === "true"; // false par défaut
 
 // Chemin du dossier et du fichier de logs
 const logsDir = path.join(process.cwd(), "logs");
@@ -106,10 +108,14 @@ console.log = (...args: any[]) => {
       .join(" ");
 
     // Écriture dans le fichier si activé
-    writeToLog(message);
+    if (ENABLE_FILE_LOGGING) {
+      writeToLog(message);
+    }
 
-    // Toujours afficher dans la console
-    originalConsoleLog.apply(console, args);
+    // Affichage console si activé
+    if (ENABLE_SCREEN_LOGGING) {
+      originalConsoleLog.apply(console, args);
+    }
   } catch (error) {
     originalConsoleLog("Error writing to log file:", error);
   }
@@ -120,10 +126,15 @@ process.stdout.write = function (chunk: any) {
   try {
     const message = chunk.toString().trim();
     if (message) {
-      writeToLog(message);
+      if (ENABLE_FILE_LOGGING) {
+        writeToLog(message);
+      }
+      if (ENABLE_SCREEN_LOGGING) {
+        return originalStdoutWrite.apply(process.stdout, arguments as any);
+      }
     }
   } catch (error) {
     originalConsoleLog("Error writing stdout to log file:", error);
   }
-  return originalStdoutWrite.apply(process.stdout, arguments as any);
+  return true; // Pour éviter les erreurs quand ENABLE_SCREEN_LOGGING est false
 };
