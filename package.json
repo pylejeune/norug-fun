@@ -1,0 +1,5 @@
+{
+  "devDependencies": {
+    "@types/bn.js": "^5.1.6"
+  }
+}
