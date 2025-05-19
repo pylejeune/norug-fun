@@ -95,8 +95,8 @@ export function getAdminKeypair(): Keypair {
  * Génère le keypair administrateur à partir de la seed stockée en Base64
  */
 export function getAdminKeypairProgramConfig(): Keypair {
-  if (!ADMIN_SEED_BASE64) {
-    throw new Error("ADMIN_SEED_BASE64_PROGAMCONFIG n'est pas défini dans les variables d'environnement ou est vide");
+  if (!ADMIN_SEED_BASE64_PROGRAMCONFIG) {
+    throw new Error("ADMIN_SEED_BASE64_PROGRAMCONFIG n'est pas défini dans les variables d'environnement ou est vide");
   }
   
   try {
