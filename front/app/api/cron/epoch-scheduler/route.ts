@@ -1,13 +1,23 @@
 import { NextRequest } from "next/server";
 import { randomUUID } from 'crypto';
-import { verifyAuthToken, getAdminKeypair, createAnchorWallet, RPC_ENDPOINT } from "../../../../lib/utils";
-import { getAllEpochs } from "./service";
-import { Connection } from "@solana/web3.js";
+import { verifyAuthToken } from "../../../../lib/utils";
+import { checkAndSimulateEndEpoch } from "./service";
+
+interface EpochInfo {
+  publicKey: string;
+  epochId: string;
+  startTime: string;
+  endTime: string;
+  status: string;
+  processed: boolean | string;
+  needsClosing: boolean;
+  timeRemaining: string;
+}
 
 // Handler pour les requêtes GET
 export async function GET(request: NextRequest): Promise<Response> {
   const requestId = randomUUID();
-  console.log(`[${requestId}] 🔍 Requête d'information sur les époques`);
+  console.log(`[${requestId}] 🔍 Démarrage de la vérification et fermeture des époques`);
 
   // Vérification du token d'authentification
   if (!verifyAuthToken(request)) {
@@ -25,36 +35,38 @@ export async function GET(request: NextRequest): Promise<Response> {
   }
 
   try {
-    const connection = new Connection(RPC_ENDPOINT);
-    const adminKeypair = getAdminKeypair();
-    const wallet = createAnchorWallet(adminKeypair);
+    // Vérifier et fermer les époques si nécessaire
+    const result = await checkAndSimulateEndEpoch();
     
-    // Récupérer les informations sur les époques
-    const result = await getAllEpochs(connection, wallet);
-    
-    // Calculer les statistiques
-    const stats = {
-      total: Array.isArray(result) ? result.length : 0,
-      active: Array.isArray(result) ? result.filter(epoch => epoch.status === 'active').length : 0,
-      closed: Array.isArray(result) ? result.filter(epoch => epoch.status === 'closed').length : 0,
-      needsClosing: Array.isArray(result) ? result.filter(epoch => epoch.needsClosing).length : 0
-    };
+    // Filtrer pour ne garder que les époques actives
+    let activeEpochs: EpochInfo[] = [];
+    if (Array.isArray(result.epochs)) {
+      activeEpochs = result.epochs.filter(epoch => epoch.status === 'active');
+    } else if (result.epochs && typeof result.epochs === 'object') {
+      // Si c'est un objet avec différents types d'époques
+      Object.values(result.epochs).forEach((group: any) => {
+        if (group.accounts && Array.isArray(group.accounts)) {
+          activeEpochs = activeEpochs.concat(group.accounts.filter((acc: any) => acc.status === 'active'));
+        }
+      });
+    }
     
     return new Response(JSON.stringify({
-      success: true,
-      epochs: result,
-      stats: {
-        ...stats,
-        summary: `Total: ${stats.total} époques (${stats.active} actives, ${stats.closed} fermées, ${stats.needsClosing} à fermer)`
+      success: result.success,
+      details: {
+        ...result.details,
+        activeEpochsCount: activeEpochs.length
       },
+      epochs: activeEpochs,
+      newEpochCreated: result.newEpochCreated,
       timestamp: new Date().toISOString(),
       requestId,
     }), {
-      status: 200,
+      status: result.success ? 200 : 500,
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    console.error(`[${requestId}] ❌ Erreur lors de la récupération des époques:`, error);
+    console.error(`[${requestId}] ❌ Erreur lors de la vérification des époques:`, error);
     
     return new Response(JSON.stringify({
       success: false,

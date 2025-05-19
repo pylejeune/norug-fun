@@ -160,6 +160,7 @@ export async function checkAndSimulateEndEpoch(): Promise<TestResults> {
   };
   
   try {
+    console.log("\n🔄 Démarrage de la vérification des époques...");
     const connection = new Connection(RPC_ENDPOINT);
     let adminKeypair;
     
@@ -175,7 +176,6 @@ export async function checkAndSimulateEndEpoch(): Promise<TestResults> {
     
     // Création du wallet avec le keypair admin
     const wallet = createAnchorWallet(adminKeypair);
-    
     const program = getProgram(connection, CRON_IDL, wallet);
     
     if (!program) {
@@ -185,7 +185,7 @@ export async function checkAndSimulateEndEpoch(): Promise<TestResults> {
     }
     
     // Récupérer toutes les époques
-    console.log("\n--- Récupération des époques ---");
+    console.log("\n📊 Récupération des époques...");
     const epochs = await getAllEpochs(connection, wallet);
     results.epochs = epochs;
     
@@ -199,7 +199,6 @@ export async function checkAndSimulateEndEpoch(): Promise<TestResults> {
       results.details.epochsChecked = activeEpochs.length;
     } else if (epochs && typeof epochs === 'object') {
       // Si c'est un objet avec différents types d'époques
-      // Chercher les comptes actifs dans les différents types
       Object.values(epochs).forEach((group: any) => {
         if (group.accounts && Array.isArray(group.accounts)) {
           activeEpochs = activeEpochs.concat(group.accounts);
@@ -208,7 +207,9 @@ export async function checkAndSimulateEndEpoch(): Promise<TestResults> {
       });
     }
     
-    console.log(`📊 Nombre d'époques actives trouvées: ${results.details.epochsChecked}`);
+    console.log(`\n📈 Statistiques des époques:`);
+    console.log(`- Total vérifiées: ${results.details.epochsChecked}`);
+    console.log(`- Actives: ${activeEpochs.length}`);
     
     // Pour chaque époque active, vérifier si elle doit être fermée
     for (const epoch of activeEpochs) {
@@ -243,15 +244,19 @@ export async function checkAndSimulateEndEpoch(): Promise<TestResults> {
             results.details.epochsToClose++;
             
             // Simuler l'appel à endEpoch
+            console.log(`\n🔄 Tentative de fermeture de l'époque ${epochId}...`);
             const simResult = await simulateEndEpoch(program, connection, wallet, adminKeypair, epochId);
+            
             if (!simResult.success) {
+              console.error(`❌ Échec de la fermeture de l'époque ${epochId}:`, simResult.errors);
               results.details.errors = results.details.errors.concat(simResult.errors);
             } else {
-              // Incrémenter le compteur si l'opération a réussi
+              console.log(`✅ Époque ${epochId} fermée avec succès! Signature: ${simResult.signature}`);
               results.details.epochsClosed++;
             }
           } else {
-            console.log(`⏳ L'époque ${epochId} est toujours active (temps restant: ${Math.floor((endTime - currentTime) / 60)} minutes)`);
+            const remainingMinutes = Math.floor((endTime - currentTime) / 60);
+            console.log(`⏳ L'époque ${epochId} est toujours active (temps restant: ${remainingMinutes} minutes)`);
           }
         } else {
           console.log(`⚠️ Impossible de déterminer l'heure de fin pour l'époque ${epochId}`);
@@ -264,66 +269,80 @@ export async function checkAndSimulateEndEpoch(): Promise<TestResults> {
     }
 
     // Vérifier s'il reste des époques actives après les fermetures
+    console.log(`\n📊 Résumé des opérations:`);
+    console.log(`- Époques vérifiées: ${results.details.epochsChecked}`);
+    console.log(`- Époques à fermer: ${results.details.epochsToClose}`);
+    console.log(`- Époques fermées: ${results.details.epochsClosed}`);
+    console.log(`- Erreurs: ${results.details.errors.length}`);
+    
     // Si toutes les époques ont été fermées, créer une nouvelle époque
-    console.log(`\n--- Vérification du besoin de créer une nouvelle époque ---`);
-    
-    // Récupérer à nouveau les époques pour s'assurer que nous avons l'état le plus récent
-    const updatedEpochs = await getAllEpochs(connection, wallet);
-    let remainingActiveEpochs = 0;
-    
-    // Compter les époques actives restantes
-    if (Array.isArray(updatedEpochs)) {
-      remainingActiveEpochs = updatedEpochs.filter(epoch => epoch.status === 'active').length;
-    } else if (updatedEpochs && typeof updatedEpochs === 'object') {
-      Object.values(updatedEpochs).forEach((group: any) => {
-        if (group.accounts && Array.isArray(group.accounts)) {
-          remainingActiveEpochs += group.accounts.length;
-        }
-      });
-    }
-    
-    console.log(`📊 Époques actives restantes après fermeture: ${remainingActiveEpochs}`);
-    
-    // S'il n'y a plus d'époques actives, en créer une nouvelle
-    if (remainingActiveEpochs === 0) {
-      console.log(`⚠️ Aucune époque active restante. Vérification du solde du wallet admin...`);
+    if (results.details.epochsClosed > 0) {
+      console.log(`\n🔄 Vérification du besoin de créer une nouvelle époque...`);
       
-      // Vérifier le solde du wallet admin avant de créer une nouvelle époque
-      try {
-        const adminBalance = await connection.getBalance(adminKeypair.publicKey);
-        const adminBalanceSOL = adminBalance / 1_000_000_000; // Convertir lamports en SOL
-        console.log(`💰 Solde du wallet admin: ${adminBalanceSOL} SOL (${adminBalance} lamports)`);
+      // Récupérer à nouveau les époques pour s'assurer que nous avons l'état le plus récent
+      const updatedEpochs = await getAllEpochs(connection, wallet);
+      let remainingActiveEpochs = 0;
+      
+      // Compter les époques actives restantes
+      if (Array.isArray(updatedEpochs)) {
+        remainingActiveEpochs = updatedEpochs.filter(epoch => epoch.status === 'active').length;
+      } else if (updatedEpochs && typeof updatedEpochs === 'object') {
+        Object.values(updatedEpochs).forEach((group: any) => {
+          if (group.accounts && Array.isArray(group.accounts)) {
+            remainingActiveEpochs += group.accounts.length;
+          }
+        });
+      }
+      
+      console.log(`📊 Époques actives restantes après fermeture: ${remainingActiveEpochs}`);
+      
+      // S'il n'y a plus d'époques actives, en créer une nouvelle
+      if (remainingActiveEpochs === 0) {
+        console.log(`\n⚠️ Aucune époque active restante. Création d'une nouvelle époque...`);
         
-        // Estimation du coût minimum pour créer un compte (époque)
-        // La taille approximative du compte EpochManagement + frais de transaction
-        const rentExemptionAmount = await connection.getMinimumBalanceForRentExemption(100); // Taille approximative en bytes
-        const estimatedFees = 5000; // Frais de transaction estimés en lamports
-        const estimatedCost = rentExemptionAmount + estimatedFees;
-        
-        console.log(`💸 Coût estimé pour créer une époque: ${estimatedCost / 1_000_000_000} SOL (${estimatedCost} lamports)`);
-        
-        if (adminBalance >= estimatedCost) {
-          console.log(`✅ Le wallet admin a suffisamment de fonds pour créer une nouvelle époque`);
+        // Vérifier le solde du wallet admin avant de créer une nouvelle époque
+        try {
+          const adminBalance = await connection.getBalance(adminKeypair.publicKey);
+          const adminBalanceSOL = adminBalance / 1_000_000_000; // Convertir lamports en SOL
+          console.log(`💰 Solde du wallet admin: ${adminBalanceSOL} SOL (${adminBalance} lamports)`);
           
-          const createResult = await createNewEpoch(program, connection, wallet, adminKeypair);
-          if (createResult.success) {
-            console.log(`✅ Nouvelle époque créée avec l'ID: ${createResult.epochId}`);
-            // Ajouter l'information dans les résultats
-            results.newEpochCreated = {
-              success: true,
-              epochId: createResult.epochId,
-              signature: createResult.signature
-            };
+          // Estimation du coût minimum pour créer un compte (époque)
+          const rentExemptionAmount = await connection.getMinimumBalanceForRentExemption(100);
+          const estimatedFees = 5000;
+          const estimatedCost = rentExemptionAmount + estimatedFees;
+          
+          console.log(`💸 Coût estimé pour créer une époque: ${estimatedCost / 1_000_000_000} SOL (${estimatedCost} lamports)`);
+          
+          if (adminBalance >= estimatedCost) {
+            console.log(`✅ Le wallet admin a suffisamment de fonds pour créer une nouvelle époque`);
+            
+            const createResult = await createNewEpoch(program, connection, wallet, adminKeypair);
+            if (createResult.success) {
+              console.log(`✅ Nouvelle époque créée avec l'ID: ${createResult.epochId}`);
+              results.newEpochCreated = {
+                success: true,
+                epochId: createResult.epochId,
+                signature: createResult.signature
+              };
+            } else {
+              console.error(`❌ Échec de la création d'une nouvelle époque:`, createResult.errors);
+              results.details.errors = results.details.errors.concat(createResult.errors);
+              results.newEpochCreated = {
+                success: false,
+                errors: createResult.errors
+              };
+            }
           } else {
-            console.error(`❌ Échec de la création d'une nouvelle époque:`, createResult.errors);
-            results.details.errors = results.details.errors.concat(createResult.errors);
+            const errorMsg = `Le wallet admin n'a pas assez de fonds pour créer une nouvelle époque. Nécessaire: ${estimatedCost / 1_000_000_000} SOL, Disponible: ${adminBalanceSOL} SOL`;
+            console.error(`❌ ${errorMsg}`);
+            results.details.errors.push(errorMsg);
             results.newEpochCreated = {
               success: false,
-              errors: createResult.errors
+              errors: [errorMsg]
             };
           }
-        } else {
-          const errorMsg = `Le wallet admin n'a pas assez de fonds pour créer une nouvelle époque. Nécessaire: ${estimatedCost / 1_000_000_000} SOL, Disponible: ${adminBalanceSOL} SOL`;
+        } catch (error) {
+          const errorMsg = `Erreur lors de la vérification du solde: ${error instanceof Error ? error.message : String(error)}`;
           console.error(`❌ ${errorMsg}`);
           results.details.errors.push(errorMsg);
           results.newEpochCreated = {
@@ -331,14 +350,6 @@ export async function checkAndSimulateEndEpoch(): Promise<TestResults> {
             errors: [errorMsg]
           };
         }
-      } catch (error) {
-        const errorMsg = `Erreur lors de la vérification du solde: ${error instanceof Error ? error.message : String(error)}`;
-        console.error(`❌ ${errorMsg}`);
-        results.details.errors.push(errorMsg);
-        results.newEpochCreated = {
-          success: false,
-          errors: [errorMsg]
-        };
       }
     }
     
@@ -560,15 +571,17 @@ export async function getAllEpochs(connection: Connection, wallet: AnchorWallet)
           timeRemaining: timeRemaining !== null ? `${Math.floor(timeRemaining / 60)} minutes` : 'N/A'
         };
 
-        // Log détaillé pour chaque époque
-        console.log(`\n📅 Époque ${epochInfo.epochId}:`);
-        console.log(`   🔑 Public Key: ${epochInfo.publicKey}`);
-        console.log(`   ⏰ Début: ${epochInfo.startTime}`);
-        console.log(`   ⏰ Fin: ${epochInfo.endTime}`);
-        console.log(`   📊 Statut: ${epochInfo.status}`);
-        console.log(`   ⏳ Temps restant: ${epochInfo.timeRemaining}`);
-        console.log(`   🔄 À fermer: ${epochInfo.needsClosing ? 'Oui' : 'Non'}`);
-        console.log(`   ✅ Traitée: ${epochInfo.processed}`);
+        // Log détaillé uniquement pour les époques actives
+        if (status === 'active') {
+          console.log(`\n📅 Époque ${epochInfo.epochId}:`);
+          console.log(`   🔑 Public Key: ${epochInfo.publicKey}`);
+          console.log(`   ⏰ Début: ${epochInfo.startTime}`);
+          console.log(`   ⏰ Fin: ${epochInfo.endTime}`);
+          console.log(`   📊 Statut: ${epochInfo.status}`);
+          console.log(`   ⏳ Temps restant: ${epochInfo.timeRemaining}`);
+          console.log(`   🔄 À fermer: ${epochInfo.needsClosing ? 'Oui' : 'Non'}`);
+          console.log(`   ✅ Traitée: ${epochInfo.processed}`);
+        }
         
         return epochInfo;
       } catch (err) {
