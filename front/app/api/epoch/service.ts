@@ -75,7 +75,7 @@ export async function createEpoch(durationMinutes: number): Promise<EpochResult>
     
     // Utilisation directe de la méthode Anchor
     console.log("🚀 Envoi de la transaction avec program.methods.startEpoch...");
-    const signature = await program.methods
+    const signature = await (program.methods as any)
       .startEpoch(newEpochId, startTime, endTime)
       .accounts(accounts)
       .signers([adminKeypair])
