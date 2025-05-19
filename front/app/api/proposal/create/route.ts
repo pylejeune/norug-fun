@@ -1,6 +1,13 @@
 import { NextRequest } from "next/server";
 import { randomUUID } from 'crypto';
-import { verifyAuthToken, createSuccessResponse, createErrorResponse, generateRandomTokenName } from "../../../../lib/utils";
+import { 
+  verifyAuthToken, 
+  createSuccessResponse, 
+  createErrorResponse, 
+  generateRandomTokenName, 
+  generateRandomTokenSymbol,
+  generateRandomImageUrl
+} from "../../../../lib/utils";
 import { createProposal } from "./service";
 
 export async function POST(request: NextRequest): Promise<Response> {
@@ -22,7 +29,7 @@ export async function POST(request: NextRequest): Promise<Response> {
     
     const {
       tokenName = generateRandomTokenName(),
-      tokenSymbol = "NORUG",
+      tokenSymbol = generateRandomTokenSymbol(),
       description = "Description de la proposition par défaut",
       totalSupply = 1000000,
       creatorAllocation = 5,
@@ -34,6 +41,7 @@ export async function POST(request: NextRequest): Promise<Response> {
     console.log(`[${requestId}] 📝 Données de la proposition:`, {
       tokenName,
       tokenSymbol,
+      description,
       totalSupply,
       creatorAllocation,
       lockupPeriod,

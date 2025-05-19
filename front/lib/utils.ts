@@ -231,3 +231,31 @@ export function generateRandomTokenName(): string {
   const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];
   return `${randomAdjective} ${randomNoun} ${randomUUID().slice(0, 8)}`; // Ajoute un UUID pour l'unicité
 }
+
+// Fonction pour générer un symbole de token aléatoire
+export function generateRandomTokenSymbol(): string {
+  const prefixes = ["NR", "SOL", "FUN", "META", "DIGI", "TECH"];
+  const randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+  const randomNumber = Math.floor(Math.random() * 900) + 100; // Nombre entre 100 et 999
+  return `${randomPrefix}${randomNumber}`;
+}
+
+// Fonction pour générer une URL d'image aléatoire
+export function generateRandomImageUrl(): string {
+  const imageServices = [
+    // Picsum Photos (photos aléatoires)
+    () => `https://picsum.photos/800/800?random=${Math.floor(Math.random() * 1000)}`,
+    // Unsplash Source (images de haute qualité)
+    () => `https://source.unsplash.com/random/800x800?token,crypto,blockchain&sig=${Math.floor(Math.random() * 1000)}`,
+    // Placeholder images avec couleurs aléatoires
+    () => {
+      const colors = ["4287f5", "42f54e", "f54242", "f5e642", "9942f5", "f542f2"];
+      const randomColor = colors[Math.floor(Math.random() * colors.length)];
+      return `https://via.placeholder.com/800x800/${randomColor}/ffffff?text=Token`;
+    }
+  ];
+  
+  // Sélection aléatoire d'un service d'images
+  const randomService = imageServices[Math.floor(Math.random() * imageServices.length)];
+  return randomService();
+}
