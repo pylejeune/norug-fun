@@ -1,5 +1,3 @@
-import { verifyAuthToken } from "@/lib/utils";
-import { randomUUID } from "crypto";
 import { NextRequest } from "next/server";
 import { randomUUID } from 'crypto';
 import { Connection } from "@solana/web3.js";
@@ -12,7 +10,7 @@ import {
   createAnchorWallet,
   RPC_ENDPOINT,
   CRON_IDL
-} from "../../../../lib/utils";
+} from "@/lib/utils";
 import { closeAllEpochs } from "../../epoch/close-all/service";
 import { createEpoch } from "../../epoch/service";
 

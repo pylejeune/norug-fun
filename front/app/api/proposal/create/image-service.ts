@@ -5,7 +5,7 @@ import * as os from 'os';
 import * as path from 'path';
 import { promisify } from 'util';
 import { randomUUID } from 'crypto';
-import { generateRandomImageUrl } from '../../../../lib/utils';
+import { generateRandomImageUrl } from "@/lib/utils";
 
 // Clé API Lighthouse stockée dans les variables d'environnement
 const LIGHTHOUSE_API_KEY = process.env.LIGHTHOUSE_API_KEY || process.env.NEXT_PUBLIC_LIGHTHOUSE_KEY;

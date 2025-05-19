@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { randomUUID } from 'crypto';
-import { verifyAuthToken, createSuccessResponse, createErrorResponse } from "../../../../lib/utils";
+import { verifyAuthToken, createSuccessResponse, createErrorResponse } from "@/lib/utils";
 import { createEpoch } from "../service";
 
 export async function GET(request: NextRequest): Promise<Response> {

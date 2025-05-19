@@ -3,9 +3,9 @@ import {
   createAnchorWallet,
   getAdminKeypair,
   getProgram,
+  SHARED_IDL,
 } from "@/lib/utils";
 import * as anchor from "@coral-xyz/anchor";
-import { getProgram, getAdminKeypair, createAnchorWallet, RPC_ENDPOINT, SHARED_IDL } from "../../../../lib/utils";
 import { PublicKey, Connection } from "@solana/web3.js";
 
 interface TreasurySubAccount {

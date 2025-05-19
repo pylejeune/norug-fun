@@ -11,9 +11,6 @@ import {
 import { Connection, PublicKey } from "@solana/web3.js";
 import { randomUUID } from "crypto";
 import { NextRequest } from "next/server";
-import { randomUUID } from 'crypto';
-import { verifyAuthToken, createSuccessResponse, createErrorResponse } from "../../../../lib/utils";
-import { getProgram, getAdminKeypair, createAnchorWallet, RPC_ENDPOINT, SHARED_IDL } from "../../../../lib/utils";
 import { fetchTreasuryBalance } from './service';
 
 export async function GET(request: NextRequest) {

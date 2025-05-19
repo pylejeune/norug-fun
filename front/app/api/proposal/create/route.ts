@@ -1,4 +1,3 @@
-import { randomUUID } from "crypto";
 import { NextRequest } from "next/server";
 import { randomUUID } from 'crypto';
 import { 
@@ -7,7 +6,7 @@ import {
   createErrorResponse, 
   generateRandomTokenName, 
   generateRandomTokenSymbol
-} from "../../../../lib/utils";
+} from "@/lib/utils";
 import { createProposal } from "./service";
 import { generateAndUploadRandomImage, ipfsToHttp } from "./image-service";
 

@@ -4,11 +4,7 @@ import { ClassValue, clsx } from "clsx";
 import { randomUUID } from "crypto";
 import { NextRequest } from "next/server";
 import { twMerge } from "tailwind-merge";
-import * as anchor from "@coral-xyz/anchor";
-import { PublicKey, Connection, Keypair, Transaction } from "@solana/web3.js";
-import { Program, AnchorProvider } from "@coral-xyz/anchor";
-import { NextRequest } from "next/server";
-import { randomUUID } from 'crypto';
+
 
 // Import de l'IDL partagé - chemins mis à jour pour refléter la nouvelle structure
 import sharedIdlJson from "../app/idl/programs.json";

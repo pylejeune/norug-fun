@@ -8,8 +8,11 @@ import {
     createAnchorWallet,
     RPC_ENDPOINT,
     SHARED_IDL
-} from "../../../../lib/utils";
+} from "@/lib/utils";
 import { ipfsToHttp, getAccessibleImageUrl } from "../create/image-service";
+import { NextRequest } from "next/server";
+import { randomUUID } from "crypto";
+import { Connection } from "@solana/web3.js";
 
 
 export async function GET(request: NextRequest): Promise<Response> {

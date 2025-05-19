@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { randomUUID } from 'crypto';
-import { verifyAuthToken, createSuccessResponse, createErrorResponse, getAdminKeypair, getAdminKeypairProgramConfig, createAnchorWallet, getProgram, RPC_ENDPOINT, SHARED_IDL } from "../../../../lib/utils";
+import { verifyAuthToken, createSuccessResponse, createErrorResponse, getAdminKeypair, getAdminKeypairProgramConfig, createAnchorWallet, getProgram, RPC_ENDPOINT, SHARED_IDL } from "@/lib/utils";
 import { PublicKey, Connection } from "@solana/web3.js";
 
 export async function GET(request: NextRequest): Promise<Response> {
