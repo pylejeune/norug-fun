@@ -176,7 +176,7 @@ export async function checkAndSimulateEndEpoch(): Promise<TestResults> {
     // Création du wallet avec le keypair admin
     const wallet = createAnchorWallet(adminKeypair);
     
-    const program = getProgram(connection, wallet);
+    const program = getProgram(connection, CRON_IDL, wallet);
     
     if (!program) {
       results.success = false;
@@ -465,7 +465,7 @@ async function simulateEndEpoch(program: any, connection: Connection, wallet: An
  * Fonction pour récupérer toutes les époques
  */
 export async function getAllEpochs(connection: Connection, wallet: AnchorWallet) {
-  const program = getProgram(connection, wallet);
+  const program = getProgram(connection, CRON_IDL, wallet);
   
   if (!program) {
     console.error("❌ Programme non initialisé");
@@ -507,7 +507,8 @@ export async function getAllEpochs(connection: Connection, wallet: AnchorWallet)
                 type: accountType,
                 accounts: activeAccounts.map((acc: any) => ({
                   publicKey: acc.publicKey.toString(),
-                  data: acc.account
+                  data: acc.account,
+                  status: 'active'
                 }))
               });
             }
@@ -524,43 +525,75 @@ export async function getAllEpochs(connection: Connection, wallet: AnchorWallet)
     // @ts-ignore - Nous savons que nous accédons à la propriété epochManagement
     const allEpochs = await program.account.epochManagement.all();
     
-    // Transformer les données pour un format plus lisible et filtrer pour ne garder que les époques actives
-    const formattedEpochs = allEpochs
-      .filter((epoch: any) => {
-        try {
-          return epoch.account.status && Object.keys(epoch.account.status)[0] === 'active';
-        } catch (err) {
-          return false;
+    // Transformer les données pour un format plus lisible
+    const formattedEpochs = allEpochs.map((epoch: any) => {
+      try {
+        // Déterminer le statut
+        let status = 'unknown';
+        if (epoch.account.status) {
+          const statusKey = Object.keys(epoch.account.status)[0];
+          status = statusKey || 'unknown';
         }
-      })
-      .map((epoch: any) => {
-        try {
-          // Ajouter un indicateur si l'époque est dépassée
-          const currentTime = Math.floor(Date.now() / 1000);
-          const endTime = epoch.account.endTime?.toNumber();
-          const needsClosing = endTime && currentTime >= endTime;
-          
-          return {
-            publicKey: epoch.publicKey.toString(),
-            epochId: epoch.account.epochId?.toString() || 'N/A',
-            startTime: epoch.account.startTime ? 
-              new Date(epoch.account.startTime.toNumber() * 1000).toISOString() : 'N/A',
-            endTime: epoch.account.endTime ? 
-              new Date(epoch.account.endTime.toNumber() * 1000).toISOString() : 'N/A',
-            status: 'active', // Nous savons déjà que c'est 'active' grâce au filtre
-            processed: epoch.account.processed !== undefined ? epoch.account.processed : 'N/A',
-            needsClosing // Nouvel indicateur
-          };
-        } catch (err) {
-          return {
-            publicKey: epoch.publicKey.toString(),
-            error: 'Format inattendu',
-            rawData: JSON.stringify(epoch.account)
-          };
+        
+        // Ajouter un indicateur si l'époque est dépassée
+        const currentTime = Math.floor(Date.now() / 1000);
+        const endTime = epoch.account.endTime?.toNumber();
+        const needsClosing = endTime && currentTime >= endTime;
+        
+        // Calculer le temps restant
+        let timeRemaining = null;
+        if (endTime) {
+          const remaining = endTime - currentTime;
+          timeRemaining = remaining > 0 ? remaining : 0;
         }
-      });
+        
+        const epochInfo = {
+          publicKey: epoch.publicKey.toString(),
+          epochId: epoch.account.epochId?.toString() || 'N/A',
+          startTime: epoch.account.startTime ? 
+            new Date(epoch.account.startTime.toNumber() * 1000).toISOString() : 'N/A',
+          endTime: epoch.account.endTime ? 
+            new Date(epoch.account.endTime.toNumber() * 1000).toISOString() : 'N/A',
+          status,
+          processed: epoch.account.processed !== undefined ? epoch.account.processed : 'N/A',
+          needsClosing,
+          timeRemaining: timeRemaining !== null ? `${Math.floor(timeRemaining / 60)} minutes` : 'N/A'
+        };
+
+        // Log détaillé pour chaque époque
+        console.log(`\n📅 Époque ${epochInfo.epochId}:`);
+        console.log(`   🔑 Public Key: ${epochInfo.publicKey}`);
+        console.log(`   ⏰ Début: ${epochInfo.startTime}`);
+        console.log(`   ⏰ Fin: ${epochInfo.endTime}`);
+        console.log(`   📊 Statut: ${epochInfo.status}`);
+        console.log(`   ⏳ Temps restant: ${epochInfo.timeRemaining}`);
+        console.log(`   🔄 À fermer: ${epochInfo.needsClosing ? 'Oui' : 'Non'}`);
+        console.log(`   ✅ Traitée: ${epochInfo.processed}`);
+        
+        return epochInfo;
+      } catch (err) {
+        console.error(`❌ Erreur lors du formatage de l'époque:`, err);
+        return {
+          publicKey: epoch.publicKey.toString(),
+          error: 'Format inattendu',
+          rawData: JSON.stringify(epoch.account)
+        };
+      }
+    });
     
-    console.log(`📈 Nombre total d'époques actives: ${formattedEpochs.length}`);
+    // Statistiques globales
+    const totalEpochs = formattedEpochs.length;
+    const activeEpochs = formattedEpochs.filter((epoch: { status: string }) => epoch.status === 'active').length;
+    const closedEpochs = formattedEpochs.filter((epoch: { status: string }) => epoch.status === 'closed').length;
+    const epochsToClose = formattedEpochs.filter((epoch: { needsClosing: boolean }) => epoch.needsClosing).length;
+    
+    console.log('\n📊 RÉSUMÉ DES ÉPOQUES:');
+    console.log('=====================');
+    console.log(`📈 Total des époques: ${totalEpochs}`);
+    console.log(`🟢 Époques actives: ${activeEpochs}`);
+    console.log(`🔴 Époques fermées: ${closedEpochs}`);
+    console.log(`⚠️ Époques à fermer: ${epochsToClose}`);
+    console.log('=====================\n');
     
     return formattedEpochs;
   } catch (error) {

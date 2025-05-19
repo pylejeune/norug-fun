@@ -1,7 +1,8 @@
 import { NextRequest } from "next/server";
 import { randomUUID } from 'crypto';
-import { verifyAuthToken } from "../../../../lib/utils";
+import { verifyAuthToken, getAdminKeypair, createAnchorWallet, RPC_ENDPOINT } from "../../../../lib/utils";
 import { getAllEpochs } from "./service";
+import { Connection } from "@solana/web3.js";
 
 // Handler pour les requêtes GET
 export async function GET(request: NextRequest): Promise<Response> {
@@ -24,12 +25,28 @@ export async function GET(request: NextRequest): Promise<Response> {
   }
 
   try {
+    const connection = new Connection(RPC_ENDPOINT);
+    const adminKeypair = getAdminKeypair();
+    const wallet = createAnchorWallet(adminKeypair);
+    
     // Récupérer les informations sur les époques
-    const result = await getAllEpochs();
+    const result = await getAllEpochs(connection, wallet);
+    
+    // Calculer les statistiques
+    const stats = {
+      total: Array.isArray(result) ? result.length : 0,
+      active: Array.isArray(result) ? result.filter(epoch => epoch.status === 'active').length : 0,
+      closed: Array.isArray(result) ? result.filter(epoch => epoch.status === 'closed').length : 0,
+      needsClosing: Array.isArray(result) ? result.filter(epoch => epoch.needsClosing).length : 0
+    };
     
     return new Response(JSON.stringify({
       success: true,
       epochs: result,
+      stats: {
+        ...stats,
+        summary: `Total: ${stats.total} époques (${stats.active} actives, ${stats.closed} fermées, ${stats.needsClosing} à fermer)`
+      },
       timestamp: new Date().toISOString(),
       requestId,
     }), {

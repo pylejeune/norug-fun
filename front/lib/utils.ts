@@ -28,19 +28,23 @@ export const SHARED_PROGRAM_ID = new PublicKey(SHARED_IDL_ADDRESS);
 
 export const SHARED_IDL = {
   ...sharedIdlJson as any,
-  address: SHARED_IDL_ADDRESS
+  metadata: {
+    ...(sharedIdlJson as any).metadata,
+    address: SHARED_IDL_ADDRESS
+  }
 };
 
 // Cron API
-export const CRON_IDL_ADDRESS = "address" in cronIdlJson 
-  ? (cronIdlJson as any).address
-  : (cronIdlJson as any).metadata?.address || "3HBzNutk8DrRfffCS74S55adJAjgY8NHrWXgRtABaSbF";
+export const CRON_IDL_ADDRESS = process.env.CRON_PROGRAM_ID || SHARED_IDL_ADDRESS;
 
 export const CRON_PROGRAM_ID = new PublicKey(CRON_IDL_ADDRESS);
 
 export const CRON_IDL = {
-  ...cronIdlJson as any,
-  address: CRON_IDL_ADDRESS
+  ...sharedIdlJson as any,
+  metadata: {
+    ...(sharedIdlJson as any).metadata,
+    address: CRON_IDL_ADDRESS
+  }
 };
 
 // Récupération des seeds admin depuis les variables d'environnement
