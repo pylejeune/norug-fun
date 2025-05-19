@@ -17,6 +17,12 @@ interface CloseEpochResult {
     signature: string;
     status: string;
   }[];
+  activeEpochs?: {
+    id: string;
+    startTime: string;
+    endTime: string;
+    status: string;
+  }[];
   error?: string;
 }
 
@@ -49,20 +55,36 @@ export async function closeAllEpochs(): Promise<CloseEpochResult> {
       }
     });
 
-    console.log(`📊 Nombre d'époques actives à fermer: ${activeEpochs.length}`);
+    // Vérifier et fermer les époques expirées
+    const now = Math.floor(Date.now() / 1000);
+    const expiredEpochs = activeEpochs.filter((epoch: any) => {
+      return epoch.account.endTime.toNumber() < now;
+    });
 
-    if (activeEpochs.length === 0) {
+    console.log(`📊 Nombre d'époques actives: ${activeEpochs.length}`);
+    console.log(`📊 Nombre d'époques expirées à fermer: ${expiredEpochs.length}`);
+
+    if (expiredEpochs.length === 0) {
+      // Retourner les époques actives même si aucune n'est fermée
+      const formattedActiveEpochs = activeEpochs.map((epoch: any) => ({
+        id: epoch.account.epochId.toString(),
+        startTime: new Date(epoch.account.startTime.toNumber() * 1000).toISOString(),
+        endTime: new Date(epoch.account.endTime.toNumber() * 1000).toISOString(),
+        status: 'active'
+      }));
+      
       return {
         success: true,
-        message: "Aucune époque active à fermer"
+        message: "Aucune époque expirée à fermer",
+        activeEpochs: formattedActiveEpochs
       };
     }
 
     const closedEpochs = [];
     const errors = [];
 
-    // Fermer chaque époque active
-    for (const epoch of activeEpochs) {
+    // Fermer chaque époque expirée
+    for (const epoch of expiredEpochs) {
       try {
         const epochId = epoch.account.epochId;
         console.log(`\n🔄 Fermeture de l'époque ${epochId.toString()}...`);
@@ -122,10 +144,28 @@ export async function closeAllEpochs(): Promise<CloseEpochResult> {
       }
     }
 
+    // Récupérer les époques qui sont toujours actives après la fermeture
+    const updatedActiveEpochs = (await (program.account as any).epochManagement.all()).filter((epoch: any) => {
+      try {
+        return epoch.account.status && Object.keys(epoch.account.status)[0] === 'active';
+      } catch (err) {
+        return false;
+      }
+    });
+
+    // Formater les époques actives pour la réponse
+    const formattedActiveEpochs = updatedActiveEpochs.map((epoch: any) => ({
+      id: epoch.account.epochId.toString(),
+      startTime: new Date(epoch.account.startTime.toNumber() * 1000).toISOString(),
+      endTime: new Date(epoch.account.endTime.toNumber() * 1000).toISOString(),
+      status: 'active'
+    }));
+
     return {
       success: true,
       message: `Fermeture terminée. ${closedEpochs.length} époque(s) fermée(s), ${errors.length} erreur(s).`,
       closedEpochs,
+      activeEpochs: formattedActiveEpochs,
       error: errors.length > 0 ? errors.join("; ") : undefined
     };
   } catch (error) {

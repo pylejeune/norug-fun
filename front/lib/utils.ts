@@ -225,8 +225,8 @@ export function createSuccessResponse(requestId: string, data: any) {
 
 // Fonction pour générer un nom de token aléatoire
 export function generateRandomTokenName(): string {
-  const adjectives = ["Innovative", "Dynamic", "Creative", "Unique", "Visionary"];
-  const nouns = ["Token", "Coin", "Asset", "Fund", "Project"];
+  const adjectives = ["Innovative", "Dynamic", "Creative", "Unique", "Visionary", "Cosmic", "Digital", "Quantum", "Solar", "Nova", "Stellar", "Lunar", "Atomic", "Cyber"];
+  const nouns = ["Token", "Coin", "Asset", "Fund", "Project", "Network", "Chain", "Protocol", "Finance", "Exchange", "Swap", "Verse", "DAO", "DeFi"];
   const randomAdjective = adjectives[Math.floor(Math.random() * adjectives.length)];
   const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];
   return `${randomAdjective} ${randomNoun} ${randomUUID().slice(0, 8)}`; // Ajoute un UUID pour l'unicité
@@ -234,25 +234,51 @@ export function generateRandomTokenName(): string {
 
 // Fonction pour générer un symbole de token aléatoire
 export function generateRandomTokenSymbol(): string {
-  const prefixes = ["NR", "SOL", "FUN", "META", "DIGI", "TECH"];
+  // Liste de préfixes couramment utilisés dans les crypto-monnaies
+  const prefixes = ["SOL", "NRG", "FUN", "META", "DAO", "NFT", "DFI", "XCH", "VRS", "WEB3", "DEGEN", "MEME", "APE", "MOON"];
+  
+  // Génération d'un préfixe aléatoire
   const randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
-  const randomNumber = Math.floor(Math.random() * 900) + 100; // Nombre entre 100 et 999
-  return `${randomPrefix}${randomNumber}`;
+  
+  // Types de structures de symboles
+  const symbolStructures = [
+    // Structure 1: Préfixe + Nombre (ex: SOL123)
+    () => `${randomPrefix}${Math.floor(Math.random() * 900) + 100}`,
+    
+    // Structure 2: Préfixe uniquement (ex: SOL)
+    () => randomPrefix,
+    
+    // Structure 3: Préfixe + Lettre (ex: SOLX)
+    () => `${randomPrefix}${String.fromCharCode(65 + Math.floor(Math.random() * 26))}`,
+    
+    // Structure 4: Sous-chaîne du préfixe + Nombre (ex: SO99)
+    () => `${randomPrefix.substring(0, 2)}${Math.floor(Math.random() * 90) + 10}`,
+    
+    // Structure 5: Voyelles substituées par des chiffres (ex: S0L)
+    () => randomPrefix.replace(/[AEIOU]/g, () => String(Math.floor(Math.random() * 10)))
+  ];
+  
+  // Choisir aléatoirement une structure de symbole
+  const randomStructure = symbolStructures[Math.floor(Math.random() * symbolStructures.length)];
+  return randomStructure();
 }
 
-// Fonction pour générer une URL d'image aléatoire
+// Fonction pour générer une URL d'image aléatoire sur le thème crypto
 export function generateRandomImageUrl(): string {
   const imageServices = [
-    // Picsum Photos (photos aléatoires)
-    () => `https://picsum.photos/800/800?random=${Math.floor(Math.random() * 1000)}`,
-    // Unsplash Source (images de haute qualité)
-    () => `https://source.unsplash.com/random/800x800?token,crypto,blockchain&sig=${Math.floor(Math.random() * 1000)}`,
-    // Placeholder images avec couleurs aléatoires
+    // Picsum Photos avec des IDs spécifiques pour des images adaptées aux tokens/crypto
     () => {
-      const colors = ["4287f5", "42f54e", "f54242", "f5e642", "9942f5", "f542f2"];
-      const randomColor = colors[Math.floor(Math.random() * colors.length)];
-      return `https://via.placeholder.com/800x800/${randomColor}/ffffff?text=Token`;
-    }
+      // Liste d'IDs Picsum qui correspondent bien à des images adaptées pour des tokens
+      const cryptoImageIds = [
+        '237', '433', '593', '684', '829',
+        '1025', '1074', '1084', '119', '146', 
+        '176', '177', '216', '219', '225',
+        '338', '370', '447', '450', '582',
+        '599', '627', '660'
+      ];
+      const selectedId = cryptoImageIds[Math.floor(Math.random() * cryptoImageIds.length)];
+      return `https://picsum.photos/id/${selectedId}/800/800`;
+    },
   ];
   
   // Sélection aléatoire d'un service d'images

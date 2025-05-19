@@ -143,6 +143,7 @@ export async function createProposal(params: ProposalCreateParams) {
     proposalDetails: {
       tokenName: proposalAccount.tokenName,
       tokenSymbol: proposalAccount.tokenSymbol,
+      description: proposalAccount.description,
       creator: proposalAccount.creator.toString(),
       epochId: proposalAccount.epochId.toString(),
       totalSupply: proposalAccount.totalSupply.toString(),
@@ -151,6 +152,7 @@ export async function createProposal(params: ProposalCreateParams) {
       status: Object.keys(proposalAccount.status)[0],
       creationTimestamp: proposalAccount.creationTimestamp.toString(),
       lockupPeriod: proposalAccount.lockupPeriod.toString(),
+      imageUrl: proposalAccount.imageUrl || null
     }
   };
 } 

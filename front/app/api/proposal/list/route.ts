@@ -12,6 +12,7 @@ import {
     RPC_ENDPOINT,
     SHARED_IDL
 } from "../../../../lib/utils";
+import { ipfsToHttp, getAccessibleImageUrl } from "../create/image-service";
 
 
 export async function GET(request: NextRequest): Promise<Response> {
@@ -42,20 +43,30 @@ export async function GET(request: NextRequest): Promise<Response> {
     console.log(`[${requestId}] ✅ Nombre de propositions trouvées: ${proposals.length}`);
 
     // Formater la réponse
-    const formattedProposals = proposals.map((proposal: any) => ({
-      publicKey: proposal.publicKey.toString(),
-      tokenName: proposal.account.tokenName,
-      tokenSymbol: proposal.account.tokenSymbol,
-      creator: proposal.account.creator.toString(),
-      epochId: proposal.account.epochId.toString(),
-      totalSupply: proposal.account.totalSupply.toString(),
-      creatorAllocation: proposal.account.creatorAllocation,
-      status: Object.keys(proposal.account.status)[0],
-      creationTimestamp: proposal.account.creationTimestamp.toString(),
-    }));
+    const formattedProposals = proposals.map((proposal: any) => {
+      // Récupérer et convertir l'URL d'image IPFS en URL HTTP
+      const ipfsImageUrl = proposal.account.imageUrl || '';
+      const httpImageUrl = getAccessibleImageUrl(ipfsImageUrl);
+      
+      return {
+        publicKey: proposal.publicKey.toString(),
+        tokenName: proposal.account.tokenName,
+        tokenSymbol: proposal.account.tokenSymbol,
+        description: proposal.account.description || '',
+        creator: proposal.account.creator.toString(),
+        epochId: proposal.account.epochId.toString(),
+        totalSupply: proposal.account.totalSupply.toString(),
+        creatorAllocation: proposal.account.creatorAllocation,
+        status: Object.keys(proposal.account.status)[0],
+        creationTimestamp: proposal.account.creationTimestamp.toString(),
+        imageUrl: ipfsImageUrl,
+        imageHttpUrl: httpImageUrl
+      };
+    });
 
     return createSuccessResponse(requestId, {
       proposals: formattedProposals,
+      total: formattedProposals.length
     });
   } catch (error) {
     console.error(`[${requestId}] ❌ Erreur lors de la récupération des propositions:`, error);
