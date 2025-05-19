@@ -7,7 +7,7 @@ import {
   createAnchorWallet, 
   RPC_ENDPOINT,
   CRON_IDL
-} from "../../../../lib/utils";
+} from "@/lib/utils";
 
 interface CloseEpochResult {
   success: boolean;

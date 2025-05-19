@@ -6,7 +6,7 @@ import {
   RPC_ENDPOINT,
   AnchorWallet,
   CRON_IDL
-} from "../../../../lib/utils";
+} from "@/lib/utils";
 
 // --- Définition des interfaces ---
 
