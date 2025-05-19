@@ -94,7 +94,7 @@ export async function closeAllEpochs(): Promise<CloseEpochResult> {
         console.log("🔑 Signataire utilisé:", adminKeypair.publicKey.toString());
 
         // Envoyer la transaction
-        const signature = await program.methods
+        const signature = await (program.methods as any)
           .endEpoch(epochId)
           .accounts(accounts)
           .signers([adminKeypair])
