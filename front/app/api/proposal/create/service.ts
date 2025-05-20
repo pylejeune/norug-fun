@@ -3,7 +3,7 @@ import {
   createAnchorWallet,
   getAdminKeypair,
   getProgram,
-  SHARED_IDL
+  idl as SHARED_IDL
 } from "@/lib/utils";
 import * as anchor from "@coral-xyz/anchor";
 import { PublicKey, Connection } from "@solana/web3.js";

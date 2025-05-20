@@ -9,7 +9,7 @@ import {
   getAdminKeypair,
   createAnchorWallet,
   RPC_ENDPOINT,
-  CRON_IDL
+  idl as CRON_IDL
 } from "@/lib/utils";
 import { closeAllEpochs } from "../../epoch/close-all/service";
 import { createEpoch } from "../../epoch/service";

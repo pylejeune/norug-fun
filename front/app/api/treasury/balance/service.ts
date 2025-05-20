@@ -1,5 +1,5 @@
 import { Connection, PublicKey } from "@solana/web3.js";
-import { getProgram, getAdminKeypair, createAnchorWallet, RPC_ENDPOINT, SHARED_IDL } from "@/lib/utils";
+import { getProgram, getAdminKeypair, createAnchorWallet, RPC_ENDPOINT, idl as SHARED_IDL } from "@/lib/utils";
 
 export async function fetchTreasuryBalance() {
   const connection = new Connection(RPC_ENDPOINT);

@@ -4,7 +4,7 @@ import { NextRequest } from "next/server";
 import { verifyAuthToken, createSuccessResponse, createErrorResponse } from "@/lib/utils";
 import { initializeTreasury } from "./service";
 import { RPC_ENDPOINT } from "@/lib/utils";
-import { getProgram, getAdminKeypair, createAnchorWallet, SHARED_IDL } from "@/lib/utils";
+import { getProgram, getAdminKeypair, createAnchorWallet, idl as SHARED_IDL } from "@/lib/utils";
 
 export async function GET(request: NextRequest): Promise<Response> {
   const requestId = randomUUID();

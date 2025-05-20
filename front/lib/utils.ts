@@ -5,10 +5,6 @@ import { randomUUID } from "crypto";
 import { NextRequest } from "next/server";
 import { twMerge } from "tailwind-merge";
 
-
-// Import de l'IDL partagé - chemins mis à jour pour refléter la nouvelle structure
-import sharedIdlJson from "../app/idl/programs.json";
-import cronIdlJson from "../app/idl/programs.json";
 // Import de l'IDL partagé
 import idlJson from "@/idl/programs.json";
 
@@ -19,22 +15,6 @@ export function cn(...inputs: ClassValue[]) {
 
 // Configuration simple
 export const RPC_ENDPOINT = process.env.SOLANA_RPC_ENDPOINT || "https://api.devnet.solana.com";
-
-// Configuration des IDLs et programmes
-// Shared API
-export const SHARED_IDL_ADDRESS = "address" in sharedIdlJson 
-  ? (sharedIdlJson as any).address
-  : (sharedIdlJson as any).metadata?.address || "3HBzNutk8DrRfffCS74S55adJAjgY8NHrWXgRtABaSbF";
-
-export const SHARED_PROGRAM_ID = new PublicKey(SHARED_IDL_ADDRESS);
-
-export const SHARED_IDL = {
-  ...sharedIdlJson as any,
-  metadata: {
-    ...(sharedIdlJson as any).metadata,
-    address: SHARED_IDL_ADDRESS
-  }
-};
 
 // Note: La structure de l'IDL peut différer
 export const idlAddress =
@@ -50,17 +30,7 @@ export const idl = {
 };
 
 // Cron API
-export const CRON_IDL_ADDRESS = process.env.CRON_PROGRAM_ID || SHARED_IDL_ADDRESS;
-
-export const CRON_PROGRAM_ID = new PublicKey(CRON_IDL_ADDRESS);
-
-export const CRON_IDL = {
-  ...sharedIdlJson as any,
-  metadata: {
-    ...(sharedIdlJson as any).metadata,
-    address: CRON_IDL_ADDRESS
-  }
-};
+export const CRON_PROGRAM_ID = new PublicKey(idlAddress);
 
 // Récupération des seeds admin depuis les variables d'environnement
 export const ADMIN_SEED_BASE64 = process.env.ADMIN_SEED_BASE64;

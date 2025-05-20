@@ -1,9 +1,9 @@
 import {
   RPC_ENDPOINT,
   createAnchorWallet,
-  getAdminKeypair,
+  getAdminKeypairProgramConfig,
   getProgram,
-  CRON_IDL
+  idl as CRON_IDL
 } from "@/lib/utils";
 import * as anchor from "@coral-xyz/anchor";
 import { PublicKey, Connection } from "@solana/web3.js";
@@ -67,7 +67,7 @@ export async function runCrankLogic(): Promise<{
         let adminKeypair;
         
         try {
-            adminKeypair = getAdminKeypair();
+            adminKeypair = getAdminKeypairProgramConfig();
             console.log("🔑 Admin keypair généré avec succès:", adminKeypair.publicKey.toString());
         } catch (error) {
             console.error("❌ Impossible d'obtenir le keypair admin:", error instanceof Error ? error.message : String(error));

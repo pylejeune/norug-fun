@@ -1,11 +1,11 @@
 import { Programs } from "@/idl/programs";
 import {
   createAnchorWallet,
-  getAdminKeypair,
+  getAdminKeypairProgramConfig,
   getProgram,
   RPC_ENDPOINT,
   AnchorWallet,
-  CRON_IDL
+  idl as CRON_IDL
 } from "@/lib/utils";
 import { Connection, Keypair, PublicKey, SystemProgram } from "@solana/web3.js";
 import { BN, Wallet as UtilsAnchorWallet } from "@coral-xyz/anchor";
@@ -200,7 +200,7 @@ export async function checkAndSimulateEndEpoch(): Promise<TestResults> {
     let adminKeypair;
 
     try {
-      adminKeypair = getAdminKeypair();
+      adminKeypair = getAdminKeypairProgramConfig();
       console.log(
         "🔑 Admin keypair généré avec succès:",
         adminKeypair.publicKey.toString()

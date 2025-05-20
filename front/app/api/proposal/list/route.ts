@@ -7,7 +7,7 @@ import {
     getAdminKeypair,
     createAnchorWallet,
     RPC_ENDPOINT,
-    SHARED_IDL
+    idl as SHARED_IDL
 } from "@/lib/utils";
 import { ipfsToHttp, getAccessibleImageUrl } from "../create/image-service";
 import { NextRequest } from "next/server";

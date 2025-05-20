@@ -6,8 +6,8 @@ import {
   getProgram, 
   createAnchorWallet, 
   RPC_ENDPOINT,
-  CRON_IDL
-} from "../../../lib/utils";
+  idl as CRON_IDL
+} from "@/lib/utils";
 
 interface EpochResult {
   success: boolean;
