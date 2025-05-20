@@ -1,0 +1,1 @@
+// Placeholder pour les fonctions de setup de la trésorerie 

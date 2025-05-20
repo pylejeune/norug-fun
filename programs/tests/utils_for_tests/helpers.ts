@@ -1,0 +1,1 @@
+// Placeholder pour les fonctions d'aide aux tests 

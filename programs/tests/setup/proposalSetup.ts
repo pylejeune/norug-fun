@@ -1,0 +1,1 @@
+// Placeholder pour les fonctions de setup des propositions 
