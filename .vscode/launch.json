@@ -3,28 +3,49 @@
     "configurations": [
       {
         "name": "Next.js : déboguer côté serveur",
-        "type": "node-terminal",
+        "type": "node",
         "request": "launch",
-        "command": "cd front && npm run debug",
+        "cwd": "${workspaceFolder}/front",
+        "program": "${workspaceFolder}/front/node_modules/next/dist/bin/next",
+        "args": ["dev"],
         "sourceMaps": true,
-      "trace": true
+        "resolveSourceMapLocations": [
+          "${workspaceFolder}/**",
+          "!**/node_modules/**"
+        ],
+        "trace": true,
+        "skipFiles": ["<node_internals>/**"],
+        "outFiles": ["${workspaceFolder}/front/.next/**/*.js"]
       },
       {
         "name": "Next.js : déboguer côté client",
         "type": "chrome",
         "request": "launch",
         "url": "http://localhost:3000",
-        "webRoot": "${workspaceFolder}/front"
+        "webRoot": "${workspaceFolder}/front",
+        "sourceMapPathOverrides": {
+          "webpack://_N_E/*": "${webRoot}/*",
+          "webpack:///*": "*",
+          "webpack:///./~/*": "${webRoot}/node_modules/*",
+          "webpack:///./*": "${webRoot}/*"
+        }
       },
       {
         "name": "Next.js : déboguer full stack",
         "type": "node",
         "request": "launch",
         "program": "${workspaceFolder}/front/node_modules/next/dist/bin/next",
+        "args": ["dev"],
+        "cwd": "${workspaceFolder}/front",
         "runtimeArgs": ["--inspect"],
         "skipFiles": ["<node_internals>/**"],
         "sourceMaps": true,
         "trace": true,
+        "outputCapture": "std",
+        "resolveSourceMapLocations": [
+          "${workspaceFolder}/**",
+          "!**/node_modules/**"
+        ],
         "serverReadyAction": {
           "action": "debugWithChrome",
           "pattern": "- Local:.+(https?://.+)",
