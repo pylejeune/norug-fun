@@ -17,24 +17,42 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Installation de netcat
+        run: sudo apt-get update && sudo apt-get install -y netcat-openbsd
+        working-directory: .
+
       - name: Configuration de Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-          cache: 'npm'
-          cache-dependency-path: ./front/package-lock.json
+
+      - name: Installation de pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          run_install: false
+
+      - name: Configuration du cache pnpm
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.pnpm-store
+            **/node_modules
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
 
       - name: Installation des dépendances
-        run: npm ci
+        run: pnpm install --no-frozen-lockfile
 
       - name: Installation de Playwright
         run: npx playwright install --with-deps
 
       - name: Build de l'application Next.js
-        run: npm run build
+        run: pnpm run build
 
       - name: Lancement du serveur Next.js
-        run: npm run start &
+        run: pnpm run start &
         env:
           NODE_ENV: test
           PORT: 3000
@@ -48,28 +66,34 @@ jobs:
           echo "Serveur démarré!"
 
       - name: Exécution des tests E2E
-        run: npm run test:e2e
+        run: pnpm run test:e2e
         env:
           BASE_URL: http://localhost:3000
 
       - name: Génération de la couverture de code
-        run: npm run test:coverage
+        run: pnpm run test:coverage
 
       - name: Extraction des données de couverture
         id: coverage
         run: |
-          # Formatter les données pour le commentaire
-          STATEMENTS=$(grep -A 1 "Statements" coverage/coverage-summary.json | grep "pct" | awk -F': ' '{print $2}' | sed 's/,//')
-          BRANCHES=$(grep -A 1 "Branches" coverage/coverage-summary.json | grep "pct" | awk -F': ' '{print $2}' | sed 's/,//')
-          FUNCTIONS=$(grep -A 1 "Functions" coverage/coverage-summary.json | grep "pct" | awk -F': ' '{print $2}' | sed 's/,//')
-          LINES=$(grep -A 1 "Lines" coverage/coverage-summary.json | grep "pct" | awk -F': ' '{print $2}' | sed 's/,//')
-          
-          # Créer le tableau markdown
-          COVERAGE_TABLE="| Métrique | Couverture |\n|----------|------------|\n"
-          COVERAGE_TABLE+="| Statements | ${STATEMENTS}% |\n"
-          COVERAGE_TABLE+="| Branches | ${BRANCHES}% |\n"
-          COVERAGE_TABLE+="| Functions | ${FUNCTIONS}% |\n"
-          COVERAGE_TABLE+="| Lines | ${LINES}% |"
+          # Vérifier si le fichier existe
+          if [ -f coverage/coverage-summary.json ]; then
+            # Formatter les données pour le commentaire
+            STATEMENTS=$(grep -A 1 "Statements" coverage/coverage-summary.json | grep "pct" | awk -F': ' '{print $2}' | sed 's/,//')
+            BRANCHES=$(grep -A 1 "Branches" coverage/coverage-summary.json | grep "pct" | awk -F': ' '{print $2}' | sed 's/,//')
+            FUNCTIONS=$(grep -A 1 "Functions" coverage/coverage-summary.json | grep "pct" | awk -F': ' '{print $2}' | sed 's/,//')
+            LINES=$(grep -A 1 "Lines" coverage/coverage-summary.json | grep "pct" | awk -F': ' '{print $2}' | sed 's/,//')
+            
+            # Créer le tableau markdown
+            COVERAGE_TABLE="| Métrique | Couverture |\n|----------|------------|\n"
+            COVERAGE_TABLE+="| Statements | ${STATEMENTS}% |\n"
+            COVERAGE_TABLE+="| Branches | ${BRANCHES}% |\n"
+            COVERAGE_TABLE+="| Functions | ${FUNCTIONS}% |\n"
+            COVERAGE_TABLE+="| Lines | ${LINES}% |"
+          else
+            COVERAGE_TABLE="| Métrique | Couverture |\n|----------|------------|\n"
+            COVERAGE_TABLE+="| Rapport | Non disponible |"
+          fi
           
           # Echappement pour les variables GitHub
           COVERAGE_TABLE="${COVERAGE_TABLE//'%'/'%25'}"
