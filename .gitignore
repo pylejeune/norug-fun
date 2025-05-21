@@ -158,4 +158,4 @@ crank/.env
 
 front/playwright-report
 front/test-results/
-fronttest-results/.last-run.json
+front/test-results/.last-run.json
