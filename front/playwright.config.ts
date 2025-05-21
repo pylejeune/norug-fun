@@ -14,6 +14,19 @@ const config: PlaywrightTestConfig = {
     actionTimeout: process.env.CI ? 30000 : 10000,
     navigationTimeout: process.env.CI ? 45000 : 15000,
     ignoreHTTPSErrors: !!process.env.CI,
+    launchOptions: {
+      args: [
+        '--disable-web-security',
+        '--allow-file-access-from-files',
+        '--enable-javascript-harmony'
+      ]
+    }
+  },
+  webServer: {
+    command: 'npm run dev',
+    port: 3000,
+    timeout: 120000,
+    reuseExistingServer: !process.env.CI,
   },
   projects: [
     {

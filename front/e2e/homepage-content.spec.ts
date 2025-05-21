@@ -5,9 +5,6 @@ test.describe('Contenu de la page d\'accueil', () => {
   test.setTimeout(30000);
 
   test('devrait afficher le mot "burn" sur la page d\'accueil', async ({ page }) => {
-    // Démarrer la collecte de couverture
-    await page.evaluate(() => (window as any).startCoverage && (window as any).startCoverage());
-    
     // Naviguer vers la page d'accueil avec un timeout généreux
     await page.goto('/', { timeout: 20000 });
     
@@ -40,9 +37,5 @@ test.describe('Contenu de la page d\'accueil', () => {
       const textOnPage = await page.textContent('body');
       expect(textOnPage).toContain('burn');
     }
-    
-    // Récupérer les données de couverture à la fin du test
-    const coverage = await page.evaluate(() => (window as any).getCoverage && (window as any).getCoverage());
-    console.log('Couverture collectée:', coverage ? Object.keys(coverage).length : 0, 'fichiers');
   });
 }); 
