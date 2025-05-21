@@ -157,4 +157,5 @@ crank/dist/
 crank/.env
 
 front/playwright-report
-front/test-results/*
+front/test-results/
+fronttest-results/.last-run.json
