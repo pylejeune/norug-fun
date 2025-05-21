@@ -1,5 +1,5 @@
 // Polyfills pour Next.js
-import '@testing-library/jest-dom';
+require('@testing-library/jest-dom');
 
 // Mock pour next/router
 jest.mock('next/navigation', () => ({
@@ -32,11 +32,9 @@ jest.mock('next-intl', () => ({
 jest.mock('@solana/wallet-adapter-react', () => ({
   useWallet: () => ({
     publicKey: null,
-    connect: jest.fn(),
-    disconnect: jest.fn(),
     connected: false,
-  }),
-  useConnection: () => ({
-    connection: {},
+    connecting: false,
+    disconnect: jest.fn(),
+    connect: jest.fn(),
   }),
 })); 
