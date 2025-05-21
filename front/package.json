@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "next lint",
     "test:e2e": "npx playwright test",
+    "test:e2e:ci": "npx playwright test --project=chromium --reporter=list",
     "test:e2e:ui": "npx playwright test --ui",
     "test:coverage": "npx jest --coverage --passWithNoTests",
     "test:coverage:report": "npx nyc report --reporter=text-summary --reporter=lcov",

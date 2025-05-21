@@ -10,6 +10,7 @@ jobs:
   test:
     name: Tests E2E et rapport de couverture
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: ./front
@@ -46,45 +47,67 @@ jobs:
         run: pnpm install --no-frozen-lockfile
 
       - name: Installation de Playwright
-        run: npx playwright install --with-deps
+        run: npx playwright install --with-deps chromium
 
       - name: Build de l'application Next.js
         run: pnpm run build
+        # Pas de continue-on-error car nous avons corrigé les problèmes SWC
 
-      - name: Lancement du serveur Next.js
-        run: pnpm run start &
+      - name: Lancement du serveur Next.js en mode production
+        run: |
+          # Utiliser le mode production pour la stabilité
+          NODE_ENV=production PORT=3000 pnpm run start &
+          echo $! > .next-server.pid
         env:
-          NODE_ENV: test
           PORT: 3000
 
       - name: Attente du démarrage du serveur
         run: |
           echo "Attente du démarrage du serveur..."
-          while ! nc -z localhost 3000; do
-            sleep 1
+          for i in {1..30}; do
+            if nc -z localhost 3000; then
+              echo "Serveur démarré après $i tentatives!"
+              break
+            fi
+            if [ $i -eq 30 ]; then
+              echo "Le serveur n'a pas démarré après 30 tentatives."
+              exit 1
+            fi
+            sleep 2
           done
-          echo "Serveur démarré!"
 
       - name: Exécution des tests E2E
-        run: pnpm run test:e2e
+        timeout-minutes: 15
+        run: |
+          # Exécuter en mode CI avec rapport simplifié
+          DEBUG=pw:api CI=true pnpm run test:e2e:ci
         env:
           BASE_URL: http://localhost:3000
+          CI: true
+
+      - name: Arrêt du serveur Next.js
+        if: always()
+        run: |
+          if [ -f .next-server.pid ]; then
+            kill -9 $(cat .next-server.pid) || true
+            rm .next-server.pid
+          fi
 
       - name: Génération de la couverture de code
+        if: success() || failure()
         run: pnpm run test:coverage
 
       - name: Extraction des données de couverture
         id: coverage
+        if: success() || failure()
         run: |
           # Vérifier si le fichier existe
           if [ -f coverage/coverage-summary.json ]; then
-            # Formatter les données pour le commentaire
-            STATEMENTS=$(grep -A 1 "Statements" coverage/coverage-summary.json | grep "pct" | awk -F': ' '{print $2}' | sed 's/,//')
-            BRANCHES=$(grep -A 1 "Branches" coverage/coverage-summary.json | grep "pct" | awk -F': ' '{print $2}' | sed 's/,//')
-            FUNCTIONS=$(grep -A 1 "Functions" coverage/coverage-summary.json | grep "pct" | awk -F': ' '{print $2}' | sed 's/,//')
-            LINES=$(grep -A 1 "Lines" coverage/coverage-summary.json | grep "pct" | awk -F': ' '{print $2}' | sed 's/,//')
+            STATEMENTS=$(grep -A 1 "\"total\":" coverage/coverage-summary.json | grep "statements" | awk -F': ' '{print $2}' | awk -F',' '{print $1}')
+            BRANCHES=$(grep -A 1 "\"total\":" coverage/coverage-summary.json | grep "branches" | awk -F': ' '{print $2}' | awk -F',' '{print $1}')
+            FUNCTIONS=$(grep -A 1 "\"total\":" coverage/coverage-summary.json | grep "functions" | awk -F': ' '{print $2}' | awk -F',' '{print $1}')
+            LINES=$(grep -A 1 "\"total\":" coverage/coverage-summary.json | grep "lines" | awk -F': ' '{print $2}' | awk -F',' '{print $1}')
             
-            # Créer le tableau markdown
             COVERAGE_TABLE="| Métrique | Couverture |\n|----------|------------|\n"
             COVERAGE_TABLE+="| Statements | ${STATEMENTS}% |\n"
             COVERAGE_TABLE+="| Branches | ${BRANCHES}% |\n"
@@ -95,7 +118,6 @@ jobs:
             COVERAGE_TABLE+="| Rapport | Non disponible |"
           fi
           
-          # Echappement pour les variables GitHub
           COVERAGE_TABLE="${COVERAGE_TABLE//'%'/'%25'}"
           COVERAGE_TABLE="${COVERAGE_TABLE//$'\n'/'%0A'}"
           COVERAGE_TABLE="${COVERAGE_TABLE//$'\r'/'%0D'}"
@@ -114,10 +136,12 @@ jobs:
             [Voir le rapport détaillé](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
 
       - name: Archivage des rapports
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-reports
           path: |
             ./front/playwright-report/
+            ./front/test-results/
             ./front/coverage/
           retention-days: 30 

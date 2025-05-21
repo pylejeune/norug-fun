@@ -1,3 +1,4 @@
+// Configuration Babel pour Jest uniquement
 module.exports = {
   presets: [
     ['@babel/preset-env', { targets: { node: 'current' } }],
