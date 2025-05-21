@@ -1,0 +1,99 @@
+name: Tests E2E et Couverture de Code
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+
+jobs:
+  test:
+    name: Tests E2E et rapport de couverture
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./front
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configuration de Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: ./front/package-lock.json
+
+      - name: Installation des dépendances
+        run: npm ci
+
+      - name: Installation de Playwright
+        run: npx playwright install --with-deps
+
+      - name: Build de l'application Next.js
+        run: npm run build
+
+      - name: Lancement du serveur Next.js
+        run: npm run start &
+        env:
+          NODE_ENV: test
+          PORT: 3000
+
+      - name: Attente du démarrage du serveur
+        run: |
+          echo "Attente du démarrage du serveur..."
+          while ! nc -z localhost 3000; do
+            sleep 1
+          done
+          echo "Serveur démarré!"
+
+      - name: Exécution des tests E2E
+        run: npm run test:e2e
+        env:
+          BASE_URL: http://localhost:3000
+
+      - name: Génération de la couverture de code
+        run: npm run test:coverage
+
+      - name: Extraction des données de couverture
+        id: coverage
+        run: |
+          # Formatter les données pour le commentaire
+          STATEMENTS=$(grep -A 1 "Statements" coverage/coverage-summary.json | grep "pct" | awk -F': ' '{print $2}' | sed 's/,//')
+          BRANCHES=$(grep -A 1 "Branches" coverage/coverage-summary.json | grep "pct" | awk -F': ' '{print $2}' | sed 's/,//')
+          FUNCTIONS=$(grep -A 1 "Functions" coverage/coverage-summary.json | grep "pct" | awk -F': ' '{print $2}' | sed 's/,//')
+          LINES=$(grep -A 1 "Lines" coverage/coverage-summary.json | grep "pct" | awk -F': ' '{print $2}' | sed 's/,//')
+          
+          # Créer le tableau markdown
+          COVERAGE_TABLE="| Métrique | Couverture |\n|----------|------------|\n"
+          COVERAGE_TABLE+="| Statements | ${STATEMENTS}% |\n"
+          COVERAGE_TABLE+="| Branches | ${BRANCHES}% |\n"
+          COVERAGE_TABLE+="| Functions | ${FUNCTIONS}% |\n"
+          COVERAGE_TABLE+="| Lines | ${LINES}% |"
+          
+          # Echappement pour les variables GitHub
+          COVERAGE_TABLE="${COVERAGE_TABLE//'%'/'%25'}"
+          COVERAGE_TABLE="${COVERAGE_TABLE//$'\n'/'%0A'}"
+          COVERAGE_TABLE="${COVERAGE_TABLE//$'\r'/'%0D'}"
+          
+          echo "coverage-table=$COVERAGE_TABLE" >> $GITHUB_OUTPUT
+
+      - name: Publication du commentaire de couverture
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          message: |
+            ## 📊 Rapport de couverture de code
+            
+            ${{ steps.coverage.outputs.coverage-table }}
+            
+            [Voir le rapport détaillé](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+
+      - name: Archivage des rapports
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: |
+            ./front/playwright-report/
+            ./front/coverage/
+          retention-days: 30 

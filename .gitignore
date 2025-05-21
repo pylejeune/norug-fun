@@ -155,3 +155,6 @@ Temporary Items
 crank/node_modules/
 crank/dist/
 crank/.env
+
+front/playwright-report
+front/tests-results
