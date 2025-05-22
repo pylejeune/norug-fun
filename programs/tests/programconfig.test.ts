@@ -1,25 +1,9 @@
 import * as anchor from "@coral-xyz/anchor";
-import { Program, web3 } from "@coral-xyz/anchor";
+// import { Program, web3 } from "@coral-xyz/anchor"; // Supprimer cette ligne
 import { Keypair, PublicKey, SystemProgram } from "@solana/web3.js";
 import { expect } from "chai";
 // epochStatus n'est pas exporté directement, nous accédons aux statuts via les clés de l'objet.
 import { Programs } from "../target/types/programs"; 
-
-// TODO: Importer ou définir les fonctions de setup nécessaires :
-// import {
-//   initializeTestContext,
-//   ensureProgramConfigInitialized,
-//   // ... autres fonctions de setup (epoch, proposal)
-// } from "./setup"; // Adaptez le chemin vers vos utilitaires de setup
-
-// TODO: Définir un type pour le contexte de test si vous en utilisez un unifié
-// interface TestContext { 
-//   provider: anchor.AnchorProvider;
-//   program: Program<Programs>;
-//   adminKeypair: Keypair;
-//   programConfigAddress: PublicKey;
-//   // ... autres éléments utiles
-// }
 
 // Seed fixe pour l'autorité admin des tests (COHÉRENT AVEC LES AUTRES FICHIERS)
 const ADMIN_SEED = Uint8Array.from([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32]);
@@ -100,7 +84,7 @@ describe("ProgramConfig - Admin Only Instructions Authorization", () => {
          console.log(`Confirmed admin authority in ProgramConfig for programconfig.test.ts: ${configAccount.adminAuthority.toBase58()}`);
     });
 
-    describe("start_epoch", () => {
+    describe("Instruction start_epoch : ProgramConfig authorization", () => {
         const now = Date.now();
         const epochId = new anchor.BN(now); 
         const startTime = new anchor.BN(Math.floor(now / 1000));
@@ -147,15 +131,15 @@ describe("ProgramConfig - Admin Only Instructions Authorization", () => {
                     .rpc();
                 expect.fail("Transaction should have failed with Unauthorized error");
             } catch (error) {
-                expect((error as AnchorError).error.errorCode.code).to.equal("Unauthorized");
-                expect((error as AnchorError).error.errorCode.number).to.equal(6023);
+                expect((error as anchor.AnchorError).error.errorCode.code).to.equal("Unauthorized");
+                expect((error as anchor.AnchorError).error.errorCode.number).to.equal(6023);
             }
         });
 
    
     });
 
-    describe("end_epoch", () => {
+    describe("Instruction end_epoch : ProgramConfig authorization", () => {
         let testEpochId: anchor.BN;
         let epochManagementAddress: PublicKey;
 
@@ -214,13 +198,13 @@ describe("ProgramConfig - Admin Only Instructions Authorization", () => {
                     .rpc();
                 expect.fail("Transaction should have failed with Unauthorized error");
             } catch (error) {
-                expect((error as AnchorError).error.errorCode.code).to.equal("Unauthorized");
-                expect((error as AnchorError).error.errorCode.number).to.equal(6023);
+                expect((error as anchor.AnchorError).error.errorCode.code).to.equal("Unauthorized");
+                expect((error as anchor.AnchorError).error.errorCode.number).to.equal(6023);
             }
         });
     });
 
-    describe("update_proposal_status", () => {
+    describe("Instruction update_proposal_status : ProgramConfig authorization", () => {
         let testEpochId: anchor.BN;
         let epochManagementAddress: PublicKey;
         let proposalCreator: Keypair; // Peut être adminKeypair ou un autre
@@ -319,13 +303,13 @@ describe("ProgramConfig - Admin Only Instructions Authorization", () => {
                     .rpc();
                 expect.fail("Transaction should have failed with Unauthorized error");
             } catch (error) {
-                expect((error as AnchorError).error.errorCode.code).to.equal("Unauthorized");
-                expect((error as AnchorError).error.errorCode.number).to.equal(6023);
+                expect((error as anchor.AnchorError).error.errorCode.code).to.equal("Unauthorized");
+                expect((error as anchor.AnchorError).error.errorCode.number).to.equal(6023);
             }
         });
     });
     
-    describe("mark_epoch_processed", () => {
+    describe("Instruction mark_epoch_processed : ProgramConfig authorization", () => {
         let testEpochId: anchor.BN;
         let epochManagementAddress: PublicKey;
 
@@ -396,22 +380,9 @@ describe("ProgramConfig - Admin Only Instructions Authorization", () => {
                     .rpc();
                 expect.fail("Transaction should have failed with Unauthorized error");
             } catch (error) {
-                expect((error as AnchorError).error.errorCode.code).to.equal("Unauthorized");
-                expect((error as AnchorError).error.errorCode.number).to.equal(6023);
+                expect((error as anchor.AnchorError).error.errorCode.code).to.equal("Unauthorized");
+                expect((error as anchor.AnchorError).error.errorCode.number).to.equal(6023);
             }
         });
     });
 });
-
-// Définition du type AnchorError pour un meilleur typage des erreurs
-interface AnchorError extends Error {
-    error: {
-        errorCode: {
-            code: string; // ex: "Unauthorized"
-            number: number; // ex: 6023
-        };
-        errorMessage: string;
-        // ... autres propriétés possibles
-    };
-    // ... autres propriétés possibles
-} 
