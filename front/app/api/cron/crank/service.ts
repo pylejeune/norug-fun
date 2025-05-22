@@ -1,11 +1,13 @@
 import {
   RPC_ENDPOINT,
   createAnchorWallet,
-  getAdminKeypair,
+  getAdminKeypairProgramConfig,
   getProgram,
+  idl as CRON_IDL
 } from "@/lib/utils";
 import * as anchor from "@coral-xyz/anchor";
-import { Connection, PublicKey } from "@solana/web3.js";
+import { PublicKey, Connection } from "@solana/web3.js";
+
 
 // --- Définition des interfaces ---
 interface EpochManagementAccountInfo {
@@ -60,42 +62,34 @@ export async function runCrankLogic(): Promise<{
 }> {
   console.log("⚙️ Exécution de runCrankLogic...");
 
-  try {
-    const connection = new Connection(RPC_ENDPOINT);
-    let adminKeypair;
-
     try {
-      adminKeypair = getAdminKeypair();
-      console.log(
-        "🔑 Admin keypair généré avec succès:",
-        adminKeypair.publicKey.toString()
-      );
-    } catch (error) {
-      console.error(
-        "❌ Impossible d'obtenir le keypair admin:",
-        error instanceof Error ? error.message : String(error)
-      );
-      return {
-        success: false,
-        message: `Impossible d'obtenir le keypair admin: ${
-          error instanceof Error ? error.message : String(error)
-        }`,
-      };
-    }
-
-    // Création du wallet avec le keypair admin
-    const wallet = createAnchorWallet(adminKeypair);
-
-    const program = getProgram(connection, wallet);
-
-    if (!program) {
-      return { success: false, message: "Programme non initialisé" };
-    }
-
-    // --- Logique Principale ---
-    console.log("\n🔍 Finding closed epochs to process...");
-    // Utiliser directement les fonctions internes ici
-    const untreatedEpochs = await findClosedUntreatedEpochs(program);
+        const connection = new Connection(RPC_ENDPOINT);
+        let adminKeypair;
+        
+        try {
+            adminKeypair = getAdminKeypairProgramConfig();
+            console.log("🔑 Admin keypair généré avec succès:", adminKeypair.publicKey.toString());
+        } catch (error) {
+            console.error("❌ Impossible d'obtenir le keypair admin:", error instanceof Error ? error.message : String(error));
+            return { 
+                success: false, 
+                message: `Impossible d'obtenir le keypair admin: ${error instanceof Error ? error.message : String(error)}` 
+            };
+        }
+        
+        // Création du wallet avec le keypair admin
+        const wallet = createAnchorWallet(adminKeypair);
+        
+        const program = getProgram(connection, CRON_IDL, wallet);
+        
+        if (!program) {
+            return { success: false, message: "Programme non initialisé" };
+        }
+    
+        // --- Logique Principale --- 
+        console.log("\n🔍 Finding closed epochs to process...");
+        // Utiliser directement les fonctions internes ici
+        const untreatedEpochs = await findClosedUntreatedEpochs(program);
 
     let processedCount = 0;
     let errorDetails: { epochId: string; error: string }[] = [];

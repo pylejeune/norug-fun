@@ -1,13 +1,14 @@
-import { randomUUID } from "crypto";
 import { NextRequest } from "next/server";
-
-import {
-  createErrorResponse,
-  createSuccessResponse,
-  generateRandomTokenName,
-  verifyAuthToken,
+import { randomUUID } from 'crypto';
+import { 
+  verifyAuthToken, 
+  createSuccessResponse, 
+  createErrorResponse, 
+  generateRandomTokenName, 
+  generateRandomTokenSymbol
 } from "@/lib/utils";
 import { createProposal } from "./service";
+import { generateAndUploadRandomImage, ipfsToHttp } from "./image-service";
 
 export async function POST(request: NextRequest): Promise<Response> {
   const requestId = randomUUID();
@@ -32,7 +33,7 @@ export async function POST(request: NextRequest): Promise<Response> {
 
     const {
       tokenName = generateRandomTokenName(),
-      tokenSymbol = "NORUG",
+      tokenSymbol = generateRandomTokenSymbol(),
       description = "Description de la proposition par défaut",
       totalSupply = 1000000,
       creatorAllocation = 5,
@@ -41,14 +42,29 @@ export async function POST(request: NextRequest): Promise<Response> {
       epochId = null,
     } = body;
 
+    // Génération d'une image aléatoire sur IPFS si aucune n'est fournie
+    let finalImageUrl = imageUrl;
+    if (!imageUrl) {
+      console.log(`[${requestId}] 🖼️ Génération d'une image aléatoire sur IPFS...`);
+      try {
+        finalImageUrl = await generateAndUploadRandomImage();
+        console.log(`[${requestId}] ✅ Image générée et uploadée sur IPFS: ${finalImageUrl}`);
+      } catch (imageError) {
+        console.error(`[${requestId}] ⚠️ Erreur lors de la génération d'image:`, imageError);
+        // Continuer sans image en cas d'erreur
+        finalImageUrl = null;
+      }
+    }
+
     console.log(`[${requestId}] 📝 Données de la proposition:`, {
       tokenName,
       tokenSymbol,
+      description,
       totalSupply,
       creatorAllocation,
       lockupPeriod,
-      imageUrl,
-      epochId,
+      imageUrl: finalImageUrl,
+      epochId
     });
 
     const result = await createProposal({
@@ -58,15 +74,23 @@ export async function POST(request: NextRequest): Promise<Response> {
       totalSupply,
       creatorAllocation,
       lockupPeriod,
-      imageUrl,
-      epochId,
+      imageUrl: finalImageUrl,
+      epochId
     });
+
+    // Ajouter l'URL HTTP de l'image à la réponse
+    const ipfsImageUrl = finalImageUrl || '';
+    const httpImageUrl = ipfsToHttp(ipfsImageUrl);
 
     console.log(`[${requestId}] ✅ Proposition créée avec succès:`, result);
 
     return createSuccessResponse(requestId, {
       success: true,
-      proposal: result,
+      proposal: {
+        ...result,
+        imageUrl: ipfsImageUrl,
+        imageHttpUrl: httpImageUrl
+      }
     });
   } catch (error) {
     console.error(

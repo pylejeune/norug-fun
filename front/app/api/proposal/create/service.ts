@@ -3,9 +3,10 @@ import {
   createAnchorWallet,
   getAdminKeypair,
   getProgram,
+  idl as SHARED_IDL
 } from "@/lib/utils";
 import * as anchor from "@coral-xyz/anchor";
-import { Connection, PublicKey } from "@solana/web3.js";
+import { PublicKey, Connection } from "@solana/web3.js";
 
 export interface ProposalCreateParams {
   tokenName: string;
@@ -27,7 +28,7 @@ export async function createProposal(params: ProposalCreateParams) {
   const connection = new Connection(RPC_ENDPOINT);
   const adminKeypair = getAdminKeypair();
   const wallet = createAnchorWallet(adminKeypair);
-  const program = getProgram(connection, wallet);
+  const program = getProgram(connection, SHARED_IDL, wallet);
 
   if (!program) {
     throw new Error("Programme non initialisé");
@@ -160,6 +161,7 @@ export async function createProposal(params: ProposalCreateParams) {
     proposalDetails: {
       tokenName: proposalAccount.tokenName,
       tokenSymbol: proposalAccount.tokenSymbol,
+      description: proposalAccount.description,
       creator: proposalAccount.creator.toString(),
       epochId: proposalAccount.epochId.toString(),
       totalSupply: proposalAccount.totalSupply.toString(),
@@ -168,6 +170,7 @@ export async function createProposal(params: ProposalCreateParams) {
       status: Object.keys(proposalAccount.status)[0],
       creationTimestamp: proposalAccount.creationTimestamp.toString(),
       lockupPeriod: proposalAccount.lockupPeriod.toString(),
-    },
+      imageUrl: proposalAccount.imageUrl || null
+    }
   };
 }

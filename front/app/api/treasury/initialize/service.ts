@@ -3,9 +3,10 @@ import {
   createAnchorWallet,
   getAdminKeypair,
   getProgram,
+  idl as SHARED_IDL,
 } from "@/lib/utils";
 import * as anchor from "@coral-xyz/anchor";
-import { Connection, PublicKey } from "@solana/web3.js";
+import { PublicKey, Connection } from "@solana/web3.js";
 
 interface TreasurySubAccount {
   sol_balance: number;
@@ -55,7 +56,7 @@ export async function initializeTreasury(): Promise<TreasuryInitializeResult> {
   const connection = new Connection(RPC_ENDPOINT);
   const adminKeypair = getAdminKeypair();
   const wallet = createAnchorWallet(adminKeypair);
-  const program = getProgram(connection, wallet);
+  const program = getProgram(connection, SHARED_IDL, wallet);
 
   if (!program) {
     throw new Error("Programme non initialisé");

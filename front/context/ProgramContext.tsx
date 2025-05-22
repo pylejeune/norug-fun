@@ -1,6 +1,6 @@
 "use client";
 import { Programs } from "@/idl/programs";
-import { getProgram, AnchorWallet as UtilsAnchorWallet } from "@/lib/utils";
+import { getProgramContext, AnchorWallet as UtilsAnchorWallet } from "@/lib/utils";
 import { BN, Program } from "@coral-xyz/anchor";
 import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
 import { LAMPORTS_PER_SOL, PublicKey, SystemProgram } from "@solana/web3.js";
@@ -115,7 +115,7 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
           }
         : undefined;
 
-      return getProgram(connection, compatibleWallet);
+      return getProgramContext(connection, compatibleWallet);
     }
     return null;
   }, [connection, wallet]);
