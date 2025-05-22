@@ -20,6 +20,10 @@ const nextConfig = {
     });
     return config;
   },
+  swcMinify: true,
+  experimental: {
+    forceSwcTransforms: true,
+  },
 };
 
 export default withNextIntl(nextConfig);

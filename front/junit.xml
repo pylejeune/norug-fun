@@ -1,0 +1,241 @@
+<testsuites id="" name="" tests="5" failures="0" skipped="0" errors="0" time="11.425476999999999">
+<testsuite name="homepage-content.spec.ts" timestamp="2025-05-21T05:20:55.260Z" hostname="chromium" tests="1" failures="0" skipped="0" time="9.657" errors="0">
+<testcase name="Contenu de la page d&apos;accueil › devrait afficher le mot &quot;burn&quot; sur la page d&apos;accueil" classname="homepage-content.spec.ts" time="9.657">
+<system-out>
+<![CDATA[✅ Collecte de couverture démarrée
+✅ Couverture collectée pour 1235 fichiers
+✅ Données de couverture sauvegardées dans /Users/pylejeune/Sites/norug-fun/front/coverage/coverage-1747804865219.json
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="homepage-content.spec.ts" timestamp="2025-05-21T05:20:55.260Z" hostname="firefox" tests="1" failures="0" skipped="0" time="9.417" errors="0">
+<testcase name="Contenu de la page d&apos;accueil › devrait afficher le mot &quot;burn&quot; sur la page d&apos;accueil" classname="homepage-content.spec.ts" time="9.417">
+<system-err>
+<![CDATA[⚠️ Impossible de démarrer la collecte de couverture: coverage.startJSCoverage: Cannot read properties of null (reading 'startJSCoverage')
+    at Object.page [90m(/Users/pylejeune/Sites/norug-fun/front/[39me2e/coverage-setup.ts:20:40[90m)[39m {
+  name: [32m'TypeError'[39m,
+  [[32mSymbol(step)[39m]: {
+    stepId: [32m'pw:api@9'[39m,
+    location: {
+      file: [32m'/Users/pylejeune/Sites/norug-fun/front/e2e/coverage-setup.ts'[39m,
+      line: [33m20[39m,
+      column: [33m40[39m,
+      function: [32m'Object.page'[39m
+    },
+    category: [32m'pw:api'[39m,
+    title: [32m'coverage.startJSCoverage'[39m,
+    apiName: [32m'coverage.startJSCoverage'[39m,
+    params: {},
+    boxedStack: [90mundefined[39m,
+    steps: [],
+    attachmentIndices: [],
+    info: TestStepInfoImpl {
+      annotations: [],
+      _testInfo: [36m[TestInfoImpl][39m,
+      _stepId: [32m'pw:api@9'[39m
+    },
+    complete: [36m[Function: complete][39m,
+    endWallTime: [33m1747804857429[39m,
+    error: {
+      message: [32m"TypeError: coverage.startJSCoverage: Cannot read properties of null (reading 'startJSCoverage')"[39m,
+      stack: [32m"TypeError: coverage.startJSCoverage: Cannot read properties of null (reading 'startJSCoverage')\n"[39m +
+        [32m'    at Object.page (/Users/pylejeune/Sites/norug-fun/front/e2e/coverage-setup.ts:20:40)'[39m,
+      cause: [90mundefined[39m
+    }
+  }
+}
+⚠️ Erreur lors de la collecte de couverture: coverage.stopJSCoverage: Cannot read properties of null (reading 'stopJSCoverage')
+    at Object.page [90m(/Users/pylejeune/Sites/norug-fun/front/[39me2e/coverage-setup.ts:31:57[90m)[39m {
+  name: [32m'TypeError'[39m,
+  [[32mSymbol(step)[39m]: {
+    stepId: [32m'pw:api@20'[39m,
+    location: {
+      file: [32m'/Users/pylejeune/Sites/norug-fun/front/e2e/coverage-setup.ts'[39m,
+      line: [33m31[39m,
+      column: [33m57[39m,
+      function: [32m'Object.page'[39m
+    },
+    category: [32m'pw:api'[39m,
+    title: [32m'coverage.stopJSCoverage'[39m,
+    apiName: [32m'coverage.stopJSCoverage'[39m,
+    params: [90mundefined[39m,
+    boxedStack: [90mundefined[39m,
+    steps: [],
+    attachmentIndices: [],
+    info: TestStepInfoImpl {
+      annotations: [],
+      _testInfo: [36m[TestInfoImpl][39m,
+      _stepId: [32m'pw:api@20'[39m
+    },
+    complete: [36m[Function: complete][39m,
+    endWallTime: [33m1747804865871[39m,
+    error: {
+      message: [32m"TypeError: coverage.stopJSCoverage: Cannot read properties of null (reading 'stopJSCoverage')"[39m,
+      stack: [32m"TypeError: coverage.stopJSCoverage: Cannot read properties of null (reading 'stopJSCoverage')\n"[39m +
+        [32m'    at Object.page (/Users/pylejeune/Sites/norug-fun/front/e2e/coverage-setup.ts:31:57)'[39m,
+      cause: [90mundefined[39m
+    }
+  }
+}
+]]>
+</system-err>
+</testcase>
+</testsuite>
+<testsuite name="homepage-content.spec.ts" timestamp="2025-05-21T05:20:55.260Z" hostname="webkit" tests="1" failures="0" skipped="0" time="9.271" errors="0">
+<testcase name="Contenu de la page d&apos;accueil › devrait afficher le mot &quot;burn&quot; sur la page d&apos;accueil" classname="homepage-content.spec.ts" time="9.271">
+<system-err>
+<![CDATA[⚠️ Impossible de démarrer la collecte de couverture: coverage.startJSCoverage: Cannot read properties of null (reading 'startJSCoverage')
+    at Object.page [90m(/Users/pylejeune/Sites/norug-fun/front/[39me2e/coverage-setup.ts:20:40[90m)[39m {
+  name: [32m'TypeError'[39m,
+  [[32mSymbol(step)[39m]: {
+    stepId: [32m'pw:api@9'[39m,
+    location: {
+      file: [32m'/Users/pylejeune/Sites/norug-fun/front/e2e/coverage-setup.ts'[39m,
+      line: [33m20[39m,
+      column: [33m40[39m,
+      function: [32m'Object.page'[39m
+    },
+    category: [32m'pw:api'[39m,
+    title: [32m'coverage.startJSCoverage'[39m,
+    apiName: [32m'coverage.startJSCoverage'[39m,
+    params: {},
+    boxedStack: [90mundefined[39m,
+    steps: [],
+    attachmentIndices: [],
+    info: TestStepInfoImpl {
+      annotations: [],
+      _testInfo: [36m[TestInfoImpl][39m,
+      _stepId: [32m'pw:api@9'[39m
+    },
+    complete: [36m[Function: complete][39m,
+    endWallTime: [33m1747804856516[39m,
+    error: {
+      message: [32m"TypeError: coverage.startJSCoverage: Cannot read properties of null (reading 'startJSCoverage')"[39m,
+      stack: [32m"TypeError: coverage.startJSCoverage: Cannot read properties of null (reading 'startJSCoverage')\n"[39m +
+        [32m'    at Object.page (/Users/pylejeune/Sites/norug-fun/front/e2e/coverage-setup.ts:20:40)'[39m,
+      cause: [90mundefined[39m
+    }
+  }
+}
+⚠️ Erreur lors de la collecte de couverture: coverage.stopJSCoverage: Cannot read properties of null (reading 'stopJSCoverage')
+    at Object.page [90m(/Users/pylejeune/Sites/norug-fun/front/[39me2e/coverage-setup.ts:31:57[90m)[39m {
+  name: [32m'TypeError'[39m,
+  [[32mSymbol(step)[39m]: {
+    stepId: [32m'pw:api@20'[39m,
+    location: {
+      file: [32m'/Users/pylejeune/Sites/norug-fun/front/e2e/coverage-setup.ts'[39m,
+      line: [33m31[39m,
+      column: [33m57[39m,
+      function: [32m'Object.page'[39m
+    },
+    category: [32m'pw:api'[39m,
+    title: [32m'coverage.stopJSCoverage'[39m,
+    apiName: [32m'coverage.stopJSCoverage'[39m,
+    params: [90mundefined[39m,
+    boxedStack: [90mundefined[39m,
+    steps: [],
+    attachmentIndices: [],
+    info: TestStepInfoImpl {
+      annotations: [],
+      _testInfo: [36m[TestInfoImpl][39m,
+      _stepId: [32m'pw:api@20'[39m
+    },
+    complete: [36m[Function: complete][39m,
+    endWallTime: [33m1747804865255[39m,
+    error: {
+      message: [32m"TypeError: coverage.stopJSCoverage: Cannot read properties of null (reading 'stopJSCoverage')"[39m,
+      stack: [32m"TypeError: coverage.stopJSCoverage: Cannot read properties of null (reading 'stopJSCoverage')\n"[39m +
+        [32m'    at Object.page (/Users/pylejeune/Sites/norug-fun/front/e2e/coverage-setup.ts:31:57)'[39m,
+      cause: [90mundefined[39m
+    }
+  }
+}
+]]>
+</system-err>
+</testcase>
+</testsuite>
+<testsuite name="homepage-content.spec.ts" timestamp="2025-05-21T05:20:55.260Z" hostname="Mobile Chrome" tests="1" failures="0" skipped="0" time="9.747" errors="0">
+<testcase name="Contenu de la page d&apos;accueil › devrait afficher le mot &quot;burn&quot; sur la page d&apos;accueil" classname="homepage-content.spec.ts" time="9.747">
+<system-out>
+<![CDATA[✅ Collecte de couverture démarrée
+✅ Couverture collectée pour 1235 fichiers
+✅ Données de couverture sauvegardées dans /Users/pylejeune/Sites/norug-fun/front/coverage/coverage-1747804865223.json
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="homepage-content.spec.ts" timestamp="2025-05-21T05:20:55.260Z" hostname="Mobile Safari" tests="1" failures="0" skipped="0" time="9.27" errors="0">
+<testcase name="Contenu de la page d&apos;accueil › devrait afficher le mot &quot;burn&quot; sur la page d&apos;accueil" classname="homepage-content.spec.ts" time="9.27">
+<system-err>
+<![CDATA[⚠️ Impossible de démarrer la collecte de couverture: coverage.startJSCoverage: Cannot read properties of null (reading 'startJSCoverage')
+    at Object.page [90m(/Users/pylejeune/Sites/norug-fun/front/[39me2e/coverage-setup.ts:20:40[90m)[39m {
+  name: [32m'TypeError'[39m,
+  [[32mSymbol(step)[39m]: {
+    stepId: [32m'pw:api@9'[39m,
+    location: {
+      file: [32m'/Users/pylejeune/Sites/norug-fun/front/e2e/coverage-setup.ts'[39m,
+      line: [33m20[39m,
+      column: [33m40[39m,
+      function: [32m'Object.page'[39m
+    },
+    category: [32m'pw:api'[39m,
+    title: [32m'coverage.startJSCoverage'[39m,
+    apiName: [32m'coverage.startJSCoverage'[39m,
+    params: {},
+    boxedStack: [90mundefined[39m,
+    steps: [],
+    attachmentIndices: [],
+    info: TestStepInfoImpl {
+      annotations: [],
+      _testInfo: [36m[TestInfoImpl][39m,
+      _stepId: [32m'pw:api@9'[39m
+    },
+    complete: [36m[Function: complete][39m,
+    endWallTime: [33m1747804856516[39m,
+    error: {
+      message: [32m"TypeError: coverage.startJSCoverage: Cannot read properties of null (reading 'startJSCoverage')"[39m,
+      stack: [32m"TypeError: coverage.startJSCoverage: Cannot read properties of null (reading 'startJSCoverage')\n"[39m +
+        [32m'    at Object.page (/Users/pylejeune/Sites/norug-fun/front/e2e/coverage-setup.ts:20:40)'[39m,
+      cause: [90mundefined[39m
+    }
+  }
+}
+⚠️ Erreur lors de la collecte de couverture: coverage.stopJSCoverage: Cannot read properties of null (reading 'stopJSCoverage')
+    at Object.page [90m(/Users/pylejeune/Sites/norug-fun/front/[39me2e/coverage-setup.ts:31:57[90m)[39m {
+  name: [32m'TypeError'[39m,
+  [[32mSymbol(step)[39m]: {
+    stepId: [32m'pw:api@20'[39m,
+    location: {
+      file: [32m'/Users/pylejeune/Sites/norug-fun/front/e2e/coverage-setup.ts'[39m,
+      line: [33m31[39m,
+      column: [33m57[39m,
+      function: [32m'Object.page'[39m
+    },
+    category: [32m'pw:api'[39m,
+    title: [32m'coverage.stopJSCoverage'[39m,
+    apiName: [32m'coverage.stopJSCoverage'[39m,
+    params: [90mundefined[39m,
+    boxedStack: [90mundefined[39m,
+    steps: [],
+    attachmentIndices: [],
+    info: TestStepInfoImpl {
+      annotations: [],
+      _testInfo: [36m[TestInfoImpl][39m,
+      _stepId: [32m'pw:api@20'[39m
+    },
+    complete: [36m[Function: complete][39m,
+    endWallTime: [33m1747804865265[39m,
+    error: {
+      message: [32m"TypeError: coverage.stopJSCoverage: Cannot read properties of null (reading 'stopJSCoverage')"[39m,
+      stack: [32m"TypeError: coverage.stopJSCoverage: Cannot read properties of null (reading 'stopJSCoverage')\n"[39m +
+        [32m'    at Object.page (/Users/pylejeune/Sites/norug-fun/front/e2e/coverage-setup.ts:31:57)'[39m,
+      cause: [90mundefined[39m
+    }
+  }
+}
+]]>
+</system-err>
+</testcase>
+</testsuite>
+</testsuites>
