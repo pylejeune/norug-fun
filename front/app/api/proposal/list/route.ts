@@ -1,19 +1,18 @@
 // front/app/api/proposal/list/route.ts
 import {
-    verifyAuthToken,
-    createSuccessResponse,
-    createErrorResponse,
-    getProgram,
-    getAdminKeypair,
-    createAnchorWallet,
-    RPC_ENDPOINT,
-    idl as SHARED_IDL
+  verifyAuthToken,
+  createSuccessResponse,
+  createErrorResponse,
+  getProgram,
+  getAdminKeypair,
+  createAnchorWallet,
+  RPC_ENDPOINT,
+  idl as SHARED_IDL,
 } from "@/lib/utils";
 import { ipfsToHttp, getAccessibleImageUrl } from "../create/image-service";
 import { NextRequest } from "next/server";
 import { randomUUID } from "crypto";
 import { Connection } from "@solana/web3.js";
-
 
 export async function GET(request: NextRequest): Promise<Response> {
   const requestId = randomUUID();
@@ -51,14 +50,14 @@ export async function GET(request: NextRequest): Promise<Response> {
     // Formater la réponse
     const formattedProposals = proposals.map((proposal: any) => {
       // Récupérer et convertir l'URL d'image IPFS en URL HTTP
-      const ipfsImageUrl = proposal.account.imageUrl || '';
+      const ipfsImageUrl = proposal.account.imageUrl || "";
       const httpImageUrl = getAccessibleImageUrl(ipfsImageUrl);
-      
+
       return {
         publicKey: proposal.publicKey.toString(),
         tokenName: proposal.account.tokenName,
         tokenSymbol: proposal.account.tokenSymbol,
-        description: proposal.account.description || '',
+        description: proposal.account.description || "",
         creator: proposal.account.creator.toString(),
         epochId: proposal.account.epochId.toString(),
         totalSupply: proposal.account.totalSupply.toString(),
@@ -66,13 +65,13 @@ export async function GET(request: NextRequest): Promise<Response> {
         status: Object.keys(proposal.account.status)[0],
         creationTimestamp: proposal.account.creationTimestamp.toString(),
         imageUrl: ipfsImageUrl,
-        imageHttpUrl: httpImageUrl
+        imageHttpUrl: httpImageUrl,
       };
     });
 
     return createSuccessResponse(requestId, {
       proposals: formattedProposals,
-      total: formattedProposals.length
+      total: formattedProposals.length,
     });
   } catch (error) {
     console.error(

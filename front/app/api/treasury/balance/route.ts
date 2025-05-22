@@ -11,7 +11,7 @@ import {
 import { Connection, PublicKey } from "@solana/web3.js";
 import { randomUUID } from "crypto";
 import { NextRequest } from "next/server";
-import { fetchTreasuryBalance } from './service';
+import { fetchTreasuryBalance } from "./service";
 
 export async function GET(request: NextRequest) {
   const requestId = randomUUID();

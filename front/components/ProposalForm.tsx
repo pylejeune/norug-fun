@@ -13,7 +13,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "sonner";
 import { TotalSupplyInfoDialog } from "@/components/TotalSupplyInfoDialog";
-import { Info } from 'lucide-react';
+import { Info } from "lucide-react";
 import { DialogTrigger } from "@/components/ui/dialog";
 
 type FormData = {
@@ -317,7 +317,11 @@ export default function ProposalForm() {
             </label>
             <TotalSupplyInfoDialog>
               <DialogTrigger asChild>
-                <button type="button" aria-label={t("totalSupplyInfoAriaLabel")} className="flex items-center">
+                <button
+                  type="button"
+                  aria-label={t("totalSupplyInfoAriaLabel")}
+                  className="flex items-center"
+                >
                   <Info className="h-5 w-5 text-primary cursor-pointer hover:opacity-80 transition-opacity" />
                 </button>
               </DialogTrigger>

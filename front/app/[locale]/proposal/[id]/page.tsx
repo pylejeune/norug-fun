@@ -301,8 +301,8 @@ export default function ProposalDetailPage() {
                       getStatusString(proposal.status) === "validated"
                         ? "text-green-500"
                         : getStatusString(proposal.status) === "active"
-                        ? "text-blue-500"
-                        : "text-red-500"
+                          ? "text-blue-500"
+                          : "text-red-500"
                     }`}
                   >
                     {t(`status.${getStatusString(proposal.status)}`)}

@@ -82,7 +82,10 @@ export default function TreasuryPage() {
 
   // Calculate total fees
   const totalFees = useMemo(() => {
-    return sortedTransactions.reduce((sum: number, tx: FeeTransaction) => sum + tx.amount, 0);
+    return sortedTransactions.reduce(
+      (sum: number, tx: FeeTransaction) => sum + tx.amount,
+      0
+    );
   }, [sortedTransactions]);
 
   // Format date with time
@@ -155,8 +158,8 @@ export default function TreasuryPage() {
                   tx.type === "proposal"
                     ? "text-blue-500"
                     : tx.type === "vote"
-                    ? "text-purple-500"
-                    : "text-gray-500"
+                      ? "text-purple-500"
+                      : "text-gray-500"
                 }`}
               >
                 {t("amount", {

@@ -37,8 +37,10 @@ export default function EpochList({
   const sortedEpochs = useMemo(() => {
     return [...epochs].sort((a, b) => {
       const multiplier = sortOrder === "asc" ? 1 : -1;
-      const fieldA = sortField === "epochId" ? parseInt(a[sortField]) : a[sortField];
-      const fieldB = sortField === "epochId" ? parseInt(b[sortField]) : b[sortField];
+      const fieldA =
+        sortField === "epochId" ? parseInt(a[sortField]) : a[sortField];
+      const fieldB =
+        sortField === "epochId" ? parseInt(b[sortField]) : b[sortField];
       return (fieldA - fieldB) * multiplier;
     });
   }, [epochs, sortField, sortOrder]);
@@ -140,8 +142,8 @@ export default function EpochList({
                     "active" in epoch.status
                       ? "text-green-500"
                       : "closed" in epoch.status
-                      ? "text-red-500"
-                      : "text-yellow-500"
+                        ? "text-red-500"
+                        : "text-yellow-500"
                   }`}
                 >
                   {t("statusLabel")}:{" "}

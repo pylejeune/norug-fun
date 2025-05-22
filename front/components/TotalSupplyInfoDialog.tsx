@@ -1,17 +1,17 @@
-"use client"
+"use client";
 
-import * as React from "react"
+import * as React from "react";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Slider } from "@/components/ui/slider"
-import { Label } from "@/components/ui/label"
-import { useTranslations } from "next-intl"
-import { useState, useEffect } from "react"
+} from "@/components/ui/dialog";
+import { Slider } from "@/components/ui/slider";
+import { Label } from "@/components/ui/label";
+import { useTranslations } from "next-intl";
+import { useState, useEffect } from "react";
 
 // Helper pour formater les grands nombres pour l'affichage (ex: 1M, 100k)
 const formatDisplayNumber = (num: number): string => {
@@ -25,7 +25,12 @@ const formatDisplayNumber = (num: number): string => {
 const formatPrice = (price: number) => {
   if (price < 0.000001 && price > 0) return "< $0.000001";
   if (price === 0) return "$0.00";
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 8 }).format(price);
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 8,
+  }).format(price);
 };
 
 const totalSupplyOptions = [
@@ -52,17 +57,29 @@ const marketCapOptions = [
   { value: 300_000_000, label: "$300M" },
 ];
 
-export function TotalSupplyInfoDialog({ children }: { children: React.ReactNode }) {
+export function TotalSupplyInfoDialog({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const t = useTranslations("ProposalForm.totalSupplyInfo");
 
   // États pour les VALEURS sélectionnées
-  const [currentTotalSupply, setCurrentTotalSupply] = useState<number>(totalSupplyOptions[2].value); // Default 100M
-  const [currentMarketCap, setCurrentMarketCap] = useState<number>(marketCapOptions[4].value); // Default $1M
+  const [currentTotalSupply, setCurrentTotalSupply] = useState<number>(
+    totalSupplyOptions[2].value
+  ); // Default 100M
+  const [currentMarketCap, setCurrentMarketCap] = useState<number>(
+    marketCapOptions[4].value
+  ); // Default $1M
   const [estimatedPrice, setEstimatedPrice] = useState("");
 
   // Trouver l'index actuel pour les sliders
-  const totalSupplySliderIndex = totalSupplyOptions.findIndex(opt => opt.value === currentTotalSupply);
-  const marketCapSliderIndex = marketCapOptions.findIndex(opt => opt.value === currentMarketCap);
+  const totalSupplySliderIndex = totalSupplyOptions.findIndex(
+    (opt) => opt.value === currentTotalSupply
+  );
+  const marketCapSliderIndex = marketCapOptions.findIndex(
+    (opt) => opt.value === currentMarketCap
+  );
 
   useEffect(() => {
     if (currentTotalSupply > 0) {
@@ -83,7 +100,7 @@ export function TotalSupplyInfoDialog({ children }: { children: React.ReactNode 
 
   return (
     <Dialog>
-      {children} 
+      {children}
       <DialogContent className="sm:max-w-lg md:max-w-xl bg-white dark:bg-neutral-900 opacity-100">
         <DialogHeader>
           <DialogTitle>{t("title")}</DialogTitle>
@@ -91,7 +108,9 @@ export function TotalSupplyInfoDialog({ children }: { children: React.ReactNode 
             <p>{t("descriptionPart1")}</p>
           </DialogDescription>
           <DialogDescription asChild className="mb-1">
-            <p><strong>{t("formula")}</strong></p>
+            <p>
+              <strong>{t("formula")}</strong>
+            </p>
           </DialogDescription>
           <DialogDescription asChild className="mb-4">
             <p>
@@ -101,13 +120,20 @@ export function TotalSupplyInfoDialog({ children }: { children: React.ReactNode 
             </p>
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="space-y-6 py-4">
           {/* Slider pour Total Supply (basé sur l'index) */}
           <div>
             <div className="flex justify-between items-center mb-2">
-              <Label htmlFor="totalSupplySlider" className="text-sm font-medium">{t("totalSupplyLabel")}</Label>
-              <span className="text-sm font-semibold text-primary">{totalSupplyOptions[totalSupplySliderIndex]?.label || "N/A"}</span>
+              <Label
+                htmlFor="totalSupplySlider"
+                className="text-sm font-medium"
+              >
+                {t("totalSupplyLabel")}
+              </Label>
+              <span className="text-sm font-semibold text-primary">
+                {totalSupplyOptions[totalSupplySliderIndex]?.label || "N/A"}
+              </span>
             </div>
             <Slider
               id="totalSupplySlider"
@@ -117,14 +143,20 @@ export function TotalSupplyInfoDialog({ children }: { children: React.ReactNode 
               value={[totalSupplySliderIndex]}
               onValueChange={handleTotalSupplyChange}
             />
-            <p className="text-xs text-muted-foreground mt-1 pt-1">{t("pumpFunReference")}</p>
+            <p className="text-xs text-muted-foreground mt-1 pt-1">
+              {t("pumpFunReference")}
+            </p>
           </div>
 
           {/* Slider pour Market Cap Cible (basé sur l'index) */}
           <div>
             <div className="flex justify-between items-center mb-2">
-              <Label htmlFor="marketCapSlider" className="text-sm font-medium">{t("marketCapLabel")}</Label>
-              <span className="text-sm font-semibold text-primary">{marketCapOptions[marketCapSliderIndex]?.label || "N/A"}</span>
+              <Label htmlFor="marketCapSlider" className="text-sm font-medium">
+                {t("marketCapLabel")}
+              </Label>
+              <span className="text-sm font-semibold text-primary">
+                {marketCapOptions[marketCapSliderIndex]?.label || "N/A"}
+              </span>
             </div>
             <Slider
               id="marketCapSlider"
@@ -138,23 +170,30 @@ export function TotalSupplyInfoDialog({ children }: { children: React.ReactNode 
 
           {/* Prix Estimé */}
           <div className="text-center pt-4">
-            <p className="text-sm text-muted-foreground">{t("estimatedPriceLabel")}</p>
-            <p className="text-2xl font-bold text-green-600 dark:text-green-500">{estimatedPrice}</p>
+            <p className="text-sm text-muted-foreground">
+              {t("estimatedPriceLabel")}
+            </p>
+            <p className="text-2xl font-bold text-green-600 dark:text-green-500">
+              {estimatedPrice}
+            </p>
           </div>
         </div>
 
         {/* Section pour informations contextuelles */}
         <div className="mt-6 pt-4 border-t">
-          <h4 className="text-md font-semibold mb-2">{t("marketCapStagesTitle")}</h4>
+          <h4 className="text-md font-semibold mb-2">
+            {t("marketCapStagesTitle")}
+          </h4>
           <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
-            <li>{t("marketCapStageLaunch")}</li> 
+            <li>{t("marketCapStageLaunch")}</li>
             <li>{t("marketCapStageSuccess")}</li>
             <li>{t("marketCapStageHugeSuccess")}</li>
           </ul>
-           <p className="text-xs text-muted-foreground mt-2">{t("marketCapDisclaimer")}</p>
+          <p className="text-xs text-muted-foreground mt-2">
+            {t("marketCapDisclaimer")}
+          </p>
         </div>
-
       </DialogContent>
     </Dialog>
   );
-} 
+}

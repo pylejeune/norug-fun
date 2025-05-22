@@ -148,7 +148,9 @@ export default function Home() {
   return (
     <div className="container mx-auto px-4 pt-4 pb-8">
       {/* Slogan Section with Typewriter Effect */}
-      <div className="text-center mb-6"> {/* Container for centering */}
+      <div className="text-center mb-6">
+        {" "}
+        {/* Container for centering */}
         <TypewriterEffect
           words={sloganWords}
           className="text-xl"
