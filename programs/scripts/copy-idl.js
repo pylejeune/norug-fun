@@ -4,7 +4,7 @@ import fs from "fs";
 import path from "path";
 
 const sourcePath = path.resolve("../programs/target/idl/programs.json");
-const destPath = path.resolve("../front/context/idl/programs.json");
+const destPath = path.resolve("../front/idl/programs.json");
 
 fs.copyFile(sourcePath, destPath, (err) => {
   if (err) {

@@ -5,7 +5,7 @@ import path from "path";
 
 const sourcePath = path.resolve("../programs/target/types/programs.ts");
 
-const destPath = path.resolve("../front/context/types/programs.ts");
+const destPath = path.resolve("../front/idl/programs.ts");
 
 fs.copyFile(sourcePath, destPath, (err) => {
   if (err) {

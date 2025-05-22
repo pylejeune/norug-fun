@@ -1,69 +1,141 @@
 import { NextRequest } from "next/server";
 import { randomUUID } from 'crypto';
-import { checkAndSimulateEndEpoch, TestResults } from "./service";
-import { verifyAuthToken } from "../shared/utils";
+import { Connection } from "@solana/web3.js";
+import { 
+  verifyAuthToken, 
+  createSuccessResponse, 
+  createErrorResponse,
+  getProgram,
+  getAdminKeypair,
+  createAnchorWallet,
+  RPC_ENDPOINT,
+  idl as CRON_IDL
+} from "@/lib/utils";
+import { closeAllEpochs } from "../../epoch/close-all/service";
+import { createEpoch } from "../../epoch/service";
 
-// Handler pour les requêtes GET
 export async function GET(request: NextRequest): Promise<Response> {
   const requestId = randomUUID();
-  console.log(`[${requestId}] 🚀 Démarrage de la vérification des époques...`);
+  console.log(`[${requestId}] 🚀 Vérification planifiée des époques...`);
 
-  // Vérification du token d'authentification
+  // Vérification du token d'authentification pour les appels Cron
   if (!verifyAuthToken(request)) {
-    console.error(`[${requestId}] ❌ Authentification échouée`);
-    return new Response(JSON.stringify({
-      success: false,
-      error: 'Non autorisé',
-      errorType: 'AuthenticationError',
-      timestamp: new Date().toISOString(),
-      requestId,
-    }), {
-      status: 401,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    console.error(`[${requestId}] ❌ Authentification échouée pour scheduler`);
+    return createErrorResponse(requestId, {
+      message: "Non autorisé",
+      name: "AuthenticationError"
+    }, 401);
   }
 
   try {
-    // Vérifier et simuler la fermeture des époques si nécessaire
-    const results = await checkAndSimulateEndEpoch();
-    console.log(`\n[${requestId}] ✅ Vérification terminée`);
-    console.log(`[${requestId}] 📊 Résumé: ${results.details.epochsChecked} époque(s) vérifiée(s), ${results.details.epochsToClose} époque(s) à fermer, ${results.details.epochsClosed} époque(s) fermée(s)`);
-    
-    // Ajouter information sur la création d'une nouvelle époque si applicable
-    if (results.newEpochCreated) {
-      console.log(`[${requestId}] 🆕 Nouvelle époque créée: ${results.newEpochCreated.success ? 'Oui' : 'Non'}`);
-      if (results.newEpochCreated.success) {
-        console.log(`[${requestId}] 🆔 ID de la nouvelle époque: ${results.newEpochCreated.epochId}`);
+    // Initialisation de la connexion
+    const connection = new Connection(RPC_ENDPOINT);
+    const adminKeypair = getAdminKeypair();
+    const wallet = createAnchorWallet(adminKeypair);
+    const program = getProgram(connection, CRON_IDL, wallet);
+
+    if (!program) {
+      throw new Error("Programme non initialisé");
+    }
+
+    console.log(`[${requestId}] 🔍 Vérification des époques...`);
+
+    // Récupérer toutes les époques
+    const allEpochs = await (program.account as any).epochManagement.all();
+    console.log(`[${requestId}] 📊 Nombre total d'époques: ${allEpochs.length}`);
+
+    // Filtrer les époques actives
+    const activeEpochs = allEpochs.filter((epoch: any) => {
+      try {
+        return epoch.account.status && Object.keys(epoch.account.status)[0] === 'active';
+      } catch (err) {
+        return false;
+      }
+    });
+    console.log(`[${requestId}] 📊 Nombre d'époques actives: ${activeEpochs.length}`);
+
+    // Vérifier si des époques sont expirées
+    const now = Math.floor(Date.now() / 1000);
+    const expiredEpochs = activeEpochs.filter((epoch: any) => {
+      return epoch.account.endTime.toNumber() < now;
+    });
+    console.log(`[${requestId}] 📊 Nombre d'époques expirées: ${expiredEpochs.length}`);
+
+    let result: any = { success: true };
+    let newEpochCreated = false;
+
+    // Si des époques sont expirées, les fermer
+    if (expiredEpochs.length > 0) {
+      console.log(`[${requestId}] 🔄 Fermeture des époques expirées...`);
+      result = await closeAllEpochs();
+      console.log(`[${requestId}] ✅ Résultat fermeture: ${result.message}`);
+      
+      // Vérifier s'il reste des époques actives après la fermeture
+      if (!result.activeEpochs || result.activeEpochs.length === 0) {
+        console.log(`[${requestId}] 🔄 Aucune époque active, création d'une nouvelle époque...`);
+        
+        // Créer une nouvelle époque de 48 heures
+        const newEpochResult = await createEpoch(48 * 60);
+        if (newEpochResult.success) {
+          console.log(`[${requestId}] ✅ Nouvelle époque créée avec succès: ${newEpochResult.epoch?.id}`);
+          newEpochCreated = true;
+          
+          // Ajouter la nouvelle époque au résultat
+          result.newEpoch = newEpochResult.epoch;
+        } else {
+          console.error(`[${requestId}] ❌ Erreur lors de la création d'une nouvelle époque:`, newEpochResult.error);
+        }
+      } else {
+        console.log(`[${requestId}] ℹ️ Il reste ${result.activeEpochs.length} époque(s) active(s), pas besoin d'en créer une nouvelle.`);
+      }
+    } else {
+      // Aucune époque expirée, mais vérifions s'il existe au moins une époque active
+      if (activeEpochs.length === 0) {
+        console.log(`[${requestId}] 🔄 Aucune époque active, création d'une nouvelle époque...`);
+        
+        // Créer une nouvelle époque de 48 heures
+        const newEpochResult = await createEpoch(48 * 60);
+        if (newEpochResult.success) {
+          console.log(`[${requestId}] ✅ Nouvelle époque créée avec succès: ${newEpochResult.epoch?.id}`);
+          newEpochCreated = true;
+          
+          // Mettre à jour le résultat
+          result = {
+            success: true,
+            message: "Aucune époque expirée, mais une nouvelle époque a été créée",
+            activeEpochs: activeEpochs.map((epoch: any) => ({
+              id: epoch.account.epochId.toString(),
+              startTime: new Date(epoch.account.startTime.toNumber() * 1000).toISOString(),
+              endTime: new Date(epoch.account.endTime.toNumber() * 1000).toISOString(),
+              status: 'active'
+            })),
+            newEpoch: newEpochResult.epoch
+          };
+        } else {
+          console.error(`[${requestId}] ❌ Erreur lors de la création d'une nouvelle époque:`, newEpochResult.error);
+        }
+      } else {
+        console.log(`[${requestId}] ✅ Aucune époque expirée, et ${activeEpochs.length} époque(s) active(s).`);
+        
+        // Formater le résultat avec les époques actives
+        result = {
+          success: true,
+          message: "Aucune époque expirée à fermer",
+          activeEpochs: activeEpochs.map((epoch: any) => ({
+            id: epoch.account.epochId.toString(),
+            startTime: new Date(epoch.account.startTime.toNumber() * 1000).toISOString(),
+            endTime: new Date(epoch.account.endTime.toNumber() * 1000).toISOString(),
+            status: 'active'
+          }))
+        };
       }
     }
-    
-    return new Response(JSON.stringify({
-      ...results,
-      timestamp: new Date().toISOString(),
-      environment: process.env.NODE_ENV,
-      rpcEndpoint: process.env.SOLANA_RPC_ENDPOINT,
-      requestId,
-    }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
+
+    console.log(`[${requestId}] ✅ Vérification des époques terminée. Époques expirées fermées: ${expiredEpochs.length}, Nouvelle époque créée: ${newEpochCreated}`);
+
+    return createSuccessResponse(requestId, result);
   } catch (error) {
-    const errorType = error instanceof Error ? error.name : typeof error;
-    const errorMsg = error instanceof Error ? error.message : String(error);
-    const errorStack = error instanceof Error ? error.stack : undefined;
-    console.error(`[${requestId}] ❌ Erreur lors de l'exécution:`, errorMsg, errorStack);
-    return new Response(JSON.stringify({
-      success: false,
-      error: errorMsg,
-      errorType,
-      stack: errorStack,
-      timestamp: new Date().toISOString(),
-      environment: process.env.NODE_ENV,
-      rpcEndpoint: process.env.SOLANA_RPC_ENDPOINT,
-      requestId,
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    console.error(`[${requestId}] ❌ Erreur lors de la vérification des époques:`, error);
+    return createErrorResponse(requestId, error);
   }
-} 
+}
