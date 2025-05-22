@@ -1,13 +1,11 @@
-import * as anchor from "@coral-xyz/anchor";
-import { PublicKey, Connection, Keypair, SystemProgram } from "@solana/web3.js";
-import { BN } from "@coral-xyz/anchor";
 import {
+  createAnchorWallet,
+  idl as CRON_IDL,
   getAdminKeypair,
   getProgram,
-  createAnchorWallet,
   RPC_ENDPOINT,
-  idl as CRON_IDL,
 } from "@/lib/utils";
+import { Connection, PublicKey, SystemProgram } from "@solana/web3.js";
 
 interface CloseEpochResult {
   success: boolean;

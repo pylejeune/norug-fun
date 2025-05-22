@@ -1,12 +1,11 @@
-import * as anchor from "@coral-xyz/anchor";
-import { PublicKey, Connection } from "@solana/web3.js";
 import {
-  getProgram,
-  getAdminKeypairProgramConfig,
   createAnchorWallet,
+  getAdminKeypairProgramConfig,
+  getProgram,
   RPC_ENDPOINT,
   idl as SHARED_IDL,
 } from "@/lib/utils";
+import { Connection, PublicKey } from "@solana/web3.js";
 
 interface ProgramConfigInfo {
   success: boolean;

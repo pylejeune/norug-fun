@@ -1,11 +1,9 @@
+import { generateRandomImageUrl } from "@/lib/utils";
 import lighthouse from "@lighthouse-web3/sdk";
-import { createReadStream } from "fs";
+import { randomUUID } from "crypto";
 import { writeFile } from "fs/promises";
 import * as os from "os";
 import * as path from "path";
-import { promisify } from "util";
-import { randomUUID } from "crypto";
-import { generateRandomImageUrl } from "@/lib/utils";
 
 // Clé API Lighthouse stockée dans les variables d'environnement
 const LIGHTHOUSE_API_KEY =
