@@ -156,42 +156,250 @@ describe("ProgramConfig - Admin Only Instructions Authorization", () => {
     });
 
     describe("end_epoch", () => {
-        // Pré-requis: un epoch doit être démarré
-        // TODO: Ajouter un before() ou un setup pour démarrer un epoch spécifique pour ces tests
-        it("should allow admin_authority to call end_epoch", async () => {
-            // TODO: Implémentation
+        let testEpochId: anchor.BN;
+        let epochManagementAddress: PublicKey;
+
+        beforeEach(async () => {
+            // Créer un epoch actif que l'admin pourra ensuite fermer
+            testEpochId = new anchor.BN(Date.now()); // ID unique pour chaque test de ce describe
+            const startTime = new anchor.BN(Math.floor(Date.now() / 1000) - 60); // Déjà commencé
+            const endTime = new anchor.BN(Math.floor(Date.now() / 1000) + 3600); // Se termine dans 1h
+            [epochManagementAddress] = PublicKey.findProgramAddressSync(
+                [Buffer.from("epoch"), testEpochId.toArrayLike(Buffer, "le", 8)],
+                program.programId
+            );
+
+            await program.methods
+                .startEpoch(testEpochId, startTime, endTime)
+                .accounts({
+                    authority: adminKeypair.publicKey,
+                    programConfig: programConfigAddress,
+                    epochManagement: epochManagementAddress,
+                    systemProgram: SystemProgram.programId,
+                })
+                .signers([adminKeypair])
+                .rpc();
+            
+            const epochAccount = await program.account.epochManagement.fetch(epochManagementAddress);
+            expect(epochAccount.status.active).to.exist; 
+        });
+
+        it("should allow admin_authority to call end_epoch and successfully end an epoch", async () => {
+            await program.methods
+                .endEpoch(testEpochId)
+                .accounts({
+                    authority: adminKeypair.publicKey,
+                    programConfig: programConfigAddress,
+                    epochManagement: epochManagementAddress,
+                    systemProgram: SystemProgram.programId,
+                })
+                .signers([adminKeypair])
+                .rpc();
+            
+            const epochAccount = await program.account.epochManagement.fetch(epochManagementAddress);
+            expect(epochAccount.status.closed).to.exist;
         });
 
         it("should prevent non_admin_authority from calling end_epoch and return Unauthorized error", async () => {
-            // TODO: Implémentation
+            try {
+                await program.methods
+                    .endEpoch(testEpochId)
+                    .accounts({
+                        authority: nonAdminKeypair.publicKey,
+                        programConfig: programConfigAddress,
+                        epochManagement: epochManagementAddress,
+                        systemProgram: SystemProgram.programId,
+                    })
+                    .signers([nonAdminKeypair])
+                    .rpc();
+                expect.fail("Transaction should have failed with Unauthorized error");
+            } catch (error) {
+                expect((error as AnchorError).error.errorCode.code).to.equal("Unauthorized");
+                expect((error as AnchorError).error.errorCode.number).to.equal(6023);
+            }
         });
-
     });
 
     describe("update_proposal_status", () => {
-        // Pré-requis: un epoch doit être fermé, une proposition doit exister dans cet epoch
-        // TODO: Ajouter setup
-        it("should allow admin_authority to call update_proposal_status", async () => {
-            // TODO: Implémentation
+        let testEpochId: anchor.BN;
+        let epochManagementAddress: PublicKey;
+        let proposalCreator: Keypair; // Peut être adminKeypair ou un autre
+        let proposalAddress: PublicKey;
+        const tokenName = "testProposalForUpdate";
+        const tokenSymbol = "TPU";
+
+        beforeEach(async () => {
+            testEpochId = new anchor.BN(Date.now());
+            proposalCreator = adminKeypair; // Utiliser adminKeypair comme créateur pour simplifier
+            const startTime = new anchor.BN(Math.floor(Date.now() / 1000) - 120); // Commence il y a 2 mins
+            const endTime = new anchor.BN(Math.floor(Date.now() / 1000) - 60);   // Fini il y a 1 min
+
+            [epochManagementAddress] = PublicKey.findProgramAddressSync(
+                [Buffer.from("epoch"), testEpochId.toArrayLike(Buffer, "le", 8)],
+                program.programId
+            );
+            [proposalAddress] = PublicKey.findProgramAddressSync(
+                [Buffer.from("proposal"), proposalCreator.publicKey.toBuffer(), testEpochId.toArrayLike(Buffer, "le", 8), Buffer.from(tokenName)],
+                program.programId
+            );
+
+            // 1. Start Epoch
+            await program.methods
+                .startEpoch(testEpochId, startTime, endTime)
+                .accounts({ 
+                    authority: adminKeypair.publicKey, 
+                    programConfig: programConfigAddress, 
+                    epochManagement: epochManagementAddress, 
+                    systemProgram: SystemProgram.programId 
+                })
+                .signers([adminKeypair])
+                .rpc();
+
+            // 2. Create Proposal
+            // S'assurer que proposalCreator est financé s'il est différent de adminKeypair
+            // (ici, ils sont identiques, donc adminKeypair est déjà financé)
+            await program.methods
+                .createProposal(tokenName, tokenSymbol, "Test desc", null, new anchor.BN(1000), 10, new anchor.BN(0))
+                .accounts({
+                    creator: proposalCreator.publicKey,
+                    tokenProposal: proposalAddress,
+                    epoch: epochManagementAddress,
+                    programConfig: programConfigAddress, // Ajouté pour la nouvelle logique de create_proposal
+                    systemProgram: SystemProgram.programId,
+                    // treasury: treasuryPda, // Si create_proposal interagit avec treasury, il faudrait le setup
+                })
+                .signers([proposalCreator])
+                .rpc();
+            
+            // 3. End Epoch
+            await program.methods
+                .endEpoch(testEpochId)
+                .accounts({ 
+                    authority: adminKeypair.publicKey, 
+                    programConfig: programConfigAddress, 
+                    epochManagement: epochManagementAddress, 
+                    systemProgram: SystemProgram.programId 
+                })
+                .signers([adminKeypair])
+                .rpc();
+            
+            const epochAccount = await program.account.epochManagement.fetch(epochManagementAddress);
+            expect(epochAccount.status.closed).to.exist;
+            const proposalAccount = await program.account.tokenProposal.fetch(proposalAddress);
+            expect(proposalAccount.status.active).to.exist;
+        });
+
+        it("should allow admin_authority to call update_proposal_status and successfully update status", async () => {
+            await program.methods
+                .updateProposalStatus({ validated: {} }) // Passer à Validated
+                .accounts({
+                    authority: adminKeypair.publicKey,
+                    programConfig: programConfigAddress,
+                    epochManagement: epochManagementAddress,
+                    proposal: proposalAddress,
+                })
+                .signers([adminKeypair])
+                .rpc();
+
+            const proposalAccount = await program.account.tokenProposal.fetch(proposalAddress);
+            expect(proposalAccount.status.validated).to.exist;
         });
 
         it("should prevent non_admin_authority from calling update_proposal_status and return Unauthorized error", async () => {
-            // TODO: Implémentation
+            try {
+                await program.methods
+                    .updateProposalStatus({ rejected: {} }) // Tenter de passer à Rejected
+                    .accounts({
+                        authority: nonAdminKeypair.publicKey,
+                        programConfig: programConfigAddress,
+                        epochManagement: epochManagementAddress,
+                        proposal: proposalAddress,
+                    })
+                    .signers([nonAdminKeypair])
+                    .rpc();
+                expect.fail("Transaction should have failed with Unauthorized error");
+            } catch (error) {
+                expect((error as AnchorError).error.errorCode.code).to.equal("Unauthorized");
+                expect((error as AnchorError).error.errorCode.number).to.equal(6023);
+            }
         });
-
     });
     
     describe("mark_epoch_processed", () => {
-        // Pré-requis: un epoch doit être fermé (ou dans un état approprié pour être marqué comme traité)
-        // TODO: Ajouter setup
-        it("should allow admin_authority to call mark_epoch_processed", async () => {
-            // TODO: Implémentation
+        let testEpochId: anchor.BN;
+        let epochManagementAddress: PublicKey;
+
+        beforeEach(async () => {
+            // Créer un epoch actif puis le fermer
+            testEpochId = new anchor.BN(Date.now()); 
+            const startTime = new anchor.BN(Math.floor(Date.now() / 1000) - 120); 
+            const endTime = new anchor.BN(Math.floor(Date.now() / 1000) - 60);   
+            [epochManagementAddress] = PublicKey.findProgramAddressSync(
+                [Buffer.from("epoch"), testEpochId.toArrayLike(Buffer, "le", 8)],
+                program.programId
+            );
+
+            // 1. Start Epoch
+            await program.methods
+                .startEpoch(testEpochId, startTime, endTime)
+                .accounts({ 
+                    authority: adminKeypair.publicKey, 
+                    programConfig: programConfigAddress, 
+                    epochManagement: epochManagementAddress, 
+                    systemProgram: SystemProgram.programId 
+                })
+                .signers([adminKeypair])
+                .rpc();
+            
+            // 2. End Epoch
+            await program.methods
+                .endEpoch(testEpochId)
+                .accounts({ 
+                    authority: adminKeypair.publicKey, 
+                    programConfig: programConfigAddress, 
+                    epochManagement: epochManagementAddress, 
+                    systemProgram: SystemProgram.programId 
+                })
+                .signers([adminKeypair])
+                .rpc();
+            
+            const epochAccount = await program.account.epochManagement.fetch(epochManagementAddress);
+            expect(epochAccount.status.closed).to.exist;
+            expect(epochAccount.processed).to.be.false;
+        });
+
+        it("should allow admin_authority to call mark_epoch_processed and successfully mark epoch as processed", async () => {
+            await program.methods
+                .markEpochProcessed()
+                .accounts({
+                    authority: adminKeypair.publicKey,
+                    programConfig: programConfigAddress,
+                    epochManagement: epochManagementAddress,
+                })
+                .signers([adminKeypair])
+                .rpc();
+
+            const epochAccount = await program.account.epochManagement.fetch(epochManagementAddress);
+            expect(epochAccount.processed).to.be.true;
         });
 
         it("should prevent non_admin_authority from calling mark_epoch_processed and return Unauthorized error", async () => {
-            // TODO: Implémentation
+            try {
+                await program.methods
+                    .markEpochProcessed()
+                    .accounts({
+                        authority: nonAdminKeypair.publicKey,
+                        programConfig: programConfigAddress,
+                        epochManagement: epochManagementAddress,
+                    })
+                    .signers([nonAdminKeypair])
+                    .rpc();
+                expect.fail("Transaction should have failed with Unauthorized error");
+            } catch (error) {
+                expect((error as AnchorError).error.errorCode.code).to.equal("Unauthorized");
+                expect((error as AnchorError).error.errorCode.number).to.equal(6023);
+            }
         });
-    
     });
 });
 
