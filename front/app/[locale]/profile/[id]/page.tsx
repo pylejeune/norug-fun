@@ -96,10 +96,6 @@ export default function ProfilePage() {
     [sortBy, sortOrder]
   );
 
-  const formatSolAmount = (lamports: number) => {
-    return (lamports / LAMPORTS_PER_SOL).toFixed(2);
-  };
-
   const handleCopyAddress = async () => {
     if (!userAddress) return;
     try {

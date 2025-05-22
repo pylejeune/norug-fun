@@ -1,14 +1,9 @@
 // front/app/api/treasury/balance/route.ts
 import {
-  createAnchorWallet,
   createErrorResponse,
   createSuccessResponse,
-  getAdminKeypair,
-  getProgram,
-  RPC_ENDPOINT,
   verifyAuthToken,
 } from "@/lib/utils";
-import { Connection, PublicKey } from "@solana/web3.js";
 import { randomUUID } from "crypto";
 import { NextRequest } from "next/server";
 import { fetchTreasuryBalance } from "./service";

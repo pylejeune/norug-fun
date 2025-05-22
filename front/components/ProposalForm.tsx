@@ -1,20 +1,20 @@
 "use client";
 
 import EpochSelector from "@/components/epoch/EpochSelector";
+import { TotalSupplyInfoDialog } from "@/components/TotalSupplyInfoDialog";
 import { Button } from "@/components/ui/button";
+import { DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
 import { EpochState, useProgram } from "@/context/ProgramContext";
 import { uploadImageToIPFS } from "@/utils/ImageStorage";
+import { Info } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "sonner";
-import { TotalSupplyInfoDialog } from "@/components/TotalSupplyInfoDialog";
-import { Info } from "lucide-react";
-import { DialogTrigger } from "@/components/ui/dialog";
 
 type FormData = {
   name: string;

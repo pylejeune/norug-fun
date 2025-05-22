@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,18 +7,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
 import { useTranslations } from "next-intl";
-import { useState, useEffect } from "react";
-
-// Helper pour formater les grands nombres pour l'affichage (ex: 1M, 100k)
-const formatDisplayNumber = (num: number): string => {
-  if (num >= 1_000_000_000) return `${num / 1_000_000_000}B`;
-  if (num >= 1_000_000) return `${num / 1_000_000}M`;
-  if (num >= 1_000) return `${num / 1_000}k`;
-  return num.toString();
-};
+import * as React from "react";
+import { useEffect, useState } from "react";
 
 // Helper pour formater le prix
 const formatPrice = (price: number) => {

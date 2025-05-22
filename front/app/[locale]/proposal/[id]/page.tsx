@@ -213,14 +213,6 @@ export default function ProposalDetailPage() {
     return "unknown";
   };
 
-  // Helper function to get status color
-  const getStatusColor = (status: ProposalStatusType) => {
-    if ("active" in status) return "bg-blue-500 text-white";
-    if ("validated" in status) return "bg-green-500 text-white";
-    if ("rejected" in status) return "bg-red-500 text-white";
-    return "bg-gray-500 text-white";
-  };
-
   const isFullyLoaded = !loading && !isLoadingSupports && proposal && supports;
 
   // Loading state
