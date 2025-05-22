@@ -113,7 +113,8 @@
     "sortByEnd": "Trier par date de fin",
     "endingEpoch": "Fin de l'epoch en cours...",
     "endEpochSuccess": "Epoch terminé avec succès",
-    "endEpochError": "Échec de la fin de l'epoch"
+    "endEpochError": "Échec de la fin de l'epoch",
+    "fetchEpochsError": "Erreur lors du chargement des epochs"
   },
   "Home": {
     "currentEpoch": "Epoch en cours",

@@ -113,7 +113,8 @@
     "sortByEnd": "Sort by End Date",
     "endingEpoch": "Ending epoch...",
     "endEpochSuccess": "Epoch ended successfully",
-    "endEpochError": "Failed to end epoch"
+    "endEpochError": "Failed to end epoch",
+    "fetchEpochsError": "Error loading epochs"
   },
   "Home": {
     "currentEpoch": "Current Epoch",
