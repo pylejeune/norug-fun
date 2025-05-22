@@ -4,7 +4,6 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import logo from "@/public/images/noruglogo.png";
 import telegramLogo from "@/public/images/telegramLogo.svg";
 import xLogo from "@/public/images/xLogo.svg";
-import { useWallet } from "@solana/wallet-adapter-react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
@@ -27,7 +26,6 @@ const SOCIAL_LINKS = {
 };
 
 export default function Header() {
-  const { connected } = useWallet();
   const isMobile = useIsMobile();
 
   return (

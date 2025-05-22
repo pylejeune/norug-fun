@@ -60,7 +60,6 @@ export default function ProposalDetailPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [supports, setSupports] = useState<ProposalSupport[]>([]);
   const [isLoadingSupports, setIsLoadingSupports] = useState(true);
-  const [isCurrentUser, setIsCurrentUser] = useState(false);
 
   // 3. Callbacks
   const loadProposal = useCallback(async () => {
@@ -95,6 +94,7 @@ export default function ProposalDetailPage() {
         creationTimestamp: details.creationTimestamp,
       });
     } catch (error) {
+      console.error("Error loading proposal:", error);
       toast.error(t("errorLoadingProposal"));
     } finally {
       setLoading(false);
@@ -111,6 +111,7 @@ export default function ProposalDetailPage() {
       );
       setSupports(proposalSupports);
     } catch (error) {
+      console.error("Error loading supports:", error);
       toast.error(t("errorLoadingSupports"));
     } finally {
       setIsLoadingSupports(false);
@@ -163,11 +164,6 @@ export default function ProposalDetailPage() {
       loadSupports();
     }
   }, [proposal, loadSupports]);
-
-  useEffect(() => {
-    if (!publicKey) return;
-    setIsCurrentUser(publicKey.toBase58() === id);
-  }, [publicKey, id]);
 
   // 5. Render helpers
   const formatNumber = useCallback(

@@ -6,7 +6,7 @@ import {
   getProgram,
   RPC_ENDPOINT,
 } from "@/lib/utils";
-import { BN, Wallet as UtilsAnchorWallet } from "@coral-xyz/anchor";
+import { BN } from "@coral-xyz/anchor";
 import { Connection, Keypair, PublicKey, SystemProgram } from "@solana/web3.js";
 
 // --- Définition des interfaces ---
@@ -30,23 +30,6 @@ export interface TestResults {
     signature?: string;
     errors?: string[];
   };
-}
-
-// Définir une interface complète pour l'IDL pour résoudre les problèmes de typage
-interface IDLInstruction {
-  name: string;
-  discriminator: number[];
-  accounts: {
-    name: string;
-    writable?: boolean;
-    signer?: boolean;
-    pda?: any;
-    address?: string;
-  }[];
-  args: {
-    name: string;
-    type: string | any;
-  }[];
 }
 
 /**
@@ -783,12 +766,3 @@ export async function getAllEpochs(
     return [];
   }
 }
-
-// Fonction pour convertir le wallet au bon format
-const getCompatibleWallet = (wallet: AnchorWallet) => ({
-  publicKey: wallet.publicKey,
-  signTransaction:
-    wallet.signTransaction as UtilsAnchorWallet["signTransaction"],
-  signAllTransactions:
-    wallet.signAllTransactions as UtilsAnchorWallet["signAllTransactions"],
-});

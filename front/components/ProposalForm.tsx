@@ -7,7 +7,7 @@ import { DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
-import { EpochState, useProgram } from "@/context/ProgramContext";
+import { useProgram } from "@/context/ProgramContext";
 import { uploadImageToIPFS } from "@/utils/ImageStorage";
 import { Info } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -34,8 +34,6 @@ export default function ProposalForm() {
   const router = useRouter();
   const { locale } = useParams();
   const [selectedEpochId, setSelectedEpochId] = useState<string>();
-  const [selectedEpochDetails, setSelectedEpochDetails] =
-    useState<EpochState | null>(null);
 
   // Form state with default values
   const [formData, setFormData] = useState<FormData>({
@@ -58,7 +56,6 @@ export default function ProposalForm() {
         const epochs = await getAllEpochs();
         const epoch = epochs.find((e) => e.epochId === selectedEpochId);
         if (epoch) {
-          setSelectedEpochDetails(epoch);
           // Update minimum lockup period to epoch end date
           const epochEndDate = new Date(epoch.endTime * 1000);
           if (
@@ -77,7 +74,7 @@ export default function ProposalForm() {
     };
 
     loadEpochDetails();
-  }, [selectedEpochId, getAllEpochs]);
+  }, [selectedEpochId, getAllEpochs, formData.lockupPeriod]);
 
   // Update supporters allocation when creator allocation changes
   useEffect(() => {
@@ -184,7 +181,7 @@ export default function ProposalForm() {
     },
     maxFiles: 1,
     maxSize: 5 * 1024 * 1024, // 5MB max
-    onDropRejected: (files) => {
+    onDropRejected: () => {
       toast.error(t("imageTooBig"));
     },
   });
