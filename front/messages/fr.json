@@ -152,7 +152,8 @@
       "active": "Active",
       "validated": "Validée",
       "rejected": "Rejetée"
-    }
+    },
+    "errorLoadingEpochs": "Erreur lors du chargement des epochs"
   },
   "Treasury": {
     "title": "Trésorerie",

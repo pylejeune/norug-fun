@@ -26,7 +26,6 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [selectedEpochDetails, setSelectedEpochDetails] =
     useState<EpochState | null>(null);
-  const [modeTransitioning, setModeTransitioning] = useState(false);
 
   // Convertir le locale en string
   const currentLocale = Array.isArray(locale) ? locale[0] : locale;
@@ -41,14 +40,15 @@ export default function Home() {
           setSelectedEpochId(activeEpochs[0].epochId);
         }
       } catch (error) {
-        console.error("Failed to fetch epochs:", error);
+        console.error("Failed to load epochs:", error);
+        toast.error(t("errorLoadingEpochs"));
       }
     };
 
     if (!selectedEpochId) {
       initializeEpoch();
     }
-  }, [getAllEpochs, selectedEpochId]);
+  }, [getAllEpochs, selectedEpochId, t]);
 
   // Reload proposals when landing on the page
   useEffect(() => {
@@ -66,7 +66,7 @@ export default function Home() {
     };
 
     loadProposals();
-  }, [getAllProposals]);
+  }, [getAllProposals, t]);
 
   // Load epoch details when one is selected
   useEffect(() => {
@@ -100,7 +100,6 @@ export default function Home() {
   // Handle mode change effect
   useEffect(() => {
     const initializeEpoch = async () => {
-      setModeTransitioning(true); // Start transition
       setAllProposals([]); // Reset proposals during transition
       setSelectedEpochDetails(null); // Reset epoch details
 
@@ -124,8 +123,6 @@ export default function Home() {
       } catch (error) {
         console.error("Failed to fetch epochs:", error);
         setSelectedEpochDetails(null); // Reset on error
-      } finally {
-        setModeTransitioning(false);
       }
     };
 

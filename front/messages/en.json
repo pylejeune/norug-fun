@@ -152,7 +152,8 @@
       "active": "Active",
       "validated": "Validated",
       "rejected": "Rejected"
-    }
+    },
+    "errorLoadingEpochs": "Error loading epochs"
   },
   "Treasury": {
     "title": "Treasury",
