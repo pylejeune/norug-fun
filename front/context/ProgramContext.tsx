@@ -1,6 +1,9 @@
 "use client";
 import { Programs } from "@/idl/programs";
-import { getProgramContext, AnchorWallet as UtilsAnchorWallet } from "@/lib/utils";
+import {
+  getProgramContext,
+  AnchorWallet as UtilsAnchorWallet,
+} from "@/lib/utils";
 import { BN, Program } from "@coral-xyz/anchor";
 import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
 import { LAMPORTS_PER_SOL, PublicKey, SystemProgram } from "@solana/web3.js";
@@ -364,8 +367,6 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
         program as Program<Programs>
       ).account.tokenProposal.all();
 
-      console.log("Raw proposals data:", proposals);
-
       const mappedProposals = proposals.map((p: any) => {
         const proposal = {
           epochId: p.account.epochId.toString(),
@@ -383,7 +384,6 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
           imageUrl: p.account.imageUrl,
           creationTimestamp: p.account.creationTimestamp.toNumber(),
         };
-        console.log("Mapped proposal:", proposal);
         return proposal;
       });
 
