@@ -30,7 +30,7 @@ describe("epoch_scheduler", () => {
         authority: provider.wallet.publicKey,
         epochManagement: epochManagementPDA,
         systemProgram: anchor.web3.SystemProgram.programId,
-      })
+      } as any)
       .rpc();
 
     // Vérifier que l'époque est active
@@ -44,7 +44,7 @@ describe("epoch_scheduler", () => {
         epochManagement: epochManagementPDA,
         authority: provider.wallet.publicKey,
         systemProgram: anchor.web3.SystemProgram.programId,
-      })
+      } as any)
       .rpc();
 
     // Vérifier que l'époque est maintenant fermée
