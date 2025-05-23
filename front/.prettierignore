@@ -1,0 +1,23 @@
+# Ignorer les composants UI
+**/components/ui/**/*
+**/components/shadcn/**/*
+
+# Configuration files
+.eslintrc.json
+components.json
+tailwind.config.ts
+vercel.json
+
+# Generated files
+idl/programs.json
+idl/programs.ts
+
+# Special files
+middleware.ts
+hooks/use-mobile.ts
+
+# Autres fichiers à ignorer
+node_modules
+.next
+build
+dist 
