@@ -1,6 +1,11 @@
-import * as anchor from "@coral-xyz/anchor";
-import { PublicKey, Connection } from "@solana/web3.js";
-import { getProgram, getAdminKeypairProgramConfig, createAnchorWallet, RPC_ENDPOINT,  idl as SHARED_IDL } from "@/lib/utils";
+import {
+  createAnchorWallet,
+  getAdminKeypairProgramConfig,
+  getProgram,
+  RPC_ENDPOINT,
+  idl as SHARED_IDL,
+} from "@/lib/utils";
+import { Connection, PublicKey } from "@solana/web3.js";
 
 interface ProgramConfigInfo {
   success: boolean;
@@ -41,58 +46,72 @@ export async function getProgramConfigInfo(): Promise<ProgramConfigInfo> {
     // Récupérer le compte ProgramConfig
     let programConfigAccount = null;
     let exists = false;
-    
+
     try {
-      if (program.account && typeof program.account === 'object') {
+      if (program.account && typeof program.account === "object") {
         // Vérifier si programConfig existe dans le program
         if ((program.account as any).programConfig) {
-          programConfigAccount = await (program.account as any).programConfig.fetchNullable(programConfigPDA);
+          programConfigAccount = await (
+            program.account as any
+          ).programConfig.fetchNullable(programConfigPDA);
           exists = !!programConfigAccount;
           console.log("ProgramConfig trouvé:", exists ? "Oui" : "Non");
         } else {
-          console.log("Le compte programConfig n'existe pas dans program.account");
+          console.log(
+            "Le compte programConfig n'existe pas dans program.account"
+          );
         }
       }
     } catch (fetchError) {
-      console.error("Erreur lors de la récupération du compte ProgramConfig:", fetchError);
+      console.error(
+        "Erreur lors de la récupération du compte ProgramConfig:",
+        fetchError
+      );
     }
-    
+
     // Vérifier si le compte existe sur la blockchain
     const accountInfo = await connection.getAccountInfo(programConfigPDA);
     exists = exists || !!accountInfo;
-    console.log("Compte ProgramConfig sur la blockchain:", accountInfo ? "Existe" : "N'existe pas");
-    
+    console.log(
+      "Compte ProgramConfig sur la blockchain:",
+      accountInfo ? "Existe" : "N'existe pas"
+    );
+
     if (programConfigAccount) {
       // Retourner les informations du ProgramConfig
-      return { 
-        success: true, 
+      return {
+        success: true,
         message: "Informations du ProgramConfig récupérées avec succès.",
         programConfig: {
           address: programConfigPDA.toString(),
           adminAuthority: programConfigAccount.adminAuthority.toString(),
           programId: program.programId.toString(),
-          exists: true
-        }
+          exists: true,
+        },
       };
     } else {
       // Le compte n'existe pas ou ne peut pas être récupéré
       return {
         success: true,
-        message: "Le ProgramConfig n'est pas initialisé ou n'est pas accessible.",
+        message:
+          "Le ProgramConfig n'est pas initialisé ou n'est pas accessible.",
         programConfig: {
           address: programConfigPDA.toString(),
           adminAuthority: adminKeypair.publicKey.toString(), // Utilisation de la clé admin actuelle
           programId: program.programId.toString(),
-          exists: exists
-        }
+          exists: exists,
+        },
       };
     }
   } catch (error: unknown) {
-    console.error("Erreur lors de la récupération des informations du ProgramConfig:", error);
+    console.error(
+      "Erreur lors de la récupération des informations du ProgramConfig:",
+      error
+    );
     const errorMessage = error instanceof Error ? error.message : String(error);
-    return { 
-      success: false, 
-      message: `Erreur lors de la récupération des informations: ${errorMessage}` 
+    return {
+      success: false,
+      message: `Erreur lors de la récupération des informations: ${errorMessage}`,
     };
   }
-} 
+}

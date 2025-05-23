@@ -96,10 +96,6 @@ export default function ProfilePage() {
     [sortBy, sortOrder]
   );
 
-  const formatSolAmount = (lamports: number) => {
-    return (lamports / LAMPORTS_PER_SOL).toFixed(2);
-  };
-
   const handleCopyAddress = async () => {
     if (!userAddress) return;
     try {
@@ -143,7 +139,7 @@ export default function ProfilePage() {
     const start = (currentPage - 1) * itemsPerPage;
     const end = start + itemsPerPage;
     return sortProposals(proposals).slice(start, end);
-  }, [proposals, sortBy, sortOrder]);
+  }, [proposals, currentPage, sortProposals]);
 
   const totalPages = Math.ceil(sortProposals(proposals).length / itemsPerPage);
 

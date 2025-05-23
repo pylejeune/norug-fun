@@ -14,7 +14,8 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 // Configuration simple
-export const RPC_ENDPOINT = process.env.SOLANA_RPC_ENDPOINT || "https://api.devnet.solana.com";
+export const RPC_ENDPOINT =
+  process.env.SOLANA_RPC_ENDPOINT || "https://api.devnet.solana.com";
 
 // Note: La structure de l'IDL peut différer
 export const idlAddress =
@@ -34,7 +35,8 @@ export const CRON_PROGRAM_ID = new PublicKey(idlAddress);
 
 // Récupération des seeds admin depuis les variables d'environnement
 export const ADMIN_SEED_BASE64 = process.env.ADMIN_SEED_BASE64;
-export const ADMIN_SEED_BASE64_PROGRAMCONFIG = process.env.ADMIN_SEED_BASE64_PROGRAMCONFIG;
+export const ADMIN_SEED_BASE64_PROGRAMCONFIG =
+  process.env.ADMIN_SEED_BASE64_PROGRAMCONFIG;
 
 // Définir l'interface pour le wallet Anchor
 export interface AnchorWallet {
@@ -47,17 +49,19 @@ export interface AnchorWallet {
  * Vérifie si le token d'authentification fourni dans la requête est valide
  */
 export function verifyAuthToken(request: NextRequest): boolean {
-  const authHeader = request.headers.get('authorization');
+  const authHeader = request.headers.get("authorization");
   if (!authHeader) {
-    console.error('❌ En-tête Authorization manquant');
+    console.error("❌ En-tête Authorization manquant");
     return false;
   }
 
-  const token = authHeader.replace('Bearer ', '');
+  const token = authHeader.replace("Bearer ", "");
   const expectedToken = process.env.API_SECRET_KEY;
 
   if (!expectedToken) {
-    console.error('❌ API_SECRET_KEY non défini dans les variables d\'environnement');
+    console.error(
+      "❌ API_SECRET_KEY non défini dans les variables d'environnement"
+    );
     return false;
   }
 
@@ -69,24 +73,39 @@ export function verifyAuthToken(request: NextRequest): boolean {
  */
 export function getAdminKeypair(): Keypair {
   if (!ADMIN_SEED_BASE64) {
-    throw new Error("ADMIN_SEED_BASE64 n'est pas défini dans les variables d'environnement ou est vide");
+    throw new Error(
+      "ADMIN_SEED_BASE64 n'est pas défini dans les variables d'environnement ou est vide"
+    );
   }
-  
+
   try {
-    const seedBuffer = Buffer.from(ADMIN_SEED_BASE64, 'base64');
+    const seedBuffer = Buffer.from(ADMIN_SEED_BASE64, "base64");
     if (seedBuffer.length === 32) {
-        console.log("✅ Utilisation de Keypair.fromSeed() car seedBuffer fait 32 bytes.");
-        return Keypair.fromSeed(seedBuffer);
+      console.log(
+        "✅ Utilisation de Keypair.fromSeed() car seedBuffer fait 32 bytes."
+      );
+      return Keypair.fromSeed(seedBuffer);
     } else if (seedBuffer.length === 64) {
-        console.log("✅ Utilisation de Keypair.fromSecretKey() car seedBuffer fait 64 bytes.");
-        return Keypair.fromSecretKey(seedBuffer);
+      console.log(
+        "✅ Utilisation de Keypair.fromSecretKey() car seedBuffer fait 64 bytes."
+      );
+      return Keypair.fromSecretKey(seedBuffer);
     } else {
-        console.error(`❌ Taille de seedBuffer inattendue: ${seedBuffer.length} bytes. Devrait être 32 ou 64.`);
-        throw new Error(`Taille de seedBuffer après décodage Base64 inattendue: ${seedBuffer.length}`);
+      console.error(
+        `❌ Taille de seedBuffer inattendue: ${seedBuffer.length} bytes. Devrait être 32 ou 64.`
+      );
+      throw new Error(
+        `Taille de seedBuffer après décodage Base64 inattendue: ${seedBuffer.length}`
+      );
     }
   } catch (error) {
-    console.error("❌ Erreur lors de la génération du keypair admin (détail):", error instanceof Error ? error.message : String(error));
-    throw new Error(`Impossible de générer le keypair admin: ${error instanceof Error ? error.message : String(error)}`);
+    console.error(
+      "❌ Erreur lors de la génération du keypair admin (détail):",
+      error instanceof Error ? error.message : String(error)
+    );
+    throw new Error(
+      `Impossible de générer le keypair admin: ${error instanceof Error ? error.message : String(error)}`
+    );
   }
 }
 
@@ -95,24 +114,39 @@ export function getAdminKeypair(): Keypair {
  */
 export function getAdminKeypairProgramConfig(): Keypair {
   if (!ADMIN_SEED_BASE64_PROGRAMCONFIG) {
-    throw new Error("ADMIN_SEED_BASE64_PROGRAMCONFIG n'est pas défini dans les variables d'environnement ou est vide");
+    throw new Error(
+      "ADMIN_SEED_BASE64_PROGRAMCONFIG n'est pas défini dans les variables d'environnement ou est vide"
+    );
   }
-  
+
   try {
-    const seedBuffer = Buffer.from(ADMIN_SEED_BASE64_PROGRAMCONFIG, 'base64');
+    const seedBuffer = Buffer.from(ADMIN_SEED_BASE64_PROGRAMCONFIG, "base64");
     if (seedBuffer.length === 32) {
-        console.log("✅ Utilisation de Keypair.fromSeed() car seedBuffer fait 32 bytes.");
-        return Keypair.fromSeed(seedBuffer);
+      console.log(
+        "✅ Utilisation de Keypair.fromSeed() car seedBuffer fait 32 bytes."
+      );
+      return Keypair.fromSeed(seedBuffer);
     } else if (seedBuffer.length === 64) {
-        console.log("✅ Utilisation de Keypair.fromSecretKey() car seedBuffer fait 64 bytes.");
-        return Keypair.fromSecretKey(seedBuffer);
+      console.log(
+        "✅ Utilisation de Keypair.fromSecretKey() car seedBuffer fait 64 bytes."
+      );
+      return Keypair.fromSecretKey(seedBuffer);
     } else {
-        console.error(`❌ Taille de seedBuffer inattendue: ${seedBuffer.length} bytes. Devrait être 32 ou 64.`);
-        throw new Error(`Taille de seedBuffer après décodage Base64 inattendue: ${seedBuffer.length}`);
+      console.error(
+        `❌ Taille de seedBuffer inattendue: ${seedBuffer.length} bytes. Devrait être 32 ou 64.`
+      );
+      throw new Error(
+        `Taille de seedBuffer après décodage Base64 inattendue: ${seedBuffer.length}`
+      );
     }
   } catch (error) {
-    console.error("❌ Erreur lors de la génération du keypair admin (détail):", error instanceof Error ? error.message : String(error));
-    throw new Error(`Impossible de générer le keypair admin: ${error instanceof Error ? error.message : String(error)}`);
+    console.error(
+      "❌ Erreur lors de la génération du keypair admin (détail):",
+      error instanceof Error ? error.message : String(error)
+    );
+    throw new Error(
+      `Impossible de générer le keypair admin: ${error instanceof Error ? error.message : String(error)}`
+    );
   }
 }
 
@@ -120,7 +154,11 @@ export function getAdminKeypairProgramConfig(): Keypair {
  * Initialise et retourne une instance du programme Anchor
  * @param idl L'IDL du programme à initialiser (shared ou cron)
  */
-export function getProgram(connection: Connection, idl: any, wallet?: AnchorWallet | null) {
+export function getProgram(
+  connection: Connection,
+  idl: any,
+  wallet?: AnchorWallet | null
+) {
   try {
     // Création du provider avec le wallet et la connexion
     const provider = new AnchorProvider(
@@ -130,15 +168,18 @@ export function getProgram(connection: Connection, idl: any, wallet?: AnchorWall
     );
 
     if (wallet) {
-      console.log("⚙️ Création du provider avec wallet:", wallet.publicKey.toString());
+      console.log(
+        "⚙️ Création du provider avec wallet:",
+        wallet.publicKey.toString()
+      );
     } else {
       console.log("⚙️ Création du provider en mode lecture seule");
     }
-    
+
     // Création du programme
     console.log("⚙️ Création du programme avec IDL complet...");
     const program = new Program(idl, provider);
-    
+
     return program;
   } catch (error) {
     console.error("❌ Error creating program:", error);
@@ -191,7 +232,7 @@ export function createAnchorWallet(adminKeypair: Keypair): AnchorWallet {
       return tx;
     },
     signAllTransactions: async <T>(txs: T[]): Promise<T[]> => {
-      return txs.map(tx => {
+      return txs.map((tx) => {
         if (tx instanceof Transaction) {
           tx.partialSign(adminKeypair);
         }
@@ -204,47 +245,88 @@ export function createAnchorWallet(adminKeypair: Keypair): AnchorWallet {
 /**
  * Génère une réponse HTTP formatée standard pour les erreurs
  */
-export function createErrorResponse(requestId: string, error: any, status = 500) {
+export function createErrorResponse(
+  requestId: string,
+  error: any,
+  status = 500
+) {
   const errorType = error instanceof Error ? error.name : typeof error;
   const errorMsg = error instanceof Error ? error.message : String(error);
   const errorStack = error instanceof Error ? error.stack : undefined;
-  
+
   console.error(`[${requestId}] ❌ Erreur:`, errorMsg, errorStack);
-  
-  return new Response(JSON.stringify({
-    success: false,
-    error: errorMsg,
-    errorType,
-    stack: errorStack,
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV,
-    requestId,
-  }), {
-    status,
-    headers: { 'Content-Type': 'application/json' },
-  });
+
+  return new Response(
+    JSON.stringify({
+      success: false,
+      error: errorMsg,
+      errorType,
+      stack: errorStack,
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV,
+      requestId,
+    }),
+    {
+      status,
+      headers: { "Content-Type": "application/json" },
+    }
+  );
 }
 
 /**
  * Génère une réponse HTTP formatée standard pour un succès
  */
 export function createSuccessResponse(requestId: string, data: any) {
-  return new Response(JSON.stringify({
-    ...data,
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV,
-    requestId,
-  }), {
-    status: 200,
-    headers: { 'Content-Type': 'application/json' },
-  });
+  return new Response(
+    JSON.stringify({
+      ...data,
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV,
+      requestId,
+    }),
+    {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    }
+  );
 }
 
 // Fonction pour générer un nom de token aléatoire
 export function generateRandomTokenName(): string {
-  const adjectives = ["Innovative", "Dynamic", "Creative", "Unique", "Visionary", "Cosmic", "Digital", "Quantum", "Solar", "Nova", "Stellar", "Lunar", "Atomic", "Cyber"];
-  const nouns = ["Token", "Coin", "Asset", "Fund", "Project", "Network", "Chain", "Protocol", "Finance", "Exchange", "Swap", "Verse", "DAO", "DeFi"];
-  const randomAdjective = adjectives[Math.floor(Math.random() * adjectives.length)];
+  const adjectives = [
+    "Innovative",
+    "Dynamic",
+    "Creative",
+    "Unique",
+    "Visionary",
+    "Cosmic",
+    "Digital",
+    "Quantum",
+    "Solar",
+    "Nova",
+    "Stellar",
+    "Lunar",
+    "Atomic",
+    "Cyber",
+  ];
+  const nouns = [
+    "Token",
+    "Coin",
+    "Asset",
+    "Fund",
+    "Project",
+    "Network",
+    "Chain",
+    "Protocol",
+    "Finance",
+    "Exchange",
+    "Swap",
+    "Verse",
+    "DAO",
+    "DeFi",
+  ];
+  const randomAdjective =
+    adjectives[Math.floor(Math.random() * adjectives.length)];
   const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];
   return `${randomAdjective} ${randomNoun} ${randomUUID().slice(0, 8)}`; // Ajoute un UUID pour l'unicité
 }
@@ -252,31 +334,52 @@ export function generateRandomTokenName(): string {
 // Fonction pour générer un symbole de token aléatoire
 export function generateRandomTokenSymbol(): string {
   // Liste de préfixes couramment utilisés dans les crypto-monnaies
-  const prefixes = ["SOL", "NRG", "FUN", "META", "DAO", "NFT", "DFI", "XCH", "VRS", "WEB3", "DEGEN", "MEME", "APE", "MOON"];
-  
+  const prefixes = [
+    "SOL",
+    "NRG",
+    "FUN",
+    "META",
+    "DAO",
+    "NFT",
+    "DFI",
+    "XCH",
+    "VRS",
+    "WEB3",
+    "DEGEN",
+    "MEME",
+    "APE",
+    "MOON",
+  ];
+
   // Génération d'un préfixe aléatoire
   const randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
-  
+
   // Types de structures de symboles
   const symbolStructures = [
     // Structure 1: Préfixe + Nombre (ex: SOL123)
     () => `${randomPrefix}${Math.floor(Math.random() * 900) + 100}`,
-    
+
     // Structure 2: Préfixe uniquement (ex: SOL)
     () => randomPrefix,
-    
+
     // Structure 3: Préfixe + Lettre (ex: SOLX)
-    () => `${randomPrefix}${String.fromCharCode(65 + Math.floor(Math.random() * 26))}`,
-    
+    () =>
+      `${randomPrefix}${String.fromCharCode(65 + Math.floor(Math.random() * 26))}`,
+
     // Structure 4: Sous-chaîne du préfixe + Nombre (ex: SO99)
-    () => `${randomPrefix.substring(0, 2)}${Math.floor(Math.random() * 90) + 10}`,
-    
+    () =>
+      `${randomPrefix.substring(0, 2)}${Math.floor(Math.random() * 90) + 10}`,
+
     // Structure 5: Voyelles substituées par des chiffres (ex: S0L)
-    () => randomPrefix.replace(/[AEIOU]/g, () => String(Math.floor(Math.random() * 10)))
+    () =>
+      randomPrefix.replace(/[AEIOU]/g, () =>
+        String(Math.floor(Math.random() * 10))
+      ),
   ];
-  
+
   // Choisir aléatoirement une structure de symbole
-  const randomStructure = symbolStructures[Math.floor(Math.random() * symbolStructures.length)];
+  const randomStructure =
+    symbolStructures[Math.floor(Math.random() * symbolStructures.length)];
   return randomStructure();
 }
 
@@ -287,18 +390,38 @@ export function generateRandomImageUrl(): string {
     () => {
       // Liste d'IDs Picsum qui correspondent bien à des images adaptées pour des tokens
       const cryptoImageIds = [
-        '237', '433', '593', '684', '829',
-        '1025', '1074', '1084', '119', '146', 
-        '176', '177', '216', '219', '225',
-        '338', '370', '447', '450', '582',
-        '599', '627', '660'
+        "237",
+        "433",
+        "593",
+        "684",
+        "829",
+        "1025",
+        "1074",
+        "1084",
+        "119",
+        "146",
+        "176",
+        "177",
+        "216",
+        "219",
+        "225",
+        "338",
+        "370",
+        "447",
+        "450",
+        "582",
+        "599",
+        "627",
+        "660",
       ];
-      const selectedId = cryptoImageIds[Math.floor(Math.random() * cryptoImageIds.length)];
+      const selectedId =
+        cryptoImageIds[Math.floor(Math.random() * cryptoImageIds.length)];
       return `https://picsum.photos/id/${selectedId}/800/800`;
     },
   ];
-  
+
   // Sélection aléatoire d'un service d'images
-  const randomService = imageServices[Math.floor(Math.random() * imageServices.length)];
+  const randomService =
+    imageServices[Math.floor(Math.random() * imageServices.length)];
   return randomService();
 }

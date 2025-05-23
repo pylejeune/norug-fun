@@ -3,7 +3,7 @@ import {
   createAnchorWallet,
   getAdminKeypair,
   getProgram,
-  idl as SHARED_IDL
+  idl as SHARED_IDL,
 } from "@/lib/utils";
 import * as anchor from "@coral-xyz/anchor";
 import { PublicKey, Connection } from "@solana/web3.js";
@@ -170,7 +170,7 @@ export async function createProposal(params: ProposalCreateParams) {
       status: Object.keys(proposalAccount.status)[0],
       creationTimestamp: proposalAccount.creationTimestamp.toString(),
       lockupPeriod: proposalAccount.lockupPeriod.toString(),
-      imageUrl: proposalAccount.imageUrl || null
-    }
+      imageUrl: proposalAccount.imageUrl || null,
+    },
   };
 }
