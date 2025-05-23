@@ -23,6 +23,55 @@ describe("Tests de la mise à jour du statut des propositions", () => {
   const tokenName = "testUpdateToken";
   const tokenSymbol = "TUT";
 
+  before(async () => {
+    // Utiliser un Keypair déterministe pour l'admin authority pour la cohérence des tests
+    adminAuthority = Keypair.fromSeed(ADMIN_SEED);
+    console.log(`Admin authority (deterministic): ${adminAuthority.publicKey.toBase58()}`);
+
+    // Financer le compte adminAuthority si nécessaire
+    const adminInfo = await provider.connection.getAccountInfo(adminAuthority.publicKey);
+    if (!adminInfo || adminInfo.lamports < 2 * LAMPORTS_PER_SOL) {
+      const sig = await provider.connection.requestAirdrop(adminAuthority.publicKey, 2 * LAMPORTS_PER_SOL);
+      await provider.connection.confirmTransaction(sig, "confirmed");
+      console.log(`Admin authority ${adminAuthority.publicKey.toBase58()} funded.`);
+    } else {
+      console.log(`Admin authority ${adminAuthority.publicKey.toBase58()} already funded.`);
+    }
+    
+    [programConfigPda] = PublicKey.findProgramAddressSync(
+      [Buffer.from("config")],
+      program.programId
+    );
+    console.log(`ProgramConfig PDA: ${programConfigPda.toBase58()}`);
+
+    try {
+      await program.methods
+        .initializeProgramConfig(adminAuthority.publicKey)
+        .accounts({
+          programConfig: programConfigPda,
+          authority: adminAuthority.publicKey, // L'adminAuthority paie et devient l'admin
+          systemProgram: SystemProgram.programId,
+        } as any)
+        .signers([adminAuthority]) // L'adminAuthority doit signer cette initialisation
+        .rpc();
+      console.log("ProgramConfig initialized.");
+    } catch (error) {
+      const errorString = (error as Error).toString();
+      if (errorString.includes("already in use") || errorString.includes("custom program error: 0x0")) {
+        console.log("ProgramConfig already initialized.");
+      } else {
+        console.error("Unexpected error during ProgramConfig initialization:", error);
+        throw error;
+      }
+    }
+    // Vérification que l'admin dans ProgramConfig est bien celui attendu
+    const configAccount = await program.account.programConfig.fetch(programConfigPda);
+    if (!configAccount.adminAuthority.equals(adminAuthority.publicKey)) {
+        throw new Error(`ProgramConfig admin mismatch: Expected ${adminAuthority.publicKey.toBase58()}, found ${configAccount.adminAuthority.toBase58()}`);
+    }
+    console.log(`Confirmed admin authority in ProgramConfig: ${configAccount.adminAuthority.toBase58()}`);
+  });
+
   // --- Helper Function --- 
   async function setupClosedEpochWithProposal(
     epochId: anchor.BN, 
@@ -67,10 +116,12 @@ describe("Tests de la mise à jour du statut des propositions", () => {
             await program.methods
                 .startEpoch(epochId, startTime, endTime)
                 .accounts({ 
-                    authority: provider.wallet.publicKey, // Provider wallet pays
+                    authority: adminAuthority.publicKey, // AdminAuthority doit démarrer l'époque
+                    programConfig: programConfigPda,     // Passer programConfigPda
                     epochManagement: currentEpochPda, 
                     systemProgram: anchor.web3.SystemProgram.programId 
-                })
+                } as any)
+                .signers([adminAuthority]) // AdminAuthority signe
                 .rpc();
             console.log(`   Epoch ${epochId} created successfully.`);
         } catch (createError) {
@@ -116,7 +167,7 @@ describe("Tests de la mise à jour du statut des propositions", () => {
                     tokenProposal: currentProposalPda, 
                     epoch: currentEpochPda, 
                     systemProgram: anchor.web3.SystemProgram.programId,
-                    programConfig: programConfigPda, // Ensure ProgramConfig is passed
+                    programConfig: programConfigPda, // programConfigPda est bien passé ici
                 })
                 .signers([creatorKp]) // Creator signs
                 .rpc();
@@ -154,9 +205,11 @@ describe("Tests de la mise à jour du statut des propositions", () => {
             await program.methods.endEpoch(epochId)
                 .accounts({ 
                     epochManagement: currentEpochPda, 
-                    authority: provider.wallet.publicKey, // Provider wallet pays for close
+                    authority: adminAuthority.publicKey, // AdminAuthority doit fermer l'époque
+                    programConfig: programConfigPda,     // Passer programConfigPda
                     systemProgram: anchor.web3.SystemProgram.programId 
-                })
+                } as any)
+                .signers([adminAuthority]) // AdminAuthority signe
                 .rpc();
             console.log(`   Epoch ${epochId} closed successfully.`);
         } catch (error) {
@@ -215,15 +268,15 @@ async function setupActiveEpoch(epochId: anchor.BN): Promise<{ currentEpochPda: 
     // Vérifier si elle est active, sinon la recréer (ou échouer si on préfère)
     if (JSON.stringify(epochInfo.status) !== JSON.stringify({ active: {} })) {
        console.warn(`   [Helper setupActiveEpoch] Epoch ${epochId} exists but is not Active. Attempting to restart (might fail if dependencies exist).`);
-       // Note: Restarting might not be safe. A better approach might be to always use a unique ID.
-       // For now, let's proceed with trying to start it.
        await program.methods
          .startEpoch(epochId, startTime, endTime)
          .accounts({
-           authority: provider.wallet.publicKey, // Le wallet du provider paie
+           authority: adminAuthority.publicKey, // AdminAuthority doit démarrer l'époque
+           programConfig: programConfigPda,     // Passer programConfigPda
            epochManagement: currentEpochPda,
            systemProgram: anchor.web3.SystemProgram.programId,
-         })
+         } as any)
+         .signers([adminAuthority]) // AdminAuthority signe
          .rpc();
         console.log(`   [Helper setupActiveEpoch] Epoch ${epochId} re-started.`);
     } else {
@@ -235,10 +288,12 @@ async function setupActiveEpoch(epochId: anchor.BN): Promise<{ currentEpochPda: 
       await program.methods
         .startEpoch(epochId, startTime, endTime)
         .accounts({
-          authority: provider.wallet.publicKey, // Le wallet du provider paie
+          authority: adminAuthority.publicKey, // AdminAuthority doit démarrer l'époque
+          programConfig: programConfigPda,     // Passer programConfigPda
           epochManagement: currentEpochPda,
           systemProgram: anchor.web3.SystemProgram.programId,
-        })
+        } as any)
+        .signers([adminAuthority]) // AdminAuthority signe
         .rpc();
       console.log(`   [Helper setupActiveEpoch] Active epoch ${epochId} created successfully.`);
        // Fetch pour confirmer
@@ -249,78 +304,6 @@ async function setupActiveEpoch(epochId: anchor.BN): Promise<{ currentEpochPda: 
   
   return { currentEpochPda };
 }
-
-  before(async () => {
-    // Générer l'autorité admin de manière déterministe
-    adminAuthority = Keypair.fromSeed(ADMIN_SEED); 
-    console.log(`Admin authority (deterministic): ${adminAuthority.publicKey}`);
-
-    // Financer cette autorité si nécessaire (une seule fois suffit)
-    const balance = await provider.connection.getBalance(adminAuthority.publicKey);
-    if (balance < 0.5 * LAMPORTS_PER_SOL) { // Financer si moins de 0.5 SOL
-        await provider.connection.confirmTransaction(
-            await provider.connection.requestAirdrop(adminAuthority.publicKey, 1 * LAMPORTS_PER_SOL),
-            "confirmed"
-        );
-        console.log(`Admin authority ${adminAuthority.publicKey} funded.`);
-    } else {
-        console.log(`Admin authority ${adminAuthority.publicKey} already funded.`);
-    }
-
-    // Financer le wallet du provider si besoin (important car c'est lui qui paie pour startEpoch/endEpoch)
-    const providerBalance = await provider.connection.getBalance(provider.wallet.publicKey);
-     if (providerBalance < 0.5 * LAMPORTS_PER_SOL) { // Financer si moins de 0.5 SOL
-        console.log(`Funding provider wallet ${provider.wallet.publicKey}...`);
-        await provider.connection.confirmTransaction(
-            await provider.connection.requestAirdrop(provider.wallet.publicKey, 1 * LAMPORTS_PER_SOL),
-            "confirmed"
-        );
-        console.log(`Provider wallet ${provider.wallet.publicKey} funded.`);
-    } else {
-        console.log(`Provider wallet ${provider.wallet.publicKey} already funded.`);
-    }
-
-
-    // Trouver l'adresse du PDA pour ProgramConfig
-    [programConfigPda] = PublicKey.findProgramAddressSync(
-      [Buffer.from("config")],
-      program.programId
-    );
-    console.log(`ProgramConfig PDA: ${programConfigPda}`);
-
-    // --- Initialize ProgramConfig (improved check) ---
-     try {
-        const config = await program.account.programConfig.fetch(programConfigPda);
-        console.log("ProgramConfig already initialized.");
-         // Ensure admin matches even if already initialized
-         if (!config.adminAuthority.equals(adminAuthority.publicKey)) {
-             console.error(`*** MISMATCH: ProgramConfig exists but has wrong admin: ${config.adminAuthority}, expected ${adminAuthority.publicKey}`);
-             throw new Error("ProgramConfig admin mismatch");
-         }
-     } catch (e) {
-        // If fetch failed (likely doesn't exist), initialize it
-        console.log("Initializing ProgramConfig...");
-        try {
-             await program.methods
-                .initializeProgramConfig(adminAuthority.publicKey)
-                .accounts({ 
-                    programConfig: programConfigPda, 
-                    authority: provider.wallet.publicKey, // provider wallet initializes
-                    systemProgram: SystemProgram.programId 
-                })
-                .signers([]) // No extra signers needed if provider wallet is implicit signer
-                .rpc();
-            console.log("ProgramConfig initialized successfully.");
-        } catch (initError) {
-            console.error("*** FAILED to initialize ProgramConfig:", initError);
-             throw new Error("ProgramConfig initialization failed");
-        }
-     }
-     // Final check of admin authority in config
-     const config = await program.account.programConfig.fetch(programConfigPda);
-     expect(config.adminAuthority.equals(adminAuthority.publicKey)).to.be.true;
-     console.log(`Confirmed admin authority in ProgramConfig: ${config.adminAuthority}`);
-  });
 
   it("Initialise la configuration du programme (ProgramConfig)", async () => {
     // On vérifie juste que le compte existe et a la bonne autorité
@@ -431,12 +414,11 @@ async function setupActiveEpoch(epochId: anchor.BN): Promise<{ currentEpochPda: 
       // Si l'appel réussit, le test échoue
       expect.fail("L'appel aurait dû échouer car l'autorité n'est pas valide");
     } catch (error) {
-      // Vérifier que l'erreur est bien celle attendue (InvalidAuthority)
+      // Vérifier que l'erreur est bien celle attendue
       console.log("Erreur attendue interceptée:", error.message);
-      // Vérifier le code d'erreur Anchor (devrait être défini dans error.rs)
-      expect(error.error.errorCode.code).to.equal("InvalidAuthority"); 
-      expect(error.error.errorCode.number).to.equal(6009); // Vérifier le numéro d'erreur si défini
-      console.log("Vérifié que l'erreur est EpochNotEnded (6009) car l'epoch n'est pas fermée");
+      expect(error.error.errorCode.code).to.equal("Unauthorized"); 
+      expect(error.error.errorCode.number).to.equal(6023); // Code pour Unauthorized
+      console.log("Vérifié que l'erreur est Unauthorized (6023).");
 
       // Vérifier que le statut de la proposition n'a pas changé
       const proposalAfter = await program.account.tokenProposal.fetch(currentProposalPda);

@@ -1,14 +1,19 @@
 use anchor_lang::prelude::*;
-use crate::state::*;
+use crate::state::{EpochManagement, EpochStatus, ProgramConfig};
 use crate::error::ErrorCode;
 
 #[derive(Accounts)]
 #[instruction(epoch_id: u64)] // If epoch_id is needed for PDA seeds
 pub struct StartEpoch<'info> {
-
     #[account(mut)]
     pub authority: Signer<'info>,
-    // Initialize a new epoch account using PDA
+
+    #[account(
+        seeds = [b"config"],
+        bump
+    )]
+    pub program_config: Account<'info, ProgramConfig>,
+
     #[account(
         init,
         payer = authority,
@@ -34,7 +39,11 @@ pub fn handler(
     start_time: i64,
     end_time: i64,
 ) -> Result<()> {
-    // Verify that start_time is less than end_time
+    require!(
+        ctx.accounts.authority.key() == ctx.accounts.program_config.admin_authority,
+        ErrorCode::Unauthorized
+    );
+
     require!(
         start_time < end_time,
         ErrorCode::InvalidEpochTimeRange

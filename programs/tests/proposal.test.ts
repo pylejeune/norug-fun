@@ -5,7 +5,7 @@ console.log("=====================================\n");
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { Programs } from "../target/types/programs";
-import { PublicKey } from "@solana/web3.js";
+import { PublicKey, Keypair, SystemProgram, LAMPORTS_PER_SOL } from "@solana/web3.js";
 
 // Importer et configurer chai AVANT d'importer expect
 import chai from "chai";
@@ -15,12 +15,17 @@ import { expect } from "chai";
 
 import { generateRandomId, setupTestEnvironment } from "./utils.test";
 
+// Seed fixe pour l'autorité admin des tests
+const ADMIN_SEED = Uint8Array.from([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32]);
+
 describe("Tests des propositions de tokens", () => {
   const { provider, program } = setupTestEnvironment();
   let proposalPda: PublicKey;
   let epochPda: PublicKey;
   let treasuryPda: PublicKey;
   const TREASURY_SEED = Buffer.from("treasury");
+  let adminAuthority: Keypair;
+  let programConfigPda: PublicKey;
 
   // Constantes pour les tests
   const tokenName = "noRugToken";
@@ -41,6 +46,40 @@ describe("Tests des propositions de tokens", () => {
   const TREASURY_DISTRIBUTION_INVESTMENTS_PERCENT = 44;
   const TREASURY_DISTRIBUTION_CRANK_PERCENT = 1;
 
+  before(async () => {
+    adminAuthority = Keypair.fromSeed(ADMIN_SEED);
+    const adminInfo = await provider.connection.getAccountInfo(adminAuthority.publicKey);
+    if (!adminInfo || adminInfo.lamports < 2 * LAMPORTS_PER_SOL) {
+      const sig = await provider.connection.requestAirdrop(adminAuthority.publicKey, 2 * LAMPORTS_PER_SOL);
+      await provider.connection.confirmTransaction(sig, "confirmed");
+    }
+    
+    [programConfigPda] = PublicKey.findProgramAddressSync(
+      [Buffer.from("config")],
+      program.programId
+    );
+
+    try {
+      await program.methods
+        .initializeProgramConfig(adminAuthority.publicKey)
+        .accounts({
+          programConfig: programConfigPda,
+          authority: adminAuthority.publicKey,
+          systemProgram: SystemProgram.programId,
+        } as any)
+        .signers([adminAuthority])
+        .rpc();
+      console.log("ProgramConfig initialized in proposal.test.ts.");
+    } catch (error) {
+      const errorString = (error as Error).toString();
+      if (errorString.includes("already in use") || errorString.includes("custom program error: 0x0")) {
+        console.log("ProgramConfig already initialized in proposal.test.ts.");
+      } else {
+        throw error;
+      }
+    }
+  });
+
   it("Démarre une nouvelle époque", async () => {
     const epochId = epochIdGeneral;
     const startTime = new anchor.BN(Math.floor(Date.now() / 1000));
@@ -54,10 +93,12 @@ describe("Tests des propositions de tokens", () => {
     const tx = await program.methods
       .startEpoch(epochId, startTime, endTime)
       .accounts({
-        authority: provider.wallet.publicKey,
+        authority: adminAuthority.publicKey,
+        programConfig: programConfigPda,
         epochManagement: epochPda,
         systemProgram: anchor.web3.SystemProgram.programId,
-      })
+      } as any)
+      .signers([adminAuthority])
       .rpc();
 
     console.log("Transaction signature", tx);
@@ -181,8 +222,9 @@ describe("Tests des propositions de tokens", () => {
         tokenProposal: proposalPda,
         epoch: epochPda,
         treasury: treasuryPda, 
+        programConfig: programConfigPda,
         systemProgram: anchor.web3.SystemProgram.programId,
-      })
+      } as any)
       .rpc();
 
     console.log("Transaction signature", tx);

@@ -119,7 +119,15 @@ describe("Tests de la fonctionnalité reclaim_support", () => {
     const startTime = new BN(Math.floor(Date.now() / 1000) - 60); // Passé
     const endTime = new BN(startTime.toNumber() + 30); // Déjà terminée ou très proche
     [epochPda] = PublicKey.findProgramAddressSync([Buffer.from("epoch"), epochId.toArrayLike(Buffer, "le", 8)], program.programId);
-    await program.methods.startEpoch(epochId, startTime, endTime).accounts({ authority: provider.wallet.publicKey, epochManagement: epochPda, systemProgram: SystemProgram.programId }).rpc();
+    await program.methods.startEpoch(epochId, startTime, endTime)
+      .accounts({ 
+        authority: adminAuthority.publicKey,
+        programConfig: programConfigPda,
+        epochManagement: epochPda, 
+        systemProgram: SystemProgram.programId 
+      })
+      .signers([adminAuthority])
+      .rpc();
     console.log(`   Epoch ${epochId.toString()} créée (Success Case).`);
     // 2. Créer une proposition
     [proposalPda] = PublicKey.findProgramAddressSync([Buffer.from("proposal"), proposalCreatorKp.publicKey.toBuffer(), epochId.toArrayLike(Buffer, "le", 8), Buffer.from(tokenName)], program.programId);
@@ -152,7 +160,15 @@ describe("Tests de la fonctionnalité reclaim_support", () => {
     const epochInfo = await program.account.epochManagement.fetch(epochPda);
     const waitTimeMs = Math.max(0, (epochInfo.endTime.toNumber() - Math.floor(Date.now() / 1000) + 2) * 1000); // +2s marge
     if (waitTimeMs > 0) { console.log(`   Attente de ${waitTimeMs} ms pour fermeture époque...`); await new Promise(resolve => setTimeout(resolve, waitTimeMs)); }
-    await program.methods.endEpoch(epochId).accounts({ authority: provider.wallet.publicKey, epochManagement: epochPda, systemProgram: SystemProgram.programId }).rpc();
+    await program.methods.endEpoch(epochId)
+      .accounts({ 
+        authority: adminAuthority.publicKey,
+        programConfig: programConfigPda,
+        epochManagement: epochPda, 
+        systemProgram: SystemProgram.programId 
+      })
+      .signers([adminAuthority])
+      .rpc();
     console.log(`   Epoch ${epochId.toString()} fermée (Success Case).`);
     // 5. Mettre à jour statut à Rejected
     console.log(`   Mise à jour de la proposition ${proposalPda.toBase58()} à Rejected par ${adminAuthority.publicKey.toBase58()}...`);
@@ -303,7 +319,15 @@ describe("Tests de la fonctionnalité reclaim_support", () => {
         const startTime = new BN(Math.floor(Date.now() / 1000) - 60); // Passé
         const endTime = new BN(startTime.toNumber() + 5); // Réduire la durée à 5 secondes !!
         [errorTestEpochPda] = PublicKey.findProgramAddressSync([Buffer.from("epoch"), errorTestEpochId.toArrayLike(Buffer, "le", 8)], program.programId);
-        await program.methods.startEpoch(errorTestEpochId, startTime, endTime).accounts({ authority: provider.wallet.publicKey, epochManagement: errorTestEpochPda, systemProgram: SystemProgram.programId }).rpc();
+        await program.methods.startEpoch(errorTestEpochId, startTime, endTime)
+          .accounts({ 
+            authority: adminAuthority.publicKey,
+            programConfig: programConfigPda,
+            epochManagement: errorTestEpochPda, 
+            systemProgram: SystemProgram.programId 
+          })
+          .signers([adminAuthority])
+          .rpc();
         console.log(`   Epoch créée (Error Case): ${errorTestEpochPda.toBase58()} (ID: ${errorTestEpochId})`);
 
         // 2. Proposal (Active)
@@ -333,7 +357,15 @@ describe("Tests de la fonctionnalité reclaim_support", () => {
         const epoch = await program.account.epochManagement.fetch(errorTestEpochPda);
         const waitMs = Math.max(0, (epoch.endTime.toNumber() - Math.floor(Date.now()/1000) + 2)*1000);
         if (waitMs > 0) { console.log(`   Attente fermeture epoch ${waitMs}ms...`); await new Promise(r => setTimeout(r, waitMs)); }
-        await program.methods.endEpoch(errorTestEpochId).accounts({ authority: provider.wallet.publicKey, epochManagement: errorTestEpochPda, systemProgram: SystemProgram.programId }).rpc();
+        await program.methods.endEpoch(errorTestEpochId)
+          .accounts({ 
+            authority: adminAuthority.publicKey,
+            programConfig: programConfigPda,
+            epochManagement: errorTestEpochPda, 
+            systemProgram: SystemProgram.programId 
+          })
+          .signers([adminAuthority])
+          .rpc();
         console.log("   Epoch fermée.");
         await program.methods.markEpochProcessed().accounts({ authority: adminAuthority.publicKey, programConfig: programConfigPda, epochManagement: errorTestEpochPda }).signers([adminAuthority]).rpc();
         console.log("   Epoch marquée Processed.");
@@ -372,7 +404,15 @@ describe("Tests de la fonctionnalité reclaim_support", () => {
       const epoch = await program.account.epochManagement.fetch(errorTestEpochPda);
       const waitMs = Math.max(0, (epoch.endTime.toNumber() - Math.floor(Date.now()/1000) + 2)*1000);
       if (waitMs > 0) { console.log(`   Attente fermeture epoch ${waitMs}ms...`); await new Promise(r => setTimeout(r, waitMs)); }
-      await program.methods.endEpoch(errorTestEpochId).accounts({ authority: provider.wallet.publicKey, epochManagement: errorTestEpochPda, systemProgram: SystemProgram.programId }).rpc();
+      await program.methods.endEpoch(errorTestEpochId)
+        .accounts({ 
+          authority: adminAuthority.publicKey,
+          programConfig: programConfigPda,
+          epochManagement: errorTestEpochPda, 
+          systemProgram: SystemProgram.programId 
+        })
+        .signers([adminAuthority])
+        .rpc();
       console.log("   Epoch fermée.");
       await program.methods.updateProposalStatus({ rejected: {} }).accounts({ authority: adminAuthority.publicKey, programConfig: programConfigPda, epochManagement: errorTestEpochPda, proposal: errorTestProposalPda }).signers([adminAuthority]).rpc();
       console.log("   Proposal marquée Rejected.");
@@ -410,8 +450,16 @@ describe("Tests de la fonctionnalité reclaim_support", () => {
       const epoch = await program.account.epochManagement.fetch(errorTestEpochPda);
       const waitMs = Math.max(0, (epoch.endTime.toNumber() - Math.floor(Date.now()/1000) + 2)*1000);
       if (waitMs > 0) { console.log(`   Attente fermeture epoch ${waitMs}ms...`); await new Promise(r => setTimeout(r, waitMs)); }
-      await program.methods.endEpoch(errorTestEpochId).accounts({ authority: provider.wallet.publicKey, epochManagement: errorTestEpochPda, systemProgram: SystemProgram.programId }).rpc();
-      console.log("   Epoch fermée.");
+      await program.methods.endEpoch(errorTestEpochId)
+        .accounts({ 
+          authority: adminAuthority.publicKey,
+          programConfig: programConfigPda,
+          epochManagement: errorTestEpochPda, 
+          systemProgram: SystemProgram.programId 
+        })
+        .signers([adminAuthority])
+        .rpc();
+       console.log("   Epoch fermée.");
       await program.methods.updateProposalStatus({ rejected: {} }).accounts({ authority: adminAuthority.publicKey, programConfig: programConfigPda, epochManagement: errorTestEpochPda, proposal: errorTestProposalPda }).signers([adminAuthority]).rpc();
        console.log("   Proposal marquée Rejected.");
       await program.methods.markEpochProcessed().accounts({ authority: adminAuthority.publicKey, programConfig: programConfigPda, epochManagement: errorTestEpochPda }).signers([adminAuthority]).rpc();
@@ -456,7 +504,15 @@ describe("Tests de la fonctionnalité reclaim_support", () => {
       const epoch = await program.account.epochManagement.fetch(errorTestEpochPda);
       const waitMs = Math.max(0, (epoch.endTime.toNumber() - Math.floor(Date.now()/1000) + 2)*1000);
       if (waitMs > 0) { console.log(`   Attente fermeture epoch ${waitMs}ms...`); await new Promise(r => setTimeout(r, waitMs)); }
-      await program.methods.endEpoch(errorTestEpochId).accounts({ authority: provider.wallet.publicKey, epochManagement: errorTestEpochPda, systemProgram: SystemProgram.programId }).rpc();
+      await program.methods.endEpoch(errorTestEpochId)
+        .accounts({ 
+          authority: adminAuthority.publicKey,
+          programConfig: programConfigPda,
+          epochManagement: errorTestEpochPda, 
+          systemProgram: SystemProgram.programId 
+        })
+        .signers([adminAuthority])
+        .rpc();
        console.log("   Epoch fermée.");
       await program.methods.updateProposalStatus({ rejected: {} }).accounts({ authority: adminAuthority.publicKey, programConfig: programConfigPda, epochManagement: errorTestEpochPda, proposal: errorTestProposalPda }).signers([adminAuthority]).rpc();
        console.log("   Proposal marquée Rejected.");
@@ -511,7 +567,15 @@ describe("Tests de la fonctionnalité reclaim_support", () => {
        const epoch = await program.account.epochManagement.fetch(errorTestEpochPda);
        const waitMs = Math.max(0, (epoch.endTime.toNumber() - Math.floor(Date.now()/1000) + 2)*1000);
        if (waitMs > 0) { console.log(`   Attente fermeture epoch ${waitMs}ms...`); await new Promise(r => setTimeout(r, waitMs)); }
-       await program.methods.endEpoch(errorTestEpochId).accounts({ authority: provider.wallet.publicKey, epochManagement: errorTestEpochPda, systemProgram: SystemProgram.programId }).rpc();
+       await program.methods.endEpoch(errorTestEpochId)
+        .accounts({ 
+          authority: adminAuthority.publicKey,
+          programConfig: programConfigPda,
+          epochManagement: errorTestEpochPda, 
+          systemProgram: SystemProgram.programId 
+        })
+        .signers([adminAuthority])
+        .rpc();
         console.log("   Epoch fermée.");
        await program.methods.updateProposalStatus({ rejected: {} }).accounts({ authority: adminAuthority.publicKey, programConfig: programConfigPda, epochManagement: errorTestEpochPda, proposal: errorTestProposalPda }).signers([adminAuthority]).rpc();
         console.log("   Proposal marquée Rejected.");
