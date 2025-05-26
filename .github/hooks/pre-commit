@@ -1,0 +1,18 @@
+#!/bin/sh
+
+# Aller dans le dossier front
+cd front
+
+# Vérifier le formatage et le linting des fichiers modifiés
+FILES=$(git diff --cached --name-only --diff-filter=ACMR "*.ts" "*.tsx" "*.js" "*.jsx" "*.json" "*.md" | sed 's| |\\ |g')
+[ -z "$FILES" ] && exit 0
+
+# Formater et linter les fichiers
+echo "🔍 Checking formatting and linting..."
+for FILE in $FILES; do
+  npm run format "$FILE"
+  npm run lint:fix "$FILE"
+done
+
+# Ajouter les fichiers modifiés au commit
+git add $FILES
