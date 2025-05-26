@@ -5,18 +5,55 @@ console.log("=====================================\n");
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { Programs } from "../target/types/programs";
-import { PublicKey } from "@solana/web3.js";
+import { PublicKey, Keypair, SystemProgram, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { expect } from "chai";
 import { generateRandomId, setupTestEnvironment } from "./utils.test";
+
+// Seed fixe pour l'autorité admin des tests
+const ADMIN_SEED = Uint8Array.from([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32]);
 
 describe("Tests des époques", () => {
   const { provider, program } = setupTestEnvironment();
   let epochPda: PublicKey;
-  const epochIdGeneral = generateRandomId();
+  let adminAuthority: Keypair;
+  let programConfigPda: PublicKey;
 
+  before(async () => {
+    adminAuthority = Keypair.fromSeed(ADMIN_SEED);
+    const adminInfo = await provider.connection.getAccountInfo(adminAuthority.publicKey);
+    if (!adminInfo || adminInfo.lamports < 2 * LAMPORTS_PER_SOL) {
+      const sig = await provider.connection.requestAirdrop(adminAuthority.publicKey, 2 * LAMPORTS_PER_SOL);
+      await provider.connection.confirmTransaction(sig, "confirmed");
+    }
+    
+    [programConfigPda] = PublicKey.findProgramAddressSync(
+      [Buffer.from("config")],
+      program.programId
+    );
+
+    try {
+      await program.methods
+        .initializeProgramConfig(adminAuthority.publicKey)
+        .accounts({
+          programConfig: programConfigPda,
+          authority: adminAuthority.publicKey,
+          systemProgram: SystemProgram.programId,
+        } as any)
+        .signers([adminAuthority])
+        .rpc();
+      console.log("ProgramConfig initialized in epoch.test.ts.");
+    } catch (error) {
+      const errorString = (error as Error).toString();
+      if (errorString.includes("already in use") || errorString.includes("custom program error: 0x0")) {
+        console.log("ProgramConfig already initialized in epoch.test.ts.");
+      } else {
+        throw error;
+      }
+    }
+  });
 
   it("Démarre une nouvelle epoch", async () => {
-    const epochId = epochIdGeneral;
+    const epochId = generateRandomId();
     const startTime = new anchor.BN(Math.floor(Date.now() / 1000));
     const endTime = new anchor.BN(startTime.toNumber() + 1); // 1 jour
 
@@ -28,10 +65,12 @@ describe("Tests des époques", () => {
     const tx = await program.methods
       .startEpoch(epochId, startTime, endTime)
       .accounts({
-        authority: provider.wallet.publicKey,
+        authority: adminAuthority.publicKey,
+        programConfig: programConfigPda,
         epochManagement: epochPda,
         systemProgram: anchor.web3.SystemProgram.programId,
-      })
+      } as any)
+      .signers([adminAuthority])
       .rpc();
 
     console.log("\n Creation epoch");
@@ -78,10 +117,12 @@ describe("Tests des époques", () => {
       await program.methods
         .startEpoch(epochId, startTime, endTime)
         .accounts({
-          authority: provider.wallet.publicKey,
+          authority: adminAuthority.publicKey,
+          programConfig: programConfigPda,
           epochManagement: epochPda,
           systemProgram: anchor.web3.SystemProgram.programId,
-        })
+        } as any)
+        .signers([adminAuthority])
         .rpc();
       
       expect.fail("La transaction aurait dû échouer");
@@ -128,10 +169,12 @@ describe("Tests des époques", () => {
     await program.methods
       .startEpoch(newEpochId, startTime, endTime)
       .accounts({
-        authority: provider.wallet.publicKey,
+        authority: adminAuthority.publicKey,
+        programConfig: programConfigPda,
         epochManagement: newEpochPda,
         systemProgram: anchor.web3.SystemProgram.programId,
-      })
+      } as any)
+      .signers([adminAuthority])
       .rpc();
 
     console.log(`\nÉpoque créée avec l'ID: ${newEpochId.toString()}`);
@@ -145,9 +188,11 @@ describe("Tests des époques", () => {
       .endEpoch(newEpochId)
       .accounts({
         epochManagement: newEpochPda,
-        authority: provider.wallet.publicKey,
+        authority: adminAuthority.publicKey,
+        programConfig: programConfigPda,
         systemProgram: anchor.web3.SystemProgram.programId,
-      })
+      } as any)
+      .signers([adminAuthority])
       .rpc();
     
     console.log("Époque clôturée avec succès");
@@ -185,9 +230,11 @@ describe("Tests des époques", () => {
         .endEpoch(inactiveEpochId)
         .accounts({
           epochManagement: inactiveEpochPda,
-          authority: provider.wallet.publicKey,
+          authority: adminAuthority.publicKey,
+          programConfig: programConfigPda,
           systemProgram: anchor.web3.SystemProgram.programId,
-        })
+        } as any)
+        .signers([adminAuthority])
         .rpc();
       
       expect.fail("La transaction aurait dû échouer");
