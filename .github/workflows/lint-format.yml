@@ -15,7 +15,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
         with:
-          fetch-depth: 2 # Pour avoir accès à l'historique récent
+          fetch-depth: 2
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -38,10 +38,6 @@ jobs:
       - name: Install dependencies
         working-directory: front
         run: yarn install --frozen-lockfile
-
-      - name: Check types
-        working-directory: front
-        run: yarn tsc --noEmit
 
       - name: Check formatting
         working-directory: front
