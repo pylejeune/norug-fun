@@ -11,6 +11,8 @@ import { TestContext } from '../../setup'; // Ajuster le chemin relatif vers Tes
  * @param getTestContext Une fonction pour récupérer le TestContext initialisé.
  */
 export function runProgramConfigAuthorizationTests(getTestContext: () => TestContext) {
+    // console.log("runProgramConfigAuthorizationTests called, but tests are currently commented out for simplicity.");
+
     /*
     describe('ProgramConfig - Admin-Only Instruction Authorization Checks', () => {
         let ctx: TestContext;
@@ -319,5 +321,5 @@ export function runProgramConfigAuthorizationTests(getTestContext: () => TestCon
     });
     */
     // Pour l'instant, on ne fait rien dans cette fonction pour simplifier.
-    console.log("runProgramConfigAuthorizationTests called, but tests are currently commented out for simplicity.");
+    //console.log("runProgramConfigAuthorizationTests called, but tests are currently commented out for simplicity.");
 } 
