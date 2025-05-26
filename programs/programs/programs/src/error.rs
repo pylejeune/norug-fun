@@ -76,7 +76,7 @@ pub enum ErrorCode {
     #[msg("Il n'y a aucun montant à réclamer dans ce compte de support.")]
     NothingToReclaim,
 
-    #[msg("Fonds insuffisants dans le compte de la proposition pour effectuer le remboursement.")]
+    #[msg("Insufficient funds in the proposal account to make the refund.")]
     InsufficientProposalFunds,
 
     #[msg("Could not retrieve bump seed.")]
@@ -96,5 +96,8 @@ pub enum ErrorCode {
 
     #[msg("The calculated fee amount cannot be zero.")]
     FeeCannotBeZero,
+
+    #[msg("Epoch has not yet been marked as processed by the crank.")]
+    EpochNotProcessedYet,
 }
 
