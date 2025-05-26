@@ -4,11 +4,16 @@ import { ensureProgramConfigInitialized } from '../setup/programConfigSetup';
 import { runInitializeProgramConfigTests } from './00_program_configuration/initializeProgramConfig.test';
 import { runProgramConfigAuthorizationTests } from './00_program_configuration/programConfig.test'; // On garde l'import pour la structure
 
+// Importer les nouvelles suites de tests pour Epoch Lifecycle
+import { runStartEpochTests } from './01_epoch_lifecycle/startEpoch.test';
+import { runEndEpochTests } from './01_epoch_lifecycle/endEpoch.test';
+import { runMarkEpochProcessedTests } from './01_epoch_lifecycle/markEpochProcessed.test';
+
 // Affichage initial avant toute exécution de describe/before
 console.log("\nLancement de la suite de tests du projet NoRug.fun\n");
 console.log("Les tests sont séquentiels :\n");
 console.log("00 : Test de ProgramConfig");
-console.log("01 : ... (à venir)"); // Placeholder pour les futurs modules
+console.log("01 : Test du Cycle de Vie des Époques");
 console.log("02 : ... (à venir)\n"); // Placeholder pour les futurs modules
 console.log("Lancement des tests.\n");
 
@@ -33,6 +38,13 @@ describe('NorugdotFun - Integration Tests Suite', () => {
         // Le titre du describe sert déjà de log pour le module
         runInitializeProgramConfigTests(getTestContext);
         runProgramConfigAuthorizationTests(() => ({} as TestContext)); 
+    });
+
+    // --- Suite de tests pour le Cycle de Vie des Époques (Module 01) ---
+    describe('Module 01 : Epoch Lifecycle Tests', () => {
+        runStartEpochTests(getTestContext);
+        runEndEpochTests(getTestContext);
+        runMarkEpochProcessedTests(getTestContext);
     });
 
     after(async () => {
