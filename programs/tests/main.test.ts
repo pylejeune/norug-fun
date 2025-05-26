@@ -1,13 +1,13 @@
-import { TestContext, initializeTestContext } from '../setup';
-import { ensureProgramConfigInitialized } from '../setup/programConfigSetup';
-// import { ensureTreasuryInitialized } from '../setup/treasurySetup'; // Pas besoin pour l'instant
-import { runInitializeProgramConfigTests } from './00_program_configuration/initializeProgramConfig.test';
-import { runProgramConfigAuthorizationTests } from './00_program_configuration/programConfig.test'; // On garde l'import pour la structure
+import { TestContext, initializeTestContext } from './setup';
+import { ensureProgramConfigInitialized } from './setup/programConfigSetup';
+// import { ensureTreasuryInitialized } from './setup/treasurySetup'; // Pas besoin pour l'instant
+import { runInitializeProgramConfigTests } from './integration/00_program_configuration/initializeProgramConfig.test';
+import { runProgramConfigAuthorizationTests } from './integration/00_program_configuration/programConfig.test'; // On garde l'import pour la structure
 
 // Importer les nouvelles suites de tests pour Epoch Lifecycle
-import { runStartEpochTests } from './01_epoch_lifecycle/startEpoch.test';
-import { runEndEpochTests } from './01_epoch_lifecycle/endEpoch.test';
-import { runMarkEpochProcessedTests } from './01_epoch_lifecycle/markEpochProcessed.test';
+import { runStartEpochTests } from './integration/01_epoch_lifecycle/startEpoch.test';
+import { runEndEpochTests } from './integration/01_epoch_lifecycle/endEpoch.test';
+import { runMarkEpochProcessedTests } from './integration/01_epoch_lifecycle/markEpochProcessed.test';
 
 // Affichage initial avant toute exécution de describe/before
 console.log("\nLancement de la suite de tests du projet NoRug.fun\n");
