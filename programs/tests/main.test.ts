@@ -21,33 +21,54 @@ describe('NorugdotFun - Integration Tests Suite', () => {
     let context: TestContext;
 
     before(async () => {
-        // Ces logs sont plus techniques et peuvent rester ou être ajustés
-        console.log("--- Initialisation du Contexte de Test Global ---");
+        console.log("\n--- Initialisation du Contexte de Test Global ---");
         context = await initializeTestContext();
         console.log("Contexte de Test Global initialisé.");
 
         console.log("Vérification/Initialisation de ProgramConfig...");
         await ensureProgramConfigInitialized(context);
-        console.log("ProgramConfig prêt.");
-        // Pas de séparateur ici, car c'est la fin du before global
+        console.log("ProgramConfig prêt.\n");
     });
 
     const getTestContext = () => context;
 
     describe('Module 00 : ProgramConfig Tests', () => {
+        before(() => {
+            console.log("\n==================== MODULE 00 START ====================\n");
+        });
+
         runInitializeProgramConfigTests(getTestContext);
         runProgramConfigAuthorizationTests(() => ({} as TestContext)); 
+
+        after(() => {
+            console.log("\n==================== MODULE 00 END ======================\n");
+        });
     });
     
-    // Séparateur avant le prochain module de tests
-    console.log("\n-------------------- Module 01 --------------------"); 
-
-    // --- Suite de tests pour le Cycle de Vie des Époques (Module 01) ---
     describe('Module 01 : Epoch Lifecycle Tests', () => {
+        before(() => {
+            console.log("\n==================== MODULE 01 START ====================\n");
+        });
+
         runStartEpochTests(getTestContext);
         runEndEpochTests(getTestContext);
         runMarkEpochProcessedTests(getTestContext);
+
+        after(() => {
+            console.log("\n==================== MODULE 01 END ======================\n");
+        });
     });
+
+    // Placeholder pour futurs modules
+    // describe('Module 02 : Future Module Tests', () => {
+    //     before(() => {
+    //         console.log("\n==================== MODULE 02 START ====================\n");
+    //     });
+    //     // ...
+    //     after(() => {
+    //         console.log("\n==================== MODULE 02 END ======================\n");
+    //     });
+    // });
 
     after(async () => {
         console.log("\n--- Fin de la suite de tests ---");
