@@ -19,6 +19,7 @@ export default function ProfileImage({
         src={defaultProfileImage}
         alt="Profile"
         fill
+        sizes={`${size}px`}
         className="object-cover"
         priority
       />

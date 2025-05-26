@@ -7,7 +7,10 @@
     "debug": "NODE_OPTIONS='--inspect=9229' next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "lint:fix": "next lint --fix",
+    "format": "npx prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\" --ignore-path .prettierignore",
+    "format:check": "npx prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\" --ignore-path .prettierignore"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.30.1",
@@ -47,6 +50,12 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "autoprefixer": "^10.4.21",
+    "eslint": "^8.56.0",
+    "eslint-config-next": "^14.0.4",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.1.2",
+    "prettier": "^3.1.1",
+    "pino-pretty": "^13.0.0",
     "postcss": "^8.5.3",
     "tailwindcss": "^4.1.3",
     "typescript": "^5"

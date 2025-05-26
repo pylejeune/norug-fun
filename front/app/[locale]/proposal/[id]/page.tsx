@@ -60,7 +60,6 @@ export default function ProposalDetailPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [supports, setSupports] = useState<ProposalSupport[]>([]);
   const [isLoadingSupports, setIsLoadingSupports] = useState(true);
-  const [isCurrentUser, setIsCurrentUser] = useState(false);
 
   // 3. Callbacks
   const loadProposal = useCallback(async () => {
@@ -95,6 +94,7 @@ export default function ProposalDetailPage() {
         creationTimestamp: details.creationTimestamp,
       });
     } catch (error) {
+      console.error("Error loading proposal:", error);
       toast.error(t("errorLoadingProposal"));
     } finally {
       setLoading(false);
@@ -111,6 +111,7 @@ export default function ProposalDetailPage() {
       );
       setSupports(proposalSupports);
     } catch (error) {
+      console.error("Error loading supports:", error);
       toast.error(t("errorLoadingSupports"));
     } finally {
       setIsLoadingSupports(false);
@@ -164,11 +165,6 @@ export default function ProposalDetailPage() {
     }
   }, [proposal, loadSupports]);
 
-  useEffect(() => {
-    if (!publicKey) return;
-    setIsCurrentUser(publicKey.toBase58() === id);
-  }, [publicKey, id]);
-
   // 5. Render helpers
   const formatNumber = useCallback(
     (number: number) => {
@@ -211,14 +207,6 @@ export default function ProposalDetailPage() {
     if ("validated" in status) return "validated";
     if ("rejected" in status) return "rejected";
     return "unknown";
-  };
-
-  // Helper function to get status color
-  const getStatusColor = (status: ProposalStatusType) => {
-    if ("active" in status) return "bg-blue-500 text-white";
-    if ("validated" in status) return "bg-green-500 text-white";
-    if ("rejected" in status) return "bg-red-500 text-white";
-    return "bg-gray-500 text-white";
   };
 
   const isFullyLoaded = !loading && !isLoadingSupports && proposal && supports;
@@ -301,8 +289,8 @@ export default function ProposalDetailPage() {
                       getStatusString(proposal.status) === "validated"
                         ? "text-green-500"
                         : getStatusString(proposal.status) === "active"
-                        ? "text-blue-500"
-                        : "text-red-500"
+                          ? "text-blue-500"
+                          : "text-red-500"
                     }`}
                   >
                     {t(`status.${getStatusString(proposal.status)}`)}

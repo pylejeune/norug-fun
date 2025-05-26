@@ -22,7 +22,7 @@ describe('TreasuryRoles (multi-admin & roles management)', () => {
     provider = anchor.AnchorProvider.env();
     anchor.setProvider(provider);
     // program = anchor.workspace.NorugFun as Program<NorugFun>; // À adapter
-    program = anchor.workspace.Programs as Program<Programs>;
+    program = anchor.workspace.Programs as Program<Programs>; 
     admin1 = Keypair.generate();
     admin2 = Keypair.generate();
     admin3 = Keypair.generate();
@@ -47,7 +47,7 @@ describe('TreasuryRoles (multi-admin & roles management)', () => {
         treasuryRoles: treasuryRolesPda,
         payer: admin1.publicKey,
         systemProgram: SystemProgram.programId,
-      })
+      } as any)
       .signers([admin1])
       .rpc();
     const acc = await program.account.treasuryRoles.fetch(treasuryRolesPda);

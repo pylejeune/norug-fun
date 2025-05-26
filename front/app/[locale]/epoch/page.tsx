@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import Loading from "../loading";
 
 export default function EpochPage() {
@@ -25,17 +26,18 @@ export default function EpochPage() {
 
       try {
         const allEpochs = await getAllEpochs();
-        console.log("📝 Fetched epochs:", allEpochs);
         setEpochs(allEpochs);
       } catch (error) {
-        console.error("Failed to fetch epochs:", error);
+        toast.error(t("fetchEpochsError"), {
+          description: error instanceof Error ? error.message : String(error),
+        });
       } finally {
         setLoading(false);
       }
     };
 
     fetchEpochs();
-  }, [getAllEpochs, isConnected]);
+  }, [getAllEpochs, isConnected, t]);
 
   if (!isConnected || loading) {
     return <Loading />;

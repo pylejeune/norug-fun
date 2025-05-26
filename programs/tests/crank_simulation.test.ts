@@ -48,22 +48,35 @@ describe("Simulation du traitement d'époque par le Crank", () => {
         .initializeProgramConfig(adminAuthority.publicKey)
         .accounts({
           programConfig: programConfigPda,
-          authority: provider.wallet.publicKey,
+          authority: adminAuthority.publicKey,
           systemProgram: SystemProgram.programId,
         })
+        .signers([adminAuthority])
         .rpc();
-        console.log("ProgramConfig initialisé pour la simulation Crank.");
-    } catch (e) {
-        console.log("ProgramConfig probablement déjà initialisé.");
-        // Vérifier que l'admin est correct
+      
+      // Vérification immédiate après l'initialisation
+      const fetchedConfig = await program.account.programConfig.fetch(programConfigPda);
+      if (!fetchedConfig.adminAuthority.equals(adminAuthority.publicKey)) {
+        throw new Error(`ProgramConfig admin authority mismatch after init: Expected ${adminAuthority.publicKey.toBase58()}, Found ${fetchedConfig.adminAuthority.toBase58()}`);
+      }
+      console.log("ProgramConfig initialisé et vérifié pour la simulation Crank.");
+
+    } catch (error) {
+      const errorString = (error as Error).toString();
+      if (errorString.includes("already in use") || 
+          errorString.includes("custom program error: 0x0") ||
+          errorString.includes("AccountOwnedByWrongProgram") ||
+          errorString.includes("Program account already initialized")) {
+        console.log("ProgramConfig déjà initialisé. Vérification de l'autorité admin...");
         const config = await program.account.programConfig.fetch(programConfigPda);
-        // S'assurer que l'autorité on-chain correspond à celle générée de manière déterministe
         if (!config.adminAuthority.equals(adminAuthority.publicKey)) {
-            console.warn("L'autorité admin on-chain ne correspond pas ! Tentative de mise à jour (nécessite une instruction set_admin_authority).");
-            // Idéalement, appeler ici une instruction set_admin_authority si elle existait.
-            // Pour l'instant, on lance une erreur si l'autorité n'est pas la bonne après l'initialisation potentielle.
-             expect(config.adminAuthority.equals(adminAuthority.publicKey), "L'autorité admin dans ProgramConfig ne correspond pas à la clé de test déterministe!").to.be.true;
+            throw new Error(`L'autorité admin dans ProgramConfig (${config.adminAuthority.toBase58()}) ne correspond pas à la clé de test déterministe (${adminAuthority.publicKey.toBase58()})!`);
         }
+        console.log("Autorité admin de ProgramConfig vérifiée.");
+      } else {
+        console.error("Erreur inattendue durant l'initialisation de ProgramConfig dans crank_simulation.test.ts:", error);
+        throw error; // Relancer les erreurs inattendues
+      }
     }
      // --- Fin Initialisation ProgramConfig ---
 
@@ -109,7 +122,13 @@ describe("Simulation du traitement d'époque par le Crank", () => {
         program.programId
     );
     await program.methods.startEpoch(testEpochId, startTime, endTime)
-        .accounts({ authority: provider.wallet.publicKey, epochManagement: epochPda, systemProgram: SystemProgram.programId })
+        .accounts({ 
+          authority: adminAuthority.publicKey,
+          programConfig: programConfigPda,
+          epochManagement: epochPda, 
+          systemProgram: SystemProgram.programId 
+        })
+        .signers([adminAuthority])
         .rpc();
     console.log(`      Époque ${testEpochId} créée.`);
 
@@ -185,7 +204,13 @@ describe("Simulation du traitement d'époque par le Crank", () => {
     await new Promise(resolve => setTimeout(resolve, 2000)); // Petite pause pour être sûr que endTime est passé
     try {
         await program.methods.endEpoch(testEpochId)
-          .accounts({ epochManagement: epochPda, authority: provider.wallet.publicKey, systemProgram: SystemProgram.programId })
+          .accounts({ 
+            authority: adminAuthority.publicKey,
+            programConfig: programConfigPda,
+            epochManagement: epochPda, 
+            systemProgram: SystemProgram.programId 
+          })
+          .signers([adminAuthority])
           .rpc();
         console.log(`      Époque ${testEpochId} fermée.`);
     } catch (e) { console.error("Erreur fermeture époque:", e)} 
