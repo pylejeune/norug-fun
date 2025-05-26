@@ -10,29 +10,43 @@ jobs:
   lint-format:
     name: Run ESLint & Prettier
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: front
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 2 # Pour avoir accès à l'historique récent
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: "20"
-          cache: "yarn"
-          cache-dependency-path: "front/yarn.lock"
+
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
+        working-directory: front
+
+      - name: Cache yarn dependencies
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('front/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
 
       - name: Install dependencies
+        working-directory: front
         run: yarn install --frozen-lockfile
 
       - name: Check types
+        working-directory: front
         run: yarn tsc --noEmit
 
       - name: Check formatting
+        working-directory: front
         run: yarn format:check
 
       - name: Check ESLint rules
+        working-directory: front
         run: yarn lint
