@@ -225,6 +225,24 @@ export type Programs = {
       ],
       "accounts": [
         {
+          "name": "programConfig",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
           "name": "epochManagement",
           "writable": true,
           "pda": {
@@ -685,6 +703,24 @@ export type Programs = {
           "name": "authority",
           "writable": true,
           "signer": true
+        },
+        {
+          "name": "programConfig",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
         },
         {
           "name": "epochManagement",

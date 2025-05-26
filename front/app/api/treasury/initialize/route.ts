@@ -1,22 +1,37 @@
+import { Connection, PublicKey } from "@solana/web3.js";
+import { randomUUID } from "crypto";
 import { NextRequest } from "next/server";
-import { randomUUID } from 'crypto';
-import { verifyAuthToken, createSuccessResponse, createErrorResponse } from "../../shared/utils";
+import {
+  verifyAuthToken,
+  createSuccessResponse,
+  createErrorResponse,
+} from "@/lib/utils";
 import { initializeTreasury } from "./service";
-import { RPC_ENDPOINT } from "../../shared/utils";
-import { PublicKey, Connection } from "@solana/web3.js";
-import { getProgram, getAdminKeypair, createAnchorWallet } from "../../shared/utils";
+import { RPC_ENDPOINT } from "@/lib/utils";
+import {
+  getProgram,
+  getAdminKeypair,
+  createAnchorWallet,
+  idl as SHARED_IDL,
+} from "@/lib/utils";
 
 export async function GET(request: NextRequest): Promise<Response> {
   const requestId = randomUUID();
-  console.log(`[${requestId}] 🚀 Vérification de l'initialisation de la treasury...`);
+  console.log(
+    `[${requestId}] 🚀 Vérification de l'initialisation de la treasury...`
+  );
 
   // Vérification du token d'authentification
   if (!verifyAuthToken(request)) {
     console.error(`[${requestId}] ❌ Authentification échouée`);
-    return createErrorResponse(requestId, {
-      message: "Non autorisé",
-      name: "AuthenticationError"
-    }, 401);
+    return createErrorResponse(
+      requestId,
+      {
+        message: "Non autorisé",
+        name: "AuthenticationError",
+      },
+      401
+    );
   }
 
   try {
@@ -28,7 +43,7 @@ export async function GET(request: NextRequest): Promise<Response> {
       const connection = new Connection(RPC_ENDPOINT);
       const adminKeypair = getAdminKeypair();
       const wallet = createAnchorWallet(adminKeypair);
-      const program = getProgram(connection, wallet);
+      const program = getProgram(connection, SHARED_IDL, wallet);
 
       if (!program) {
         throw new Error("Programme non initialisé");
@@ -41,38 +56,51 @@ export async function GET(request: NextRequest): Promise<Response> {
       );
 
       // Récupérer le compte treasury directement
-      const treasuryAccount = await (program.account as any).treasury.fetchNullable(treasuryPDA);
-      
+      const treasuryAccount = await (
+        program.account as any
+      ).treasury.fetchNullable(treasuryPDA);
+
       if (!treasuryAccount) {
         throw new Error("La treasury n'est pas correctement initialisée.");
       }
 
       // Récupérer le solde direct du compte PDA et convertir en SOL
-      const treasuryPdaBalanceSOL = await connection.getBalance(treasuryPDA) / 1_000_000_000;
+      const treasuryPdaBalanceSOL =
+        (await connection.getBalance(treasuryPDA)) / 1_000_000_000;
 
       // Accéder aux balances de sous-comptes comme dans balance/route.ts
-      const marketingBalanceSOL = (treasuryAccount.marketing.solBalance ? 
-        treasuryAccount.marketing.solBalance.toNumber() : 
-        treasuryAccount.marketing.sol_balance) / 1_000_000_000;
-        
-      const teamBalanceSOL = (treasuryAccount.team.solBalance ? 
-        treasuryAccount.team.solBalance.toNumber() : 
-        treasuryAccount.team.sol_balance) / 1_000_000_000;
-        
-      const operationsBalanceSOL = (treasuryAccount.operations.solBalance ? 
-        treasuryAccount.operations.solBalance.toNumber() : 
-        treasuryAccount.operations.sol_balance) / 1_000_000_000;
-        
-      const investmentsBalanceSOL = (treasuryAccount.investments.solBalance ? 
-        treasuryAccount.investments.solBalance.toNumber() : 
-        treasuryAccount.investments.sol_balance) / 1_000_000_000;
-        
-      const crankBalanceSOL = (treasuryAccount.crank.solBalance ? 
-        treasuryAccount.crank.solBalance.toNumber() : 
-        treasuryAccount.crank.sol_balance) / 1_000_000_000;
+      const marketingBalanceSOL =
+        (treasuryAccount.marketing.solBalance
+          ? treasuryAccount.marketing.solBalance.toNumber()
+          : treasuryAccount.marketing.sol_balance) / 1_000_000_000;
+
+      const teamBalanceSOL =
+        (treasuryAccount.team.solBalance
+          ? treasuryAccount.team.solBalance.toNumber()
+          : treasuryAccount.team.sol_balance) / 1_000_000_000;
+
+      const operationsBalanceSOL =
+        (treasuryAccount.operations.solBalance
+          ? treasuryAccount.operations.solBalance.toNumber()
+          : treasuryAccount.operations.sol_balance) / 1_000_000_000;
+
+      const investmentsBalanceSOL =
+        (treasuryAccount.investments.solBalance
+          ? treasuryAccount.investments.solBalance.toNumber()
+          : treasuryAccount.investments.sol_balance) / 1_000_000_000;
+
+      const crankBalanceSOL =
+        (treasuryAccount.crank.solBalance
+          ? treasuryAccount.crank.solBalance.toNumber()
+          : treasuryAccount.crank.sol_balance) / 1_000_000_000;
 
       // Calculer le total des sous-comptes en SOL
-      const totalSubAccountsSOL = marketingBalanceSOL + teamBalanceSOL + operationsBalanceSOL + investmentsBalanceSOL + crankBalanceSOL;
+      const totalSubAccountsSOL =
+        marketingBalanceSOL +
+        teamBalanceSOL +
+        operationsBalanceSOL +
+        investmentsBalanceSOL +
+        crankBalanceSOL;
 
       // Logger les résultats comme dans balance/route.ts et ajouter le message sur le statut
       console.log("\nVérification Soldes (Treasury) en SOL:");
@@ -97,11 +125,11 @@ export async function GET(request: NextRequest): Promise<Response> {
           operations: operationsBalanceSOL,
           investments: investmentsBalanceSOL,
           crank: crankBalanceSOL,
-          total: totalSubAccountsSOL
+          total: totalSubAccountsSOL,
         },
         address: treasuryPDA.toString(),
         authority: treasuryAccount.authority.toString(),
-        RPC_ENDPOINT: RPC_ENDPOINT
+        RPC_ENDPOINT: RPC_ENDPOINT,
       };
 
       return createSuccessResponse(requestId, formattedResponse);
@@ -112,4 +140,4 @@ export async function GET(request: NextRequest): Promise<Response> {
   } catch (error) {
     return createErrorResponse(requestId, error);
   }
-} 
+}

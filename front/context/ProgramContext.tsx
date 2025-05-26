@@ -1,6 +1,9 @@
 "use client";
-
-import { getProgram } from "@/context/program";
+import { Programs } from "@/idl/programs";
+import {
+  getProgramContext,
+  AnchorWallet as UtilsAnchorWallet,
+} from "@/lib/utils";
 import { BN, Program } from "@coral-xyz/anchor";
 import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
 import { LAMPORTS_PER_SOL, PublicKey, SystemProgram } from "@solana/web3.js";
@@ -11,7 +14,6 @@ import {
   useMemo,
   useState,
 } from "react";
-import { Programs } from "./types/programs";
 
 export type { Programs };
 
@@ -105,7 +107,18 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
 
   const program = useMemo(() => {
     if (connection) {
-      return getProgram(connection, wallet);
+      // Cast le wallet pour qu'il corresponde au type attendu par utils.ts
+      const compatibleWallet = wallet
+        ? {
+            publicKey: wallet.publicKey,
+            signTransaction:
+              wallet.signTransaction as UtilsAnchorWallet["signTransaction"],
+            signAllTransactions:
+              wallet.signAllTransactions as UtilsAnchorWallet["signAllTransactions"],
+          }
+        : undefined;
+
+      return getProgramContext(connection, compatibleWallet);
     }
     return null;
   }, [connection, wallet]);
@@ -354,8 +367,6 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
         program as Program<Programs>
       ).account.tokenProposal.all();
 
-      console.log("Raw proposals data:", proposals);
-
       const mappedProposals = proposals.map((p: any) => {
         const proposal = {
           epochId: p.account.epochId.toString(),
@@ -373,7 +384,6 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
           imageUrl: p.account.imageUrl,
           creationTimestamp: p.account.creationTimestamp.toNumber(),
         };
-        console.log("Mapped proposal:", proposal);
         return proposal;
       });
 

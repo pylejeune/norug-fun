@@ -42,7 +42,7 @@ import xLogo from "@/public/images/xLogo.svg";
 
 export function AltSidebar() {
   const t = useTranslations("Navigation");
-  const { toggleSidebar, open, isMobile } = useSidebar();
+  const { toggleSidebar, isMobile } = useSidebar();
   const { locale } = useParams();
   const { publicKey, connected } = useWallet();
   const pathname = usePathname();

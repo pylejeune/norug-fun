@@ -7,7 +7,6 @@ use crate::error::ErrorCode;
 #[derive(Accounts)]
 pub struct UpdateProposalStatus<'info> {
     // L'autorité doit signer et correspondre à l'autorité configurée dans ProgramConfig
-    #[account(constraint = authority.key() == program_config.admin_authority @ ErrorCode::InvalidAuthority)]
     pub authority: Signer<'info>,
     // Le compte contenant la configuration globale (et l'autorité admin)
     pub program_config: Account<'info, ProgramConfig>,
@@ -31,6 +30,12 @@ pub struct UpdateProposalStatus<'info> {
 }
 
 pub fn handler(ctx: Context<UpdateProposalStatus>, new_status: ProposalStatus) -> Result<()> {
+    // Modification: Ajout de la vérification d'autorité ici
+    require!(
+        ctx.accounts.authority.key() == ctx.accounts.program_config.admin_authority,
+        ErrorCode::Unauthorized
+    );
+
     // Vérifier que la proposition est actuellement active avant de la finaliser
     require!(ctx.accounts.proposal.status == ProposalStatus::Active, ErrorCode::ProposalAlreadyFinalized);
 

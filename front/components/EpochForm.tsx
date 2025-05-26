@@ -119,7 +119,6 @@ export default function EpochForm() {
     }
 
     setIsSubmitting(true);
-    console.log("📝 Submitting form with data:", formData);
 
     try {
       await startEpoch(
@@ -128,7 +127,6 @@ export default function EpochForm() {
         formData.endTime
       );
 
-      console.log("✅ Epoch created successfully");
       toast.success(t("epochCreated"));
 
       // Reset form
@@ -139,7 +137,6 @@ export default function EpochForm() {
       });
       setErrors({});
 
-      console.log("🔙 Redirecting back");
       router.back();
     } catch (error: any) {
       console.error("❌ Error in form submission:", {
