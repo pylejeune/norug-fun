@@ -10,7 +10,8 @@
     "lint": "next lint",
     "lint:fix": "next lint --fix",
     "format": "npx prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\" --ignore-path .prettierignore",
-    "format:check": "npx prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\" --ignore-path .prettierignore"
+    "format:check": "npx prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\" --ignore-path .prettierignore",
+    "prepare": "rm -f ../.git/hooks/pre-commit ../.git/hooks/pre-push && cp ../.github/hooks/* ../.git/hooks/ && chmod +x ../.git/hooks/*"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.30.1",

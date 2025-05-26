@@ -4,15 +4,16 @@
 cd front
 
 # Vérifier le formatage et le linting des fichiers modifiés
-FILES=$(git diff --cached --name-only --diff-filter=ACMR "*.ts" "*.tsx" "*.js" "*.jsx" "*.json" "*.md" | sed 's| |\\ |g')
+FILES=$(git diff --cached --name-only --diff-filter=ACMR | grep -E "^front/.*\.(ts|tsx|js|jsx|json|md)$" | sed 's|^front/||')
 [ -z "$FILES" ] && exit 0
 
 # Formater et linter les fichiers
 echo "🔍 Checking formatting and linting..."
-for FILE in $FILES; do
-  npm run format "$FILE"
-  npm run lint:fix "$FILE"
-done
 
-# Ajouter les fichiers modifiés au commit
-git add $FILES
+# Formater tous les fichiers modifiés
+for FILE in $FILES; do
+  npx prettier --write "$FILE" --ignore-path .prettierignore
+  if echo "$FILE" | grep -E "\.(ts|tsx|js|jsx)$" >/dev/null; then
+    npx eslint --fix "$FILE"
+  fi
+done
