@@ -24,7 +24,7 @@ export function runEndEpochTests(getTestContext: () => TestContext) {
 
         beforeEach(async () => {
             // Assurer une époque active pour chaque test de fermeture
-            activeEpochId = generateRandomId();
+            activeEpochId = new anchor.BN(generateRandomId());
             activeEpochPda = await ensureEpochIsActive(ctx, activeEpochId);
         });
 
@@ -79,7 +79,7 @@ export function runEndEpochTests(getTestContext: () => TestContext) {
         });
 
         it('should fail to close a non-existent epoch', async () => {
-            const nonExistentEpochId = generateRandomId();
+            const nonExistentEpochId = new anchor.BN(generateRandomId());
             const [nonExistentEpochPda] = getEpochManagementPda(ctx.program.programId, nonExistentEpochId);
 
             try {
@@ -113,7 +113,7 @@ export function runEndEpochTests(getTestContext: () => TestContext) {
         });
 
         it('closeEpochOnChain helper should throw error for non-existent epoch', async () => {
-            const nonExistentEpochId = generateRandomId();
+            const nonExistentEpochId = new anchor.BN(generateRandomId());
             try {
                 await closeEpochOnChain(ctx, nonExistentEpochId);
                 expect.fail("closeEpochOnChain should have failed for a non-existent epoch.");
@@ -126,4 +126,4 @@ export function runEndEpochTests(getTestContext: () => TestContext) {
         // Couverts dans 00_program_configuration/programConfig.test.ts.
 
     });
-} 
+}

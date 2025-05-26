@@ -25,7 +25,7 @@ export function runStartEpochTests(getTestContext: () => TestContext) {
 
         beforeEach(() => {
             // Générer un ID d'epoch unique pour chaque test pour éviter les collisions
-            newEpochId = generateRandomId();
+            newEpochId = new anchor.BN(generateRandomId());
             [newEpochPda] = getEpochManagementPda(ctx.program.programId, newEpochId);
         });
 

@@ -29,7 +29,7 @@ export function runMarkEpochProcessedTests(getTestContext: () => TestContext) {
 
         beforeEach(async () => {
             // Assurer une époque active puis la fermer pour chaque test
-            epochIdToProcess = generateRandomId();
+            epochIdToProcess = new anchor.BN(generateRandomId());
             epochPdaToProcess = await ensureEpochIsActive(ctx, epochIdToProcess);
             await closeEpochOnChain(ctx, epochIdToProcess); // L'époque doit être fermée pour être marquée
             
@@ -55,7 +55,7 @@ export function runMarkEpochProcessedTests(getTestContext: () => TestContext) {
 
         it('should fail to mark an epoch that is still active', async () => {
             // Créer une nouvelle époque qui restera active
-            const stillActiveEpochId = generateRandomId();
+            const stillActiveEpochId = new anchor.BN(generateRandomId());
             const stillActiveEpochPda = await ensureEpochIsActive(ctx, stillActiveEpochId);
             
             try {
@@ -100,7 +100,7 @@ export function runMarkEpochProcessedTests(getTestContext: () => TestContext) {
         });
 
         it('should fail to mark a non-existent epoch', async () => {
-            const nonExistentEpochId = generateRandomId();
+            const nonExistentEpochId = new anchor.BN(generateRandomId());
             const [nonExistentEpochPda] = getEpochManagementPda(ctx.program.programId, nonExistentEpochId);
 
             try {
