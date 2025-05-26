@@ -9,6 +9,17 @@ export function generateRandomId(): string {
     return Math.floor(Math.random() * Number.MAX_SAFE_INTEGER).toString();
 }
 
+/**
+ * Abrège une adresse PublicKey pour un affichage concis dans les logs.
+ * @param publicKey L'adresse PublicKey à abréger.
+ * @returns Une chaîne de caractères représentant l'adresse abrégée (ex: "AbCd...Wxyz").
+ */
+export function shortenAddress(publicKey: { toString: () => string } | string): string {
+    const address = typeof publicKey === 'string' ? publicKey : publicKey.toString();
+    if (address.length <= 8) return address; // Ne pas abréger si déjà court
+    return `${address.substring(0, 4)}...${address.substring(address.length - 4)}`;
+}
+
 // Ajoutez d'autres helpers ici au besoin.
 
 export {}; // Assure que le fichier est traité comme un module 

@@ -6,6 +6,7 @@ export {}; // Pour que le fichier soit traité comme un module
 import * as anchor from '@coral-xyz/anchor';
 import { Keypair, PublicKey, SystemProgram } from '@solana/web3.js';
 import { TestContext } from './index'; // Assurez-vous que le chemin est correct
+import { shortenAddress } from '../utils_for_tests/helpers'; // Importer shortenAddress
 
 /**
  * Calcule le PDA (Program Derived Address) pour un compte EpochManagement.
@@ -47,13 +48,13 @@ export async function ensureEpochExists(
 
     try {
         await ctx.program.account.epochManagement.fetch(epochManagementAddress);
-        console.log(`EpochManagement account ${epochManagementAddress.toBase58()} for epoch ${epochId.toString()} already exists.`);
+        console.log(`EpochManagement account ${shortenAddress(epochManagementAddress)} for epoch ${epochId.toString()} already exists.`);
         return epochManagementAddress;
     } catch (error) {
         if (error.message.includes('Account does not exist') || error.message.includes('could not find account')) {
-            console.log(`EpochManagement account ${epochManagementAddress.toBase58()} for epoch ${epochId.toString()} not found, creating with start_epoch...`);
+            console.log(`EpochManagement account ${shortenAddress(epochManagementAddress)} for epoch ${epochId.toString()} not found, creating with start_epoch...`);
         } else {
-            console.log(`Attempting to create EpochManagement ${epochManagementAddress.toBase58()} for epoch ${epochId.toString()} after fetch error: ${error.message}`);
+            console.log(`Attempting to create EpochManagement ${shortenAddress(epochManagementAddress)} for epoch ${epochId.toString()} after fetch error: ${error.message}`);
         }
     }
 
@@ -68,10 +69,10 @@ export async function ensureEpochExists(
             } as any)
             .signers([signer])
             .rpc();
-        console.log(`EpochManagement account ${epochManagementAddress.toBase58()} for epoch ${epochId.toString()} created successfully.`);
+        console.log(`EpochManagement account ${shortenAddress(epochManagementAddress)} for epoch ${epochId.toString()} created successfully.`);
         return epochManagementAddress;
     } catch (error) {
-        console.error(`Failed to create EpochManagement account ${epochManagementAddress.toBase58()} for epoch ${epochId.toString()}:`, error);
+        console.error(`Failed to create EpochManagement account ${shortenAddress(epochManagementAddress)} for epoch ${epochId.toString()}:`, error);
         throw error;
     }
 }
@@ -120,7 +121,7 @@ export async function closeEpochOnChain(
     try {
         await ctx.program.account.epochManagement.fetch(epochManagementAddress);
     } catch (error) {
-        console.error(`EpochManagement account ${epochManagementAddress.toBase58()} for epoch ${epochId.toString()} not found. Cannot close.`);
+        console.error(`EpochManagement account ${shortenAddress(epochManagementAddress)} for epoch ${epochId.toString()} not found. Cannot close.`);
         throw new Error(`Epoch ${epochId.toString()} must exist to be closed.`);
     }
     

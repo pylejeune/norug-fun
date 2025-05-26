@@ -13,7 +13,7 @@ import { runMarkEpochProcessedTests } from './integration/01_epoch_lifecycle/mar
 console.log("\nLancement de la suite de tests du projet NoRug.fun\n");
 console.log("Les tests sont séquentiels :\n");
 console.log("00 : Test de ProgramConfig");
-console.log("01 : Test du Cycle de Vie des Époques");
+console.log("01 : Test du Cycle de Vie des Epochs");
 console.log("02 : ... (à venir)\n"); // Placeholder pour les futurs modules
 console.log("Lancement des tests.\n");
 
@@ -29,16 +29,18 @@ describe('NorugdotFun - Integration Tests Suite', () => {
         console.log("Vérification/Initialisation de ProgramConfig...");
         await ensureProgramConfigInitialized(context);
         console.log("ProgramConfig prêt.");
-        console.log("--------------------------------------------------\n");
+        // Pas de séparateur ici, car c'est la fin du before global
     });
 
     const getTestContext = () => context;
 
     describe('Module 00 : ProgramConfig Tests', () => {
-        // Le titre du describe sert déjà de log pour le module
         runInitializeProgramConfigTests(getTestContext);
         runProgramConfigAuthorizationTests(() => ({} as TestContext)); 
     });
+    
+    // Séparateur avant le prochain module de tests
+    console.log("\n-------------------- Module 01 --------------------"); 
 
     // --- Suite de tests pour le Cycle de Vie des Époques (Module 01) ---
     describe('Module 01 : Epoch Lifecycle Tests', () => {
