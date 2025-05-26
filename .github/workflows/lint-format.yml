@@ -1,0 +1,38 @@
+name: Lint & Format Check
+
+on:
+  pull_request:
+    paths:
+      - "front/**"
+      - ".github/workflows/lint-format.yml"
+
+jobs:
+  lint-format:
+    name: Run ESLint & Prettier
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: front
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20"
+          cache: "yarn"
+          cache-dependency-path: "front/yarn.lock"
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Check types
+        run: yarn tsc --noEmit
+
+      - name: Check formatting
+        run: yarn format:check
+
+      - name: Check ESLint rules
+        run: yarn lint
