@@ -70,8 +70,7 @@ export function runMarkEpochProcessedTests(getTestContext: () => TestContext) {
                     .rpc();
                 expect.fail("Transaction should have failed because epoch is not closed.");
             } catch (error) {
-                // En Rust: ErrorCode::EpochNotClosed
-                expect((error as anchor.AnchorError).error.errorMessage).to.include("EpochNotClosed");
+                expect((error as anchor.AnchorError).error.errorCode.code).to.equal("EpochNotClosed");
             }
         });
 
@@ -94,8 +93,7 @@ export function runMarkEpochProcessedTests(getTestContext: () => TestContext) {
                     .rpc();
                 expect.fail("Transaction should have failed because epoch is already processed.");
             } catch (error) {
-                // En Rust: ErrorCode::EpochAlreadyProcessed
-                expect((error as anchor.AnchorError).error.errorMessage).to.include("EpochAlreadyProcessed");
+                expect((error as anchor.AnchorError).error.errorCode.code).to.equal("EpochAlreadyProcessed");
             }
         });
 

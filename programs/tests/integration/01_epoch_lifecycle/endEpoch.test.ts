@@ -74,8 +74,7 @@ export function runEndEpochTests(getTestContext: () => TestContext) {
                     .rpc();
                 expect.fail("Transaction should have failed because epoch is already closed.");
             } catch (error) {
-                // En Rust: ErrorCode::EpochAlreadyInactive
-                expect((error as anchor.AnchorError).error.errorMessage).to.include("EpochAlreadyInactive");
+                expect((error as anchor.AnchorError).error.errorCode.code).to.equal("EpochAlreadyInactive");
             }
         });
 

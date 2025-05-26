@@ -73,13 +73,7 @@ export function runStartEpochTests(getTestContext: () => TestContext) {
                     .rpc();
                 expect.fail("Transaction should have failed due to invalid time range.");
             } catch (error) {
-                // En Rust: ErrorCode::InvalidEpochTimeRange
-                // L'erreur exacte peut varier (nom, numéro) selon la version d'Anchor et l'IDL.
-                // On vérifie la présence d'un message d'erreur pertinent.
-                expect((error as anchor.AnchorError).error.errorMessage).to.include("InvalidEpochTimeRange");
-                // Alternativement, vérifier le code d'erreur si stable:
-                // expect((error as anchor.AnchorError).error.errorCode.code).to.equal("InvalidEpochTimeRange");
-                // expect((error as anchor.AnchorError).error.errorCode.number).to.equal(6003); // Exemple de numéro
+                expect((error as anchor.AnchorError).error.errorCode.code).to.equal("InvalidEpochTimeRange");
             }
         });
 
