@@ -31,6 +31,7 @@ export function runEndEpochTests(getTestContext: () => TestContext) {
         it('should successfully close an active epoch', async () => {
             const epochBeforeClose = await ctx.program.account.epochManagement.fetch(activeEpochPda);
             expect(JSON.stringify(epochBeforeClose.status)).to.equal(JSON.stringify({ active: {} }));
+            const initialEndTime = epochBeforeClose.endTime;
 
             await ctx.program.methods
                 .endEpoch(activeEpochId)
@@ -45,12 +46,12 @@ export function runEndEpochTests(getTestContext: () => TestContext) {
 
             const epochAfterClose = await ctx.program.account.epochManagement.fetch(activeEpochPda);
             expect(JSON.stringify(epochAfterClose.status)).to.equal(JSON.stringify({ closed: {} }));
-            // Vérifier que end_time a été mis à jour (approximativement, car Clock::get() est utilisé)
-            // La logique Rust met à jour end_time avec Clock::get()?.unix_timestamp
-            // Donc, on s'attend à ce qu'il soit différent de celui initial et proche de l'heure actuelle.
-            expect(epochAfterClose.endTime.toNumber()).to.be.greaterThan(epochBeforeClose.endTime.toNumber());
-            // On pourrait aussi vérifier que epochAfterClose.endTime est proche de Date.now()/1000
-            // expect(epochAfterClose.endTime.toNumber()).to.be.closeTo(Math.floor(Date.now() / 1000), 5); // 5 secondes de marge
+            
+            // Vérifier que endTime a été mis à jour et est proche de l'heure actuelle.
+            // Il devrait être inférieur ou égal à l'ancien endTime si l'époque n'était pas terminée.
+            const currentTimeSeconds = Math.floor(Date.now() / 1000);
+            expect(epochAfterClose.endTime.toNumber()).to.be.closeTo(currentTimeSeconds, 5); // Marge de 5 secondes
+            expect(epochAfterClose.endTime.toNumber()).to.be.at.most(initialEndTime.toNumber());
         });
 
         it('should fail to close an epoch that is already closed', async () => {

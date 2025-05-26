@@ -23,7 +23,7 @@ pub enum ErrorCode {
     #[msg("Only the admin authority can perform this action")]
     InvalidAuthority,
 
-    #[msg("La plage de temps de l'époque est invalide")]
+    #[msg("Invalid epoch time range.")]
     InvalidEpochTimeRange,
     
     #[msg("L'époque n'a pas été trouvée")]
@@ -35,7 +35,7 @@ pub enum ErrorCode {
     #[msg("ID d'époque invalide")]
     InvalidEpochId,
 
-    #[msg("L'époque est déjà inactive")]
+    #[msg("Epoch is already inactive.")]
     EpochAlreadyInactive,
 
     #[msg("La proposition n'appartient pas à l'époque spécifiée")]
@@ -48,7 +48,7 @@ pub enum ErrorCode {
     Overflow,
 
     // --- Codes pour update_proposal_status & mark_epoch_processed --- 
-    #[msg("L'époque doit être fermée pour mettre à jour le statut de la proposition")]
+    #[msg("Epoch must be closed to perform this action.")]
     EpochNotClosed,
 
     #[msg("La proposition n'appartient pas à l'époque fournie")]
@@ -60,7 +60,7 @@ pub enum ErrorCode {
     #[msg("La proposition a déjà un statut final (Validée ou Rejetée)")]
     ProposalAlreadyFinalized,
 
-    #[msg("L'époque a déjà été marquée comme traitée par le crank")]
+    #[msg("Epoch has already been processed.")]
     EpochAlreadyProcessed,
 
     #[msg("Unauthorized: Only the admin can perform this action.")]
@@ -78,9 +78,6 @@ pub enum ErrorCode {
 
     #[msg("Fonds insuffisants dans le compte de la proposition pour effectuer le remboursement.")]
     InsufficientProposalFunds,
-
-    #[msg("L'époque n'a pas encore été marquée comme traitée par le crank.")]
-    EpochNotProcessedYet,
 
     #[msg("Could not retrieve bump seed.")]
     CouldNotRetrieveBump,
