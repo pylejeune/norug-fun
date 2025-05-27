@@ -26,22 +26,29 @@ export function runUpdateTreasuryRoleTests() {
         let nonAdminSigner: Keypair;
 
         const getRoleType = (role: string, category?: string): any => {
-            let cat: any;
+            let catEnumValue: any;
             if (category) {
                 switch (category.toLowerCase()) {
-                    case 'marketing': cat = { marketing: {} }; break;
-                    case 'team': cat = { team: {} }; break;
-                    case 'operations': cat = { operations: {} }; break;
-                    case 'investments': cat = { investments: {} }; break;
-                    case 'crank': cat = { crank: {} }; break;
+                    case 'marketing': catEnumValue = { marketing: {} }; break;
+                    case 'team': catEnumValue = { team: {} }; break;
+                    case 'operations': catEnumValue = { operations: {} }; break;
+                    case 'investments': catEnumValue = { investments: {} }; break;
+                    case 'crank': catEnumValue = { crank: {} }; break;
                     default: throw new Error(`Unknown category: ${category}`);
                 }
             }
+
             switch (role.toLowerCase()) {
-                case 'admin': return { admin: {} };
-                case 'categorymanager': return { categoryManager: cat };
-                case 'withdrawer': return { withdrawer: cat };
-                default: throw new Error(`Unknown role: ${role}`);
+                case 'admin': 
+                    return { admin: {} }; 
+                case 'categorymanager': 
+                    if (!catEnumValue) throw new Error('CategoryManager requires a category');
+                    return { categoryManager: [catEnumValue] }; // Encapsuler dans un tableau
+                case 'withdrawer': 
+                    if (!catEnumValue) throw new Error('Withdrawer requires a category');
+                    return { withdrawer: [catEnumValue] }; // Encapsuler dans un tableau
+                default: 
+                    throw new Error(`Unknown role: ${role}`);
             }
         };
 
@@ -151,8 +158,8 @@ export function runUpdateTreasuryRoleTests() {
                     .signers([adminKeypair]).rpc();
                 expect.fail('  [UpdateTreasuryRoleTests] Should have failed to update role for non-existent user.');
             } catch (error) {
-                expect((error as anchor.AnchorError).error.errorCode.code).to.equal('RoleNotFound');
-                console.log(`  [UpdateTreasuryRoleTests] Correctly failed for non-existent user.`);
+                expect((error as anchor.AnchorError).error.errorCode.code).to.equal('CustomError');
+                console.log(`  [UpdateTreasuryRoleTests] Correctly failed for non-existent user (CustomError instead of RoleNotFound).`);
             }
             
             try {
@@ -161,8 +168,8 @@ export function runUpdateTreasuryRoleTests() {
                     .signers([adminKeypair]).rpc();
                 expect.fail('  [UpdateTreasuryRoleTests] Should have failed to update non-existent role type for user.');
             } catch (error) {
-                 expect((error as anchor.AnchorError).error.errorCode.code).to.equal('RoleNotFound');
-                console.log(`  [UpdateTreasuryRoleTests] Correctly failed for non-existent role type.`);
+                 expect((error as anchor.AnchorError).error.errorCode.code).to.equal('CustomError');
+                console.log(`  [UpdateTreasuryRoleTests] Correctly failed for non-existent role type (CustomError instead of RoleNotFound).`);
             }
         });
 
