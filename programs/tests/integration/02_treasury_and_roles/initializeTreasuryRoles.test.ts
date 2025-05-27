@@ -2,7 +2,7 @@ import * as anchor from '@coral-xyz/anchor';
 import { Program } from '@coral-xyz/anchor';
 import { Keypair, SystemProgram, PublicKey } from '@solana/web3.js';
 import { expect } from 'chai';
-import { Programs } from '../../../../target/types/programs';
+import { Programs } from '../../../target/types/programs';
 import { TestContext, getInitializedContext } from '../../setup';
 import {
     ensureProgramConfigInitialized,
@@ -93,7 +93,7 @@ export function runInitializeTreasuryRolesTests() {
                         treasuryRoles: tempTreasuryRolesPda, 
                         payer: adminKeypair.publicKey, 
                         systemProgram: SystemProgram.programId 
-                    })
+                    } as any)
                     .signers([adminKeypair])
                     .rpc();
                 expect.fail('  [InitTreasuryRolesTests] Should have failed to initialize with zero admins (arg validation)');
@@ -113,7 +113,7 @@ export function runInitializeTreasuryRolesTests() {
                         treasuryRoles: tempTreasuryRolesPda, 
                         payer: adminKeypair.publicKey, 
                         systemProgram: SystemProgram.programId 
-                    })
+                    } as any)
                     .signers([adminKeypair])
                     .rpc();
                 expect.fail('  [InitTreasuryRolesTests] Should have failed to initialize with more than three admins (arg validation)');

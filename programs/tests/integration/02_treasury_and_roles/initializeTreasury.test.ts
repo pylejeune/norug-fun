@@ -2,7 +2,7 @@ import * as anchor from '@coral-xyz/anchor';
 import { Program } from '@coral-xyz/anchor';
 import { Keypair, SystemProgram, PublicKey } from '@solana/web3.js';
 import { expect } from 'chai';
-import { Programs } from '../../../../target/types/programs'; // Ajustez le chemin si nécessaire
+import { Programs } from '../../../target/types/programs'; // Ajustez le chemin si nécessaire
 import { TestContext, getInitializedContext } from '../../setup';
 import {
     ensureProgramConfigInitialized,
