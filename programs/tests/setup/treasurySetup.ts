@@ -105,59 +105,77 @@ export const getTreasuryRolesPda = (programId: PublicKey): [PublicKey, number] =
  * @param ctx Le contexte de test actuel.
  * @param initialAdmins Optionnel, un tableau de clés publiques des admins initiaux pour TreasuryRoles.
  *                      Si non fourni, `[ctx.adminKeypair.publicKey]` sera utilisé.
+ * @param clearRoles Optionnel, indique si les rôles doivent être effacés avant l'initialisation.
  */
-export async function ensureTreasuryRolesInitialized(ctx: TestContext, initialAdmins?: PublicKey[]): Promise<void> {
-    const [treasuryRolesAddress, _bump] = getTreasuryRolesPda(ctx.program.programId);
-    ctx.treasuryRolesAddress = treasuryRolesAddress; // Stocker dans le contexte
+export async function ensureTreasuryRolesInitialized(
+    ctx: TestContext, 
+    initialAdmins?: PublicKey[],
+    clearRoles: boolean = false
+): Promise<PublicKey> {
+    const { program, adminKeypair } = ctx;
+    const [pda] = getTreasuryRolesPda(program.programId);
+    ctx.treasuryRolesAddress = pda; // Stocker pour référence future
 
-    const adminsToSet = initialAdmins && initialAdmins.length > 0 ? initialAdmins : [ctx.adminKeypair.publicKey];
-    if (adminsToSet.length === 0 || adminsToSet.length > 3) {
-        throw new Error("Initial admins for TreasuryRoles must be between 1 and 3.");
-    }
+    const accountInfo = await program.provider.connection.getAccountInfo(pda);
 
-    try {
-        const accountInfo = await ctx.program.account.treasuryRoles.fetch(treasuryRolesAddress);
-        console.log(`TreasuryRoles account ${shortenAddress(treasuryRolesAddress)} already initialized. Authorities: ${accountInfo.authorities.map(a => shortenAddress(a)).join(", ")}`);
-        // TODO: Optionnel: vérifier si les admins sont corrects et mettre à jour si nécessaire/possible via add_admin/remove_admin.
-        return;
-    } catch (error) {
-        if (error.message.includes('Account does not exist') || error.message.includes('could not find account')) {
-            console.log(`TreasuryRoles account ${shortenAddress(treasuryRolesAddress)} not found, initializing with admins: ${adminsToSet.map(a => shortenAddress(a)).join(", ")}...`);
-        } else {
-            console.log(`Attempting to initialize TreasuryRoles ${shortenAddress(treasuryRolesAddress)} after fetch error: ${error.message}`);
+    if (accountInfo === null) {
+        const adminsToSet = initialAdmins && initialAdmins.length > 0 
+                            ? initialAdmins 
+                            : [adminKeypair.publicKey];
+        
+        console.log(`TreasuryRoles account ${shortenAddress(pda)} not found, initializing with admins: ${adminsToSet.map(a => shortenAddress(a)).join(', ')}...`);
+        try {
+            await program.methods.initializeTreasuryRoles(adminsToSet)
+                .accounts({
+                    treasuryRoles: pda,
+                    payer: adminKeypair.publicKey, // Le payeur est toujours l'admin du contexte pour l'initialisation
+                    systemProgram: SystemProgram.programId,
+                })
+                .signers([adminKeypair]) // L'admin du contexte signe pour payer
+                .rpc();
+            console.log(`TreasuryRoles account ${shortenAddress(pda)} initialized successfully with admins: ${adminsToSet.map(a => shortenAddress(a)).join(', ')}. Payer: ${shortenAddress(adminKeypair.publicKey)}`);
+        } catch (e) {
+            console.error(`Failed to initialize TreasuryRoles account ${shortenAddress(pda)}:`, e);
+            throw e;
         }
-    }
-
-    try {
-        await ctx.program.methods
-            .initializeTreasuryRoles(adminsToSet)
-            .accounts({
-                treasuryRoles: treasuryRolesAddress,
-                payer: ctx.adminKeypair.publicKey, // Le ctx.adminKeypair (admin du ProgramConfig) paie l'initialisation
-                systemProgram: SystemProgram.programId,
-            })
-            .signers([ctx.adminKeypair])
-            .rpc();
-        console.log(`TreasuryRoles account ${shortenAddress(treasuryRolesAddress)} initialized successfully with admins: ${adminsToSet.map(a => shortenAddress(a)).join(", ")}. Payer: ${shortenAddress(ctx.adminKeypair.publicKey)}`);
-    } catch (error) {
-        const errorString = (error as Error).toString();
-        if (errorString.includes("already in use") || 
-            errorString.includes("custom program error: 0x0") || 
-            errorString.includes("Account already initialized")) {
-            console.log(`TreasuryRoles account ${shortenAddress(treasuryRolesAddress)} was likely already initialized.`);
-            try {
-                const acc = await ctx.program.account.treasuryRoles.fetch(treasuryRolesAddress);
-                console.log(`Confirmed: TreasuryRoles ${shortenAddress(treasuryRolesAddress)} exists. Authorities: ${acc.authorities.map(a => shortenAddress(a)).join(", ")}.`);
-                return;
-            } catch (fetchAfterInitError) {
-                console.error(`Failed to fetch TreasuryRoles ${shortenAddress(treasuryRolesAddress)} after init error:`, fetchAfterInitError);
-                throw fetchAfterInitError;
+    } else {
+        // console.log(`TreasuryRoles account ${shortenAddress(pda)} already exists.`);
+        if (clearRoles) {
+            // console.log(`  ensureTreasuryRolesInitialized: clearRoles is true, attempting to clear roles.`);
+            const currentAccountState = await program.account.treasuryRoles.fetch(pda);
+            if (currentAccountState.roles.length > 0) {
+                // Pour vider les rôles, on doit appeler removeTreasuryRole pour chaque rôle.
+                // Cela suppose que l'autorité actuelle (adminKeypair) a le droit de le faire.
+                // Et que les admins actuels incluent adminKeypair ou que adminKeypair est le seul admin.
+                // On s'assure d'abord que l'adminKeypair est bien une autorité.
+                if (!currentAccountState.authorities.some(auth => auth.equals(adminKeypair.publicKey))) {
+                    console.warn(`  ensureTreasuryRolesInitialized: adminKeypair ${shortenAddress(adminKeypair.publicKey)} is not in authorities ${currentAccountState.authorities.map(a=>shortenAddress(a))}. Cannot clear roles.`);
+                } else {
+                    console.log(`  Clearing ${currentAccountState.roles.length} roles from TreasuryRoles ${shortenAddress(pda)} using authority ${shortenAddress(adminKeypair.publicKey)}...`);
+                    // Créer une copie des rôles à supprimer pour éviter les problèmes d'itération sur une collection modifiée
+                    const rolesToRemove = [...currentAccountState.roles];
+                    for (const role of rolesToRemove) {
+                        try {
+                            // console.log(`    Removing role: Pubkey ${shortenAddress(role.pubkey)}, Type ${JSON.stringify(role.roleType)}`);
+                            await program.methods.removeTreasuryRole(role.roleType, role.pubkey)
+                                .accounts({ 
+                                    treasuryRoles: pda, 
+                                    authority: adminKeypair.publicKey 
+                                })
+                                .signers([adminKeypair])
+                                .rpc();
+                        } catch (error) {
+                            console.error(`    Failed to remove role for ${shortenAddress(role.pubkey)}:`, error);
+                            // Continuer d'essayer de supprimer les autres rôles
+                        }
+                    }
+                    const finalState = await program.account.treasuryRoles.fetch(pda);
+                    console.log(`  TreasuryRoles ${shortenAddress(pda)} now has ${finalState.roles.length} roles after clearing.`);
+                }
             }
-        } else {
-            console.error(`Failed to initialize TreasuryRoles ${shortenAddress(treasuryRolesAddress)}:`, error);
-            throw error;
         }
     }
+    return pda;
 }
 
 // --- Fonction à ajouter : addAdminRoleOnChain (qui sera probablement ensureAdminInTreasuryRoles) --- 
