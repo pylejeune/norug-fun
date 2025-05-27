@@ -8,7 +8,7 @@ import {
 } from './setup/programConfigSetup';
 
 // Importer les fonctions de test des fichiers d'intégration
-import { runProgramConfigInitializationTests } from './integration/00_program_configuration/initializeProgramConfig.test';
+import { runInitializeProgramConfigTests } from './integration/00_program_configuration/initializeProgramConfig.test';
 // import { runProgramConfigAuthorizationTests } from './integration/00_program_configuration/programConfig.test'; // Assurez-vous que ce fichier exporte cette fonction
 
 // Importer les tests individuels pour Epoch Lifecycle
@@ -49,7 +49,7 @@ describe('Norug Fun - Integration Tests Orchestrator', () => {
             // Le contexte (ctx) est déjà initialisé globalement et passé implicitement
             // aux fonctions de test qui appellent getTestContext().
         });
-        runProgramConfigInitializationTests(); // Cette fonction devrait utiliser getTestContext à l'intérieur
+        runInitializeProgramConfigTests();
         // runProgramConfigAuthorizationTests(); 
         after(() => console.log("==================== MODULE 00 END: Program Configuration ======================\n"));
     });
