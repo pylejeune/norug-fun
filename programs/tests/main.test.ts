@@ -4,12 +4,18 @@ import { Programs } from '../../target/types/programs';
 import { TestContext, initializeTestContext } from './setup';
 import {
     ensureProgramConfigInitialized,
-    runProgramConfigInitializationTests,
-    // runProgramConfigAuthorizationTests, // Décommenter lorsque prêt
+    // runProgramConfigAuthorizationTests, // Décommenter lorsque prêt et importer du bon endroit
 } from './setup/programConfigSetup';
-import {
-    runEpochLifecycleTests
-} from './setup/epochSetup'; // Assumant que epochSetup exporte runEpochLifecycleTests
+
+// Importer les fonctions de test des fichiers d'intégration
+import { runProgramConfigInitializationTests } from './integration/00_program_configuration/initializeProgramConfig.test';
+// import { runProgramConfigAuthorizationTests } from './integration/00_program_configuration/programConfig.test'; // Assurez-vous que ce fichier exporte cette fonction
+
+// Importer les tests individuels pour Epoch Lifecycle
+import { runStartEpochTests } from './integration/01_epoch_lifecycle/startEpoch.test';
+import { runEndEpochTests } from './integration/01_epoch_lifecycle/endEpoch.test';
+import { runMarkEpochProcessedTests } from './integration/01_epoch_lifecycle/markEpochProcessed.test';
+
 import { 
     ensureTreasuryInitialized, 
     ensureTreasuryRolesInitialized 
@@ -52,7 +58,10 @@ describe('Norug Fun - Integration Tests Orchestrator', () => {
         before(() => {
             console.log("\n==================== MODULE 01 START: Epoch Lifecycle ====================");
         });
-        runEpochLifecycleTests(); // Cette fonction devrait utiliser getTestContext à l'intérieur
+        // Appeler les tests d'époque individuellement
+        runStartEpochTests(); 
+        runEndEpochTests();
+        runMarkEpochProcessedTests();
         after(() => console.log("==================== MODULE 01 END: Epoch Lifecycle ======================\n"));
     });
 
