@@ -3,7 +3,7 @@ import { Program } from '@coral-xyz/anchor';
 import { Keypair, SystemProgram, PublicKey } from '@solana/web3.js';
 import { expect } from 'chai';
 import { Programs } from '../../../../target/types/programs'; // Ajustez le chemin si nécessaire
-import { TestContext, getTestContext } from '../../setup';
+import { TestContext, getInitializedContext } from '../../setup';
 import {
     ensureProgramConfigInitialized,
     getProgramConfigPda,
@@ -12,7 +12,7 @@ import {
     ensureTreasuryInitialized,
     getTreasuryPda,
 } from '../../setup/treasurySetup';
-import { shortenAddress } from '../../../utils_for_tests/helpers';
+import { shortenAddress } from '../../utils_for_tests/helpers';
 
 // Exporter une fonction qui enregistre les tests
 export function runInitializeTreasuryTests() {
@@ -23,7 +23,7 @@ export function runInitializeTreasuryTests() {
         let treasuryPda: PublicKey;
 
         before(async () => {
-            ctx = await getTestContext();
+            ctx = getInitializedContext();
             program = ctx.program;
             adminKeypair = ctx.adminKeypair;
 
@@ -34,7 +34,7 @@ export function runInitializeTreasuryTests() {
             // Ceci sera appelé APRES le before() du module dans main.test.ts,
             // mais assure l'état spécifique pour ces tests d'initialisation.
             await ensureTreasuryInitialized(ctx); 
-            console.log(`  [InitTreasuryTests] Treasury PDA: ${shortenAddress(treasuryPda)}, Initialized in test file before().`);
+            console.log(`  [InitTreasuryTests] Context acquired. Treasury PDA: ${shortenAddress(treasuryPda)}, ensured initialized.`);
         });
 
         it('should have initialized the Treasury account successfully with default admin', async () => {
@@ -70,10 +70,6 @@ export function runInitializeTreasuryTests() {
         });
 
         it('reflects authority set by ensureTreasuryInitialized if called with specific admin (on a non-existent account)', async () => {
-            // Ce test est délicat à cause du PDA fixe. 
-            // ensureTreasuryInitialized ne réinitialisera pas un compte existant avec une nouvelle autorité.
-            // Il initialise seulement si le compte n'existe pas.
-            // Puisque le before() de ce describe l'a déjà initialisé, ce test va surtout vérifier que l'autorité N'A PAS changé.
             const specificAuthority = Keypair.generate();
             console.log(`  [InitTreasuryTests] Testing with specific authority for ensure: ${shortenAddress(specificAuthority.publicKey)}`);
             
@@ -81,13 +77,11 @@ export function runInitializeTreasuryTests() {
             const treasuryAccount = await program.account.treasury.fetch(treasuryPda);
 
             if (treasuryAccount.authority.equals(specificAuthority.publicKey)) {
-                console.log(`  [InitTreasuryTests] Treasury authority WAS updated to ${shortenAddress(specificAuthority.publicKey)}. This is unexpected for fixed PDA if already init by adminKeypair.`);
-                // Cela ne devrait arriver que si le compte n'était pas initialisé avant cet appel avec specificAuthority
+                console.warn(`  [InitTreasuryTests] Treasury authority WAS updated to ${shortenAddress(specificAuthority.publicKey)}. This implies it was not initialized by adminKeypair in the before() hook or was reset.`);
             } else {
                 console.log(`  [InitTreasuryTests] Treasury authority REMAINS ${shortenAddress(treasuryAccount.authority)}. Did not change to ${shortenAddress(specificAuthority.publicKey)} as account existed.`);
-                expect(treasuryAccount.authority.equals(adminKeypair.publicKey)).to.be.true; // Doit être l'autorité initiale
+                expect(treasuryAccount.authority.equals(adminKeypair.publicKey)).to.be.true;
             }
-            // Important: remettre l'autorité attendue pour les autres tests si elle avait changé (improbable ici)
             await ensureTreasuryInitialized(ctx, adminKeypair.publicKey);
         });
 

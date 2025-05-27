@@ -1,20 +1,17 @@
 import * as anchor from '@coral-xyz/anchor';
 import { expect } from 'chai';
-import { TestContext } from '../../setup'; // Ajuster le chemin relatif vers TestContext
-import { ensureProgramConfigInitialized } from '../../setup/programConfigSetup'; // Ajuster le chemin
+import { TestContext, getInitializedContext } from '../../setup'; // Importer getInitializedContext
+import { ensureProgramConfigInitialized } from '../../setup/programConfigSetup';
 
 /**
  * Exécute les tests d'initialisation pour ProgramConfig.
- * @param getTestContext Une fonction pour récupérer le TestContext initialisé.
  */
-export function runInitializeProgramConfigTests(getTestContext: () => TestContext) {
+export function runInitializeProgramConfigTests() { // Supprimer le paramètre getTestContext
     describe('ProgramConfig Initialization', () => {
         let ctx: TestContext;
 
         before(async () => {
-            ctx = getTestContext();
-            // S'assurer que ProgramConfig est initialisé avant ces tests spécifiques
-            // Utilise l'adminKeypair du contexte par défaut.
+            ctx = getInitializedContext(); // Utiliser getInitializedContext
             await ensureProgramConfigInitialized(ctx);
             expect(ctx.programConfigAddress).to.exist;
         });
@@ -22,17 +19,15 @@ export function runInitializeProgramConfigTests(getTestContext: () => TestContex
         it('should have initialized ProgramConfig with the correct admin', async () => {
             const configAccount = await ctx.program.account.programConfig.fetch(ctx.programConfigAddress!);
             expect(configAccount.adminAuthority.equals(ctx.adminKeypair.publicKey)).to.be.true;
-            console.log(`ProgramConfig initialized with admin: ${configAccount.adminAuthority.toBase58()} in initializeProgramConfig.test.ts`);
+            console.log(`  [InitProgConfigTests] ProgramConfig initialized with admin: ${configAccount.adminAuthority.toBase58()}`);
         });
 
         it('should verify idempotency of ProgramConfig initialization', async () => {
-            // ensureProgramConfigInitialized gère déjà l'idempotence en ne réinitialisant pas si déjà existant.
-            // On peut le rappeler pour vérifier qu'aucune erreur n'est levée et que l'admin reste le même.
             const initialAdmin = ctx.adminKeypair.publicKey;
-            await ensureProgramConfigInitialized(ctx, initialAdmin); // Appeler une seconde fois
+            await ensureProgramConfigInitialized(ctx, initialAdmin);
             const configAccount = await ctx.program.account.programConfig.fetch(ctx.programConfigAddress!);
             expect(configAccount.adminAuthority.equals(initialAdmin)).to.be.true;
-            console.log(`ProgramConfig re-checked, admin still: ${configAccount.adminAuthority.toBase58()}`);
+            console.log(`  [InitProgConfigTests] ProgramConfig re-checked, admin still: ${configAccount.adminAuthority.toBase58()}`);
         });
 
         // TODO:
