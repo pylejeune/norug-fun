@@ -24,6 +24,11 @@ import {
 // Importer les nouvelles fonctions de test depuis les fichiers refactorisés
 import { runInitializeTreasuryTests } from './integration/02_treasury_and_roles/initializeTreasury.test';
 import { runInitializeTreasuryRolesTests } from './integration/02_treasury_and_roles/initializeTreasuryRoles.test';
+import { runAddAdminTests } from './integration/02_treasury_and_roles/roles_management/addAdmin.test';
+import { runRemoveAdminTests } from './integration/02_treasury_and_roles/roles_management/removeAdmin.test';
+import { runAddTreasuryRoleTests } from './integration/02_treasury_and_roles/roles_management/addTreasuryRole.test';
+import { runRemoveTreasuryRoleTests } from './integration/02_treasury_and_roles/roles_management/removeTreasuryRole.test';
+import { runUpdateTreasuryRoleTests } from './integration/02_treasury_and_roles/roles_management/updateTreasuryRole.test';
 
 describe('Norug Fun - Integration Tests Orchestrator', () => {
     let ctx: TestContext;
@@ -76,7 +81,7 @@ describe('Norug Fun - Integration Tests Orchestrator', () => {
             console.log(`  [MainTest - Module 02 Before] Treasury PDA for Module 02: ${ctx.treasuryAddress?.toBase58()}`);
             
             console.log('  [MainTest - Module 02 Before] Ensuring TreasuryRoles is initialized...');
-            await ensureTreasuryRolesInitialized(ctx); // Initialise avec adminKeypair par défaut
+            await ensureTreasuryRolesInitialized(ctx, [ctx.adminKeypair.publicKey]); // Initialise avec adminKeypair par défaut
             console.log(`  [MainTest - Module 02 Before] TreasuryRoles PDA for Module 02: ${ctx.treasuryRolesAddress?.toBase58()}`);
         });
         
@@ -84,8 +89,24 @@ describe('Norug Fun - Integration Tests Orchestrator', () => {
         runInitializeTreasuryTests(); 
         runInitializeTreasuryRolesTests();
         
-        // runManageTreasuryAdminsTests(); // Pour les futurs tests
-        // runManageTreasuryRolesTests(); // Pour les futurs tests
+        // Sous-suite pour la gestion des rôles (admins, rôles de trésorerie)
+        describe('Module 02.1: Treasury Roles Management', () => {
+            before(() => {
+                // Aucun setup spécifique ici si ensureTreasuryRolesInitialized dans le 'before' parent
+                // est suffisant et gère l'état initial pour les tests de rôles.
+                // Si les tests de rôle nécessitent un état très spécifique (par ex. rôles vidés),
+                // cela pourrait être fait dans les beforeEach des fichiers de test individuels.
+                console.log("Running tests for Module 02.1: Treasury Roles Management...");
+            });
+
+            runAddAdminTests();
+            runRemoveAdminTests();
+            runAddTreasuryRoleTests();
+            runRemoveTreasuryRoleTests();
+            runUpdateTreasuryRoleTests();
+        });
+
+        // D'autres tests liés à la trésorerie ou aux rôles pourraient suivre ici...
 
         after(() => console.log("==================== MODULE 02 END: Treasury and Roles ======================\n"));
     });
