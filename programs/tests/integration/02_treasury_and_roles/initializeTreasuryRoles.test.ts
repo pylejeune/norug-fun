@@ -38,7 +38,6 @@ export function runInitializeTreasuryRolesTests() {
             // Assurer l'initialisation des rôles avant les tests de ce module.
             // Le before() du module dans main.test.ts devrait déjà le faire.
             await ensureTreasuryRolesInitialized(ctx); 
-            console.log(`  [InitTreasuryRolesTests] Context acquired. TreasuryRoles PDA: ${shortenAddress(treasuryRolesPda)}, ensured initialized.`);
         });
 
         it('should initialize TreasuryRoles with default admin (ctx.adminKeypair)', async () => {
@@ -47,7 +46,6 @@ export function runInitializeTreasuryRolesTests() {
             expect(accountInfo.authorities.length).to.equal(1);
             expect(accountInfo.authorities[0].equals(adminKeypair.publicKey)).to.be.true;
             expect(accountInfo.roles.length).to.equal(0);
-            console.log(`  [InitTreasuryRolesTests] TreasuryRoles confirmed with default admin: ${shortenAddress(adminKeypair.publicKey)}`);
         });
 
         it('should be idempotent if ensureTreasuryRolesInitialized is called again with default admin', async () => {
@@ -55,7 +53,6 @@ export function runInitializeTreasuryRolesTests() {
             const accountInfo = await program.account.treasuryRoles.fetch(treasuryRolesPda);
             expect(accountInfo.authorities.length).to.equal(1);
             expect(accountInfo.authorities[0].equals(adminKeypair.publicKey)).to.be.true;
-            console.log('  [InitTreasuryRolesTests] ensureTreasuryRolesInitialized (default) called again, state confirmed.');
         });
 
         it('should reflect specified admins when ensureTreasuryRolesInitialized is used (if account was not pre-existing with other admins)', async () => {
@@ -63,7 +60,6 @@ export function runInitializeTreasuryRolesTests() {
             // Si le compte est déjà initialisé (ce qui est le cas par le before()), ensureTreasuryRolesInitialized ne le modifiera pas pour refléter de nouveaux `initialAdmins`.
             // Il initialise seulement si le compte n'existe pas.
             const specificAdmins = [otherAdmin1.publicKey, otherAdmin2.publicKey];
-            console.log(`  [InitTreasuryRolesTests] Testing ensureTreasuryRolesInitialized with specific admins: ${specificAdmins.map(a => shortenAddress(a)).join(', ')}`);
 
             // ensureTreasuryRolesInitialized ne réinitialisera pas un compte existant avec de nouveaux admins.
             // Comme le before() l'a déjà initialisé, ce test vérifie que les admins N'ONT PAS changé.
@@ -73,7 +69,6 @@ export function runInitializeTreasuryRolesTests() {
             if (accountInfo.authorities.length === specificAdmins.length && accountInfo.authorities.every(a => specificAdmins.find(sa => sa.equals(a)))) {
                 console.warn(`  [InitTreasuryRolesTests] TreasuryRoles admins WERE updated to specific admins. This implies it was not initialized by adminKeypair in the before() hook or was reset.`);
             } else {
-                console.log(`  [InitTreasuryRolesTests] TreasuryRoles admins REMAIN as initially set (${accountInfo.authorities.map(a => shortenAddress(a)).join(', ')}). Not changed to specific test admins as account existed.`);
                 expect(accountInfo.authorities.length).to.equal(1);
                 expect(accountInfo.authorities[0].equals(adminKeypair.publicKey)).to.be.true;
             }

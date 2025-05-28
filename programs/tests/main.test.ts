@@ -1,6 +1,6 @@
 import * as anchor from '@coral-xyz/anchor';
 import { Program } from '@coral-xyz/anchor';
-import { Programs } from '../../target/types/programs';
+import { Programs } from '../target/types/programs';
 import { TestContext, initializeTestContext } from './setup';
 import {
     ensureProgramConfigInitialized,
@@ -35,6 +35,7 @@ describe('Norug Fun - Integration Tests Orchestrator', () => {
     let program: Program<Programs>;
 
     before(async () => {
+        console.log("\n==================== GLOBAL SETUP START (main.test.ts) ====================\n");
         console.log('Initializing global test context for main.test.ts...');
         ctx = await initializeTestContext(); 
         program = ctx.program;

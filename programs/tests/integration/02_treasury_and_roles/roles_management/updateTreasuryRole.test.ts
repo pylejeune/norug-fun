@@ -17,6 +17,7 @@ import {
 import { shortenAddress } from '../../../utils_for_tests/helpers';
 
 export function runUpdateTreasuryRoleTests() {
+
     describe('Instruction: update_treasury_role', () => {
         let ctx: TestContext;
         let program: Program<Programs>;
@@ -66,7 +67,7 @@ export function runUpdateTreasuryRoleTests() {
 
             await ensureProgramConfigInitialized(ctx);
             await ensureTreasuryInitialized(ctx);
-            console.log(`  [UpdateTreasuryRoleTests] Context acquired. treasuryRolesPda: ${shortenAddress(treasuryRolesPda)}`);
+            // console.log(`  [UpdateTreasuryRoleTests] Context acquired. treasuryRolesPda: ${shortenAddress(treasuryRolesPda)}`);
         });
 
         beforeEach(async () => {
@@ -103,7 +104,7 @@ export function runUpdateTreasuryRoleTests() {
             expect(updatedRole).to.exist;
             expect(updatedRole?.withdrawalLimit?.eq(newLimit)).to.be.true;
             expect(updatedRole?.withdrawalPeriod?.eq(newPeriod)).to.be.true;
-            console.log(`  [UpdateTreasuryRoleTests] Role updated with new limit and period.`);
+            // console.log(`  [UpdateTreasuryRoleTests] Role updated with new limit and period.`);
         });
 
         it('should allow an admin to set withdrawal_limit and/or withdrawal_period to null', async () => {
@@ -115,7 +116,7 @@ export function runUpdateTreasuryRoleTests() {
             let updatedRole = accountInfo.roles[0];
             expect(updatedRole.withdrawalLimit).to.be.null;
             expect(updatedRole.withdrawalPeriod?.eq(initialPeriod)).to.be.true;
-            console.log(`  [UpdateTreasuryRoleTests] withdrawalLimit set to null.`);
+            // console.log(`  [UpdateTreasuryRoleTests] withdrawalLimit set to null.`);
 
             // Mettre à jour seulement la période à null
             await program.methods.updateTreasuryRole(roleToUpdate, userWithRole.publicKey, initialLimit, null)
@@ -125,7 +126,7 @@ export function runUpdateTreasuryRoleTests() {
             updatedRole = accountInfo.roles[0];
             expect(updatedRole.withdrawalLimit?.eq(initialLimit)).to.be.true;
             expect(updatedRole.withdrawalPeriod).to.be.null;
-            console.log(`  [UpdateTreasuryRoleTests] withdrawalPeriod set to null.`);
+            // console.log(`  [UpdateTreasuryRoleTests] withdrawalPeriod set to null.`);
 
              // Mettre les deux à null
             await program.methods.updateTreasuryRole(roleToUpdate, userWithRole.publicKey, null, null)
@@ -135,7 +136,7 @@ export function runUpdateTreasuryRoleTests() {
             updatedRole = accountInfo.roles[0];
             expect(updatedRole.withdrawalLimit).to.be.null;
             expect(updatedRole.withdrawalPeriod).to.be.null;
-            console.log(`  [UpdateTreasuryRoleTests] Both withdrawalLimit and withdrawalPeriod set to null.`);
+            // console.log(`  [UpdateTreasuryRoleTests] Both withdrawalLimit and withdrawalPeriod set to null.`);
         });
 
         it('should fail if signer is not an admin', async () => {
@@ -196,7 +197,7 @@ export function runUpdateTreasuryRoleTests() {
             // Vérifier que le roleType (partie catégorie) n'a pas changé
             expect(roleAfterUpdate.roleType.withdrawer).to.exist; 
             expect(roleAfterUpdate.roleType.withdrawer["0"]).to.deep.equal(roleToUpdate.withdrawer[0]);
-            console.log(`  [UpdateTreasuryRoleTests] pubkey and roleType remained unchanged after update.`);
+            // console.log(`  [UpdateTreasuryRoleTests] pubkey and roleType remained unchanged after update.`);
         });
     });
 } 

@@ -17,6 +17,7 @@ import {
 import { shortenAddress } from '../../../utils_for_tests/helpers';
 
 export function runAddTreasuryRoleTests() {
+
     describe('Instruction: add_treasury_role', () => {
         let ctx: TestContext;
         let program: Program<Programs>;
@@ -36,7 +37,7 @@ export function runAddTreasuryRoleTests() {
             await ensureProgramConfigInitialized(ctx);
             await ensureTreasuryInitialized(ctx);
             // ensureTreasuryRolesInitialized sera appelé dans beforeEach pour un état propre.
-            console.log(`  [AddTreasuryRoleTests] Context acquired. treasuryRolesPda: ${shortenAddress(treasuryRolesPda)}`);
+            // console.log(`  [AddTreasuryRoleTests] Context acquired. treasuryRolesPda: ${shortenAddress(treasuryRolesPda)}`);
         });
 
         beforeEach(async () => {
@@ -89,7 +90,7 @@ export function runAddTreasuryRoleTests() {
             const addedRole = accountInfo.roles[0];
             expect(addedRole.pubkey.equals(userForKey.publicKey)).to.be.true;
             expect(JSON.stringify(addedRole.roleType)).to.equal(JSON.stringify(roleToAdd));
-            console.log(`  [AddTreasuryRoleTests] CategoryManager for Marketing added to ${shortenAddress(userForKey.publicKey)}.`);
+            // console.log(`  [AddTreasuryRoleTests] CategoryManager for Marketing added to ${shortenAddress(userForKey.publicKey)}.`);
         });
 
         it('should allow an admin to add a Withdrawer role with limits', async () => {
@@ -109,7 +110,7 @@ export function runAddTreasuryRoleTests() {
             expect(JSON.stringify(addedRole.roleType)).to.equal(JSON.stringify(roleToAdd));
             expect(addedRole.withdrawalLimit?.eq(limit)).to.be.true;
             expect(addedRole.withdrawalPeriod?.eq(period)).to.be.true;
-            console.log(`  [AddTreasuryRoleTests] Withdrawer for Team with limits added to ${shortenAddress(userForKey.publicKey)}.`);
+            // console.log(`  [AddTreasuryRoleTests] Withdrawer for Team with limits added to ${shortenAddress(userForKey.publicKey)}.`);
         });
 
         it('should fail if signer is not an admin', async () => {
@@ -131,7 +132,7 @@ export function runAddTreasuryRoleTests() {
             await program.methods.addTreasuryRole(roleToAdd, userForKey.publicKey, null, null)
                 .accounts({ treasuryRoles: treasuryRolesPda, authority: adminKeypair.publicKey })
                 .signers([adminKeypair]).rpc();
-            console.log(`  [AddTreasuryRoleTests] Role added once for duplicate test.`);
+            // console.log(`  [AddTreasuryRoleTests] Role added once for duplicate test.`);
 
             try {
                 await program.methods.addTreasuryRole(roleToAdd, userForKey.publicKey, null, null)
@@ -160,7 +161,7 @@ export function runAddTreasuryRoleTests() {
             }
             const accountInfo = await program.account.treasuryRoles.fetch(treasuryRolesPda);
             expect(accountInfo.roles.length).to.equal(rolesToAdd);
-            console.log(`  [AddTreasuryRoleTests] Successfully added ${rolesToAdd} roles.`);
+            // console.log(`  [AddTreasuryRoleTests] Successfully added ${rolesToAdd} roles.`);
         });
     });
 } 

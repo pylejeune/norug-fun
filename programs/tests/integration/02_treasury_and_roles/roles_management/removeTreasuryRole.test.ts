@@ -17,6 +17,7 @@ import {
 import { shortenAddress } from '../../../utils_for_tests/helpers';
 
 export function runRemoveTreasuryRoleTests() {
+
     describe('Instruction: remove_treasury_role', () => {
         let ctx: TestContext;
         let program: Program<Programs>;
@@ -66,7 +67,7 @@ export function runRemoveTreasuryRoleTests() {
 
             await ensureProgramConfigInitialized(ctx);
             await ensureTreasuryInitialized(ctx);
-            console.log(`  [RemoveTreasuryRoleTests] Context acquired. treasuryRolesPda: ${shortenAddress(treasuryRolesPda)}`);
+            // console.log(`  [RemoveTreasuryRoleTests] Context acquired. treasuryRolesPda: ${shortenAddress(treasuryRolesPda)}`);
         });
 
         beforeEach(async () => {
@@ -109,7 +110,7 @@ export function runRemoveTreasuryRoleTests() {
                 JSON.stringify(r.roleType.withdrawer["0"]) === JSON.stringify(anotherRole.withdrawer[0])
             );
             expect(otherRoleExists).to.be.true;
-            console.log(`  [RemoveTreasuryRoleTests] Role removed successfully. Remaining roles: ${accountInfo.roles.length}`);
+            // console.log(`  [RemoveTreasuryRoleTests] Role removed successfully. Remaining roles: ${accountInfo.roles.length}`);
         });
 
         it('should fail if signer is not an admin', async () => {
@@ -140,7 +141,7 @@ export function runRemoveTreasuryRoleTests() {
                 
                 const infoAfter = await program.account.treasuryRoles.fetch(treasuryRolesPda);
                 expect(infoAfter.roles.length).to.equal(countBefore);
-                console.log(`  [RemoveTreasuryRoleTests] Attempted to remove non-existent role, count unchanged (idempotent).`);
+                // console.log(`  [RemoveTreasuryRoleTests] Attempted to remove non-existent role, count unchanged (idempotent).`);
             } catch (error) {
                 // Ne devrait pas arriver car l'instruction Rust est idempotente
                 console.error("Error during idempotent remove test:", error);

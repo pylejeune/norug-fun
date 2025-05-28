@@ -44,7 +44,7 @@ async function resetAdminsToInitial(
                     .accounts({ treasuryRoles: treasuryRolesPda, authority: initialAdmin.publicKey } as any)
                     .signers([initialAdmin])
                     .rpc();
-                console.log(`  [ResetAdmins] Removed admin ${shortenAddress(adminPk)} during reset.`);
+                // console.log(`  [ResetAdmins] Removed admin ${shortenAddress(adminPk)} during reset.`);
             } catch (e) {
                 // console.warn(`  [ResetAdmins] Failed to remove admin ${shortenAddress(adminPk)} during reset: ${e.message}`);
                 // It might fail if the admin isn't there, which is fine for a reset.
@@ -58,7 +58,7 @@ async function resetAdminsToInitial(
                 .accounts({ treasuryRoles: treasuryRolesPda, authority: initialAdmin.publicKey } as any) // initialAdmin adds itself if missing
                 .signers([initialAdmin])
                 .rpc();
-            console.log(`  [ResetAdmins] Re-added initial admin ${shortenAddress(initialAdmin.publicKey)} as it was missing.`);
+            // console.log(`  [ResetAdmins] Re-added initial admin ${shortenAddress(initialAdmin.publicKey)} as it was missing.`);
         }
     } catch (error) {
         // If treasuryRoles doesn't exist, ensureTreasuryRolesInitialized in beforeEach will handle it.
@@ -67,6 +67,7 @@ async function resetAdminsToInitial(
 }
 
 export function runRemoveAdminTests() {
+
     describe('Instruction: remove_admin', () => {
         let ctx: TestContext;
         let program: Program<Programs>;
@@ -88,7 +89,7 @@ export function runRemoveAdminTests() {
             // Pour removeAdmin, nous aurons souvent besoin d'au moins deux admins pour commencer
             // afin de pouvoir en supprimer un sans tomber à zéro.
             // ensureTreasuryRolesInitialized sera appelé dans beforeEach pour configurer l'état spécifique du test.
-            console.log(`  [RemoveAdminTests] Context acquired. treasuryRolesPda: ${shortenAddress(treasuryRolesPda)}`);
+            // console.log(`  [RemoveAdminTests] Context acquired. treasuryRolesPda: ${shortenAddress(treasuryRolesPda)}`);
         });
 
         beforeEach(async () => {
@@ -106,7 +107,7 @@ export function runRemoveAdminTests() {
             // This is a point of potential fragility.
             // The best approach is ensureTreasuryRolesInitialized(ctx, [initialAdmin.publicKey], true);
              await ensureTreasuryRolesInitialized(ctx, [initialAdmin.publicKey], true); // Critical: clearRoles = true
-             console.log(`  [RemoveAdminTests] beforeEach: Treasury roles initialized with admin: ${shortenAddress(initialAdmin.publicKey)} and roles cleared.`);
+             // console.log(`  [RemoveAdminTests] beforeEach: Treasury roles initialized with admin: ${shortenAddress(initialAdmin.publicKey)} and roles cleared.`);
 
             // The resetAdminsToInitial function is more for complex scenarios where ensureTreasuryRolesInitialized
             // might not be enough or if we want to keep other roles intact.
@@ -116,14 +117,14 @@ export function runRemoveAdminTests() {
             const currentRoles = await program.account.treasuryRoles.fetch(treasuryRolesPda);
             expect(currentRoles.authorities.length).to.equal(1);
             expect(currentRoles.authorities[0].equals(initialAdmin.publicKey)).to.be.true;
-            console.log(`  [RemoveAdminTests] beforeEach: Verified state: 1 admin (${shortenAddress(initialAdmin.publicKey)}).`);
+            // console.log(`  [RemoveAdminTests] beforeEach: Verified state: 1 admin (${shortenAddress(initialAdmin.publicKey)}).`);
         });
 
         it('should allow an existing admin to remove another admin', async () => {
             // Setup: S'assurer qu'il y a initialAdmin et adminToRemove comme admins.
             // adminToRemove est généré au niveau du describe et est unique par exécution de test.
             const localAdminToRemove = Keypair.generate(); // Utiliser un admin local pour ce test
-            console.log(`  [RmvAdm] Admin to add then remove: ${shortenAddress(localAdminToRemove.publicKey)}`);
+            // console.log(`  [RmvAdm] Admin to add then remove: ${shortenAddress(localAdminToRemove.publicKey)}`);
 
             // 1. S'assurer que TreasuryRoles a initialAdmin (devrait être le cas)
             // 2. Ajouter localAdminToRemove, signé par initialAdmin
@@ -132,7 +133,7 @@ export function runRemoveAdminTests() {
                     .accounts({ treasuryRoles: treasuryRolesPda, authority: initialAdmin.publicKey } as any)
                     .signers([initialAdmin])
                     .rpc();
-                console.log(`  [RmvAdm] Added ${shortenAddress(localAdminToRemove.publicKey)} for removal test.`);
+                // console.log(`  [RmvAdm] Added ${shortenAddress(localAdminToRemove.publicKey)} for removal test.`);
             } catch (e) {
                 console.error(`  [RmvAdm] FAILED TO ADD ADMIN FOR TEST: ${shortenAddress(localAdminToRemove.publicKey)}`, e);
                 // Si l'admin existe déjà à cause d'un test précédent mal nettoyé, 
@@ -159,7 +160,7 @@ export function runRemoveAdminTests() {
             expect(info.authorities.length).to.equal(initialAdminCount - 1);
             expect(info.authorities.some(auth => auth.equals(localAdminToRemove.publicKey))).to.be.false;
             expect(info.authorities.some(auth => auth.equals(initialAdmin.publicKey))).to.be.true;
-            console.log(`  [RmvAdm] Admin ${shortenAddress(localAdminToRemove.publicKey)} removed by ${shortenAddress(initialAdmin.publicKey)}. Remaining: ${info.authorities.map(a => shortenAddress(a))}`);
+            // console.log(`  [RmvAdm] Admin ${shortenAddress(localAdminToRemove.publicKey)} removed by ${shortenAddress(initialAdmin.publicKey)}. Remaining: ${info.authorities.map(a => shortenAddress(a))}`);
         
             // Cleanup: Si localAdminToRemove a été ajouté et ce test échoue avant de le supprimer, 
             // il pourrait rester. Cependant, le before() du module réinitialise à 1 admin.
@@ -178,13 +179,13 @@ export function runRemoveAdminTests() {
                     .rpc();
                 expect.fail('  [RemoveAdminTests] Transaction should have failed as signer is not an admin.');
             } catch (error) {
-                console.log('  [RemoveAdminTests] Error caught for non-admin signer:');
-                console.log('  [RemoveAdminTests] error.name:', error.name);
-                console.log('  [RemoveAdminTests] error.message:', error.message);
-                // console.log('  [RemoveAdminTests] error.stack:', error.stack); // Stack peut être très long
-                console.log('  [RemoveAdminTests] stringify error:', JSON.stringify(error, null, 2));
+                // console.log('  [RemoveAdminTests] Error caught for non-admin signer:');
+                // console.log('  [RemoveAdminTests] error.name:', error.name);
+                // console.log('  [RemoveAdminTests] error.message:', error.message);
+                // // console.log('  [RemoveAdminTests] error.stack:', error.stack); // Stack peut être très long
+                // console.log('  [RemoveAdminTests] stringify error:', JSON.stringify(error, null, 2));
                 if (error instanceof anchor.AnchorError) {
-                    console.log('  [RemoveAdminTests] Is AnchorError. Code:', error.error.errorCode.code, 'Number:', error.error.errorCode.number, 'Msg:', error.error.errorMessage);
+                    // console.log('  [RemoveAdminTests] Is AnchorError. Code:', error.error.errorCode.code, 'Number:', error.error.errorCode.number, 'Msg:', error.error.errorMessage);
                     expect(error.error.errorCode.code).to.equal('Unauthorized');
                 } else {
                     console.error('  [RemoveAdminTests] Error was not an AnchorError as expected.', error);
@@ -200,7 +201,7 @@ export function runRemoveAdminTests() {
             // dans le beforeEach de removeAdmin.test.ts ne modifie pas les admins d'un compte existant.
 
             let info = await program.account.treasuryRoles.fetch(treasuryRolesPda);
-            console.log(`  [RmvLAd] Admins at test start (should be 1): ${info.authorities.map(a => shortenAddress(a))}, count: ${info.authorities.length}`);
+            // console.log(`  [RmvLAd] Admins at test start (should be 1): ${info.authorities.map(a => shortenAddress(a))}, count: ${info.authorities.length}`);
             expect(info.authorities.length).to.equal(1, "Test setup assumption failed: expected 1 admin at the start of 'fail to remove last admin' test.");
             expect(info.authorities[0].equals(initialAdmin.publicKey)).to.be.true;
             // console.log(`  [RmvLAd] Setup with single admin: ${shortenAddress(info.authorities[0])}`); // Log redondant
@@ -242,7 +243,7 @@ export function runRemoveAdminTests() {
             // Il faut s'assurer qu'il y a au moins un autre admin (initialAdmin) 
             // et que adminToRemove est bien un admin au début.
             const localAdminToRemove = Keypair.generate(); // Admin spécifique pour ce test
-            console.log(`  [RmvSelf] Admin to add then remove itself: ${shortenAddress(localAdminToRemove.publicKey)}`);
+            // console.log(`  [RmvSelf] Admin to add then remove itself: ${shortenAddress(localAdminToRemove.publicKey)}`);
 
             // 1. Ajouter localAdminToRemove, signé par initialAdmin (qui doit être admin)
             try {
@@ -250,9 +251,9 @@ export function runRemoveAdminTests() {
                     .accounts({ treasuryRoles: treasuryRolesPda, authority: initialAdmin.publicKey } as any)
                     .signers([initialAdmin])
                     .rpc();
-                console.log(`  [RmvSelf] Added ${shortenAddress(localAdminToRemove.publicKey)} for self-removal test.`);
+                // console.log(`  [RmvSelf] Added ${shortenAddress(localAdminToRemove.publicKey)} for self-removal test.`);
             } catch (e) {
-                console.error(`  [RmvSelf] FAILED TO ADD ADMIN FOR TEST: ${shortenAddress(localAdminToRemove.publicKey)}`, e);
+                console.error(`  [RmvSelf] FAILED TO ADD ADMIN FOR SELF-REMOVAL TEST: ${shortenAddress(localAdminToRemove.publicKey)}`, e);
                 // Tenter de continuer, mais le test est probablement invalide
             }
 
@@ -276,7 +277,8 @@ export function runRemoveAdminTests() {
             info = await program.account.treasuryRoles.fetch(treasuryRolesPda);
             expect(info.authorities.length).to.equal(initialAdminCount - 1);
             expect(info.authorities.some(auth => auth.equals(localAdminToRemove.publicKey))).to.be.false;
-            console.log(`  [RemoveAdminTests] Admin ${shortenAddress(localAdminToRemove.publicKey)} successfully removed themselves.`);
+            expect(info.authorities.some(auth => auth.equals(initialAdmin.publicKey))).to.be.true;
+            // console.log(`  [RmvSelf] Admin ${shortenAddress(localAdminToRemove.publicKey)} removed itself. Remaining: ${info.authorities.map(a => shortenAddress(a))}`);
             
             // Vérifier que localAdminToRemove ne peut plus agir comme admin
             try {

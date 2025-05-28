@@ -22,7 +22,7 @@ async function resetAdminsToInitial(program: Program<Programs>, treasuryRolesPda
     const adminsToRemove = info.authorities.filter(admin => !admin.equals(initialAdminKeypair.publicKey));
     
     for (const adminPk of adminsToRemove) {
-        console.log(`  [AdminSetup] Cleaning up admin: ${shortenAddress(adminPk)}`);
+        // console.log(`  [AdminSetup] Cleaning up admin: ${shortenAddress(adminPk)}`);
         try {
             await program.methods.removeAdmin(adminPk)
                 .accounts({ treasuryRoles: treasuryRolesPda, authority: initialAdminKeypair.publicKey })
@@ -44,6 +44,7 @@ async function resetAdminsToInitial(program: Program<Programs>, treasuryRolesPda
 }
 
 export function runAddAdminTests() {
+
     describe('Instruction: add_admin', () => {
         let ctx: TestContext;
         let program: Program<Programs>;
@@ -64,7 +65,7 @@ export function runAddAdminTests() {
             await ensureProgramConfigInitialized(ctx);
             await ensureTreasuryInitialized(ctx);
             // TreasuryRoles est initialisé avec adminKeypair comme seul admin par le before() du Module 02.
-            console.log(`  [AddAdminTests] Context acquired. Initial admin: ${shortenAddress(adminKeypair.publicKey)}. treasuryRolesPda: ${shortenAddress(treasuryRolesPda)}`);
+            // console.log(`  [AddAdminTests] Context acquired. Initial admin: ${shortenAddress(adminKeypair.publicKey)}. treasuryRolesPda: ${shortenAddress(treasuryRolesPda)}`);
         });
 
         beforeEach(async () => {
@@ -73,7 +74,7 @@ export function runAddAdminTests() {
             anotherAdminCandidate = Keypair.generate();
             // À chaque test, s'assurer que seul adminKeypair (initialAdmin) est présent.
             // Les tests addAdmin précédents pourraient avoir laissé d'autres admins.
-            console.log(`  [AddAdminTests] beforeEach: Resetting admins to initial state (${shortenAddress(adminKeypair.publicKey)} only).`);
+            // console.log(`  [AddAdminTests] beforeEach: Resetting admins to initial state (${shortenAddress(adminKeypair.publicKey)} only).`);
             await resetAdminsToInitial(program, treasuryRolesPda, adminKeypair);
             const info = await program.account.treasuryRoles.fetch(treasuryRolesPda);
             expect(info.authorities.length).to.equal(1, "beforeEach failed to reset admins to initial state");
@@ -82,7 +83,7 @@ export function runAddAdminTests() {
 
         it('should allow an existing admin to add a new admin (up to 3 total)', async () => {
             // Test 1: Ajout du 2ème admin
-            console.log(`  [AddAdminTests] Adding 2nd admin: ${shortenAddress(newAdminCandidate1.publicKey)}`);
+            // console.log(`  [AddAdminTests] Adding 2nd admin: ${shortenAddress(newAdminCandidate1.publicKey)}`);
             await program.methods.addAdmin(newAdminCandidate1.publicKey)
                 .accounts({ treasuryRoles: treasuryRolesPda, authority: adminKeypair.publicKey })
                 .signers([adminKeypair])
@@ -90,10 +91,10 @@ export function runAddAdminTests() {
             let info = await program.account.treasuryRoles.fetch(treasuryRolesPda);
             expect(info.authorities.length).to.equal(2);
             expect(info.authorities.some(auth => auth.equals(newAdminCandidate1.publicKey))).to.be.true;
-            console.log(`  [AddAdminTests] Successfully added ${shortenAddress(newAdminCandidate1.publicKey)}. Admins: ${info.authorities.map(a => shortenAddress(a))}`);
+            // console.log(`  [AddAdminTests] Successfully added ${shortenAddress(newAdminCandidate1.publicKey)}. Admins: ${info.authorities.map(a => shortenAddress(a))}`);
 
             // Test 2: Ajout du 3ème admin
-            console.log(`  [AddAdminTests] Adding 3rd admin: ${shortenAddress(newAdminCandidate2.publicKey)}`);
+            // console.log(`  [AddAdminTests] Adding 3rd admin: ${shortenAddress(newAdminCandidate2.publicKey)}`);
             await program.methods.addAdmin(newAdminCandidate2.publicKey)
                 .accounts({ treasuryRoles: treasuryRolesPda, authority: adminKeypair.publicKey })
                 .signers([adminKeypair])
@@ -101,7 +102,7 @@ export function runAddAdminTests() {
             info = await program.account.treasuryRoles.fetch(treasuryRolesPda);
             expect(info.authorities.length).to.equal(3);
             expect(info.authorities.some(auth => auth.equals(newAdminCandidate2.publicKey))).to.be.true;
-            console.log(`  [AddAdminTests] Successfully added ${shortenAddress(newAdminCandidate2.publicKey)}. Admins: ${info.authorities.map(a => shortenAddress(a))}`);
+            // console.log(`  [AddAdminTests] Successfully added ${shortenAddress(newAdminCandidate2.publicKey)}. Admins: ${info.authorities.map(a => shortenAddress(a))}`);
         });
 
         it('should fail if the signer is not an existing admin', async () => {
@@ -124,7 +125,7 @@ export function runAddAdminTests() {
             await program.methods.addAdmin(newAdminCandidate1.publicKey)
                 .accounts({ treasuryRoles: treasuryRolesPda, authority: adminKeypair.publicKey })
                 .signers([adminKeypair]).rpc();
-            console.log(`  [AddAdminTests] ${shortenAddress(newAdminCandidate1.publicKey)} added once for duplicate test.`);
+            // console.log(`  [AddAdminTests] ${shortenAddress(newAdminCandidate1.publicKey)} added once for duplicate test.`);
 
             try {
                 await program.methods.addAdmin(newAdminCandidate1.publicKey) // Tenter de l'ajouter à nouveau
@@ -145,7 +146,7 @@ export function runAddAdminTests() {
             
             let info = await program.account.treasuryRoles.fetch(treasuryRolesPda);
             expect(info.authorities.length).to.equal(3, "Setup for 4th admin test failed, did not reach 3 admins.");
-            console.log(`  [AddAdminTests] Reached 3 admins: ${info.authorities.map(a => shortenAddress(a))}. Attempting to add 4th: ${shortenAddress(anotherAdminCandidate.publicKey)}`);
+            // console.log(`  [AddAdminTests] Reached 3 admins: ${info.authorities.map(a => shortenAddress(a))}. Attempting to add 4th: ${shortenAddress(anotherAdminCandidate.publicKey)}`);
 
             try {
                 await program.methods.addAdmin(anotherAdminCandidate.publicKey)
