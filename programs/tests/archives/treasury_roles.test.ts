@@ -2,7 +2,7 @@ import * as anchor from '@coral-xyz/anchor';
 import { Program } from '@coral-xyz/anchor';
 import { PublicKey, Keypair, SystemProgram } from '@solana/web3.js';
 import { assert, expect } from 'chai';
-import { Programs } from '../target/types/programs';
+import { Programs } from '../../target/types/programs';
 import { AnchorError } from '@coral-xyz/anchor';
 
 describe('TreasuryRoles (multi-admin & roles management)', () => {

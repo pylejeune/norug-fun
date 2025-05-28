@@ -107,8 +107,6 @@ describe('Norug Fun - Integration Tests Orchestrator', () => {
             runUpdateTreasuryRoleTests();
         });
 
-        // D'autres tests liés à la trésorerie ou aux rôles pourraient suivre ici...
-
         after(() => console.log("==================== MODULE 02 END: Treasury and Roles ======================\n"));
     });
 
