@@ -94,7 +94,12 @@ export function runUpdateTreasuryRoleTests() {
                 .rpc();
 
             const accountInfo = await program.account.treasuryRoles.fetch(treasuryRolesPda);
-            const updatedRole = accountInfo.roles.find(r => r.pubkey.equals(userWithRole.publicKey) && JSON.stringify(r.roleType) === JSON.stringify(roleToUpdate));
+            // Trouver le rôle spécifique après la mise à jour
+            const updatedRole = accountInfo.roles.find(r => 
+                r.pubkey.equals(userWithRole.publicKey) && 
+                r.roleType.withdrawer && // Vérifie que c'est bien un withdrawer
+                JSON.stringify(r.roleType.withdrawer["0"]) === JSON.stringify(roleToUpdate.withdrawer[0])
+            );
             expect(updatedRole).to.exist;
             expect(updatedRole?.withdrawalLimit?.eq(newLimit)).to.be.true;
             expect(updatedRole?.withdrawalPeriod?.eq(newPeriod)).to.be.true;
@@ -180,9 +185,17 @@ export function runUpdateTreasuryRoleTests() {
                 .signers([adminKeypair]).rpc();
 
             const accountInfo = await program.account.treasuryRoles.fetch(treasuryRolesPda);
-            const updatedRole = accountInfo.roles[0];
-            expect(updatedRole.pubkey.equals(userWithRole.publicKey)).to.be.true;
-            expect(JSON.stringify(updatedRole.roleType)).to.equal(JSON.stringify(roleToUpdate));
+            // Trouver le rôle spécifique après la mise à jour
+            const roleAfterUpdate = accountInfo.roles.find(r => 
+                r.pubkey.equals(userWithRole.publicKey) && 
+                r.roleType.withdrawer && // Vérifie que c'est bien un withdrawer
+                JSON.stringify(r.roleType.withdrawer["0"]) === JSON.stringify(roleToUpdate.withdrawer[0])
+            );
+            expect(roleAfterUpdate).to.exist;
+            expect(roleAfterUpdate.pubkey.equals(userWithRole.publicKey)).to.be.true;
+            // Vérifier que le roleType (partie catégorie) n'a pas changé
+            expect(roleAfterUpdate.roleType.withdrawer).to.exist; 
+            expect(roleAfterUpdate.roleType.withdrawer["0"]).to.deep.equal(roleToUpdate.withdrawer[0]);
             console.log(`  [UpdateTreasuryRoleTests] pubkey and roleType remained unchanged after update.`);
         });
     });

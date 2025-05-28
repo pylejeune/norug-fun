@@ -98,13 +98,15 @@ export function runRemoveTreasuryRoleTests() {
             // Vérifier que le rôle spécifique a été supprimé
             const roleExists = accountInfo.roles.some(r => 
                 r.pubkey.equals(userWithRole.publicKey) && 
-                JSON.stringify(r.roleType) === JSON.stringify(roleToRemove)
+                r.roleType.categoryManager && 
+                JSON.stringify(r.roleType.categoryManager["0"]) === JSON.stringify(roleToRemove.categoryManager[0])
             );
             expect(roleExists).to.be.false;
             // Vérifier que l'autre rôle est toujours là
             const otherRoleExists = accountInfo.roles.some(r => 
                 r.pubkey.equals(userWithRole.publicKey) && 
-                JSON.stringify(r.roleType) === JSON.stringify(anotherRole)
+                r.roleType.withdrawer &&
+                JSON.stringify(r.roleType.withdrawer["0"]) === JSON.stringify(anotherRole.withdrawer[0])
             );
             expect(otherRoleExists).to.be.true;
             console.log(`  [RemoveTreasuryRoleTests] Role removed successfully. Remaining roles: ${accountInfo.roles.length}`);

@@ -459,7 +459,7 @@ describe("Tests de la fonctionnalité reclaim_support", () => {
         })
         .signers([adminAuthority])
         .rpc();
-       console.log("   Epoch fermée.");
+      console.log("   Epoch fermée.");
       await program.methods.updateProposalStatus({ rejected: {} }).accounts({ authority: adminAuthority.publicKey, programConfig: programConfigPda, epochManagement: errorTestEpochPda, proposal: errorTestProposalPda }).signers([adminAuthority]).rpc();
        console.log("   Proposal marquée Rejected.");
       await program.methods.markEpochProcessed().accounts({ authority: adminAuthority.publicKey, programConfig: programConfigPda, epochManagement: errorTestEpochPda }).signers([adminAuthority]).rpc();

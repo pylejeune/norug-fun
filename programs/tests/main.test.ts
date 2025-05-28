@@ -62,7 +62,7 @@ describe('Norug Fun - Integration Tests Orchestrator', () => {
     describe('Module 01: Epoch Lifecycle Management', () => {
         before(() => {
             console.log("\n==================== MODULE 01 START: Epoch Lifecycle ====================");
-        });
+    });
         // Appeler les tests d'époque individuellement
         runStartEpochTests(); 
         runEndEpochTests();
@@ -83,8 +83,8 @@ describe('Norug Fun - Integration Tests Orchestrator', () => {
             console.log('  [MainTest - Module 02 Before] Ensuring TreasuryRoles is initialized...');
             await ensureTreasuryRolesInitialized(ctx, [ctx.adminKeypair.publicKey]); // Initialise avec adminKeypair par défaut
             console.log(`  [MainTest - Module 02 Before] TreasuryRoles PDA for Module 02: ${ctx.treasuryRolesAddress?.toBase58()}`);
-        });
-        
+    });
+
         // Appeler les tests d'initialisation qui sont maintenant dans des fonctions exportées
         runInitializeTreasuryTests(); 
         runInitializeTreasuryRolesTests();
