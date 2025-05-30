@@ -5,6 +5,7 @@ import * as anchor from '@coral-xyz/anchor';
 import { PublicKey, SystemProgram } from '@solana/web3.js';
 import { TestContext } from './index'; // Importer TestContext
 import { Programs } from '../../target/types/programs'; // Importer Programs pour le typage
+import { shortenAddress } from '../utils_for_tests/helpers'; // Importer shortenAddress
 
 /**
  * Calcule l'adresse PDA pour le compte ProgramConfig.
@@ -39,10 +40,10 @@ export async function ensureProgramConfigInitialized(
     try {
         // Essayer de fetch le compte pour voir s'il existe déjà
         await program.account.programConfig.fetch(pda);
-        console.log(`ProgramConfig account ${pda.toBase58()} already initialized.`);
+        console.log(`ProgramConfig account ${shortenAddress(pda)} already initialized.`);
     } catch (error) {
         // Si fetch échoue, le compte n'existe probablement pas, donc on l'initialise
-        console.log(`Initializing ProgramConfig account ${pda.toBase58()} with admin ${adminToUse.toBase58()}...`);
+        console.log(`Initializing ProgramConfig account ${shortenAddress(pda)} with admin ${shortenAddress(adminToUse)}...`);
         try {
             await program.methods
                 .initializeProgramConfig(adminToUse)
@@ -53,17 +54,17 @@ export async function ensureProgramConfigInitialized(
                 } as any) // Cast en any pour résoudre l'erreur de linter
                 .signers([adminKeypair]) 
                 .rpc();
-            console.log(`ProgramConfig account ${pda.toBase58()} initialized successfully.`);
+            console.log(`ProgramConfig account ${shortenAddress(pda)} initialized successfully.`);
         } catch (initError) {
             // Gérer le cas où l'initialisation échoue pour une autre raison (par exemple, adminToUse != adminKeypair.publicKey et adminKeypair n'est pas l'admin actuel)
             // Ou si le compte a été créé entre le fetch et l'appel d'initialisation (race condition)
-            console.error("Failed to initialize ProgramConfig:", initError);
+            console.error(`Failed to initialize ProgramConfig ${shortenAddress(pda)}:`, initError);
             // Tenter de re-fetch au cas où une race condition aurait eu lieu
             try {
                 const configAfterError = await program.account.programConfig.fetch(pda);
-                console.log(`ProgramConfig ${pda.toBase58()} was found after init error, admin: ${configAfterError.adminAuthority.toBase58()}`);
+                console.log(`ProgramConfig ${shortenAddress(pda)} was found after init error, admin: ${shortenAddress(configAfterError.adminAuthority)}`);
             } catch (fetchAfterError) {
-                console.error(`Still unable to fetch ProgramConfig ${pda.toBase58()} after init error:`, fetchAfterError);
+                console.error(`Still unable to fetch ProgramConfig ${shortenAddress(pda)} after init error:`, fetchAfterError);
                 throw initError; // Renvoyer l'erreur d'initialisation originale
             }
         }
@@ -71,7 +72,7 @@ export async function ensureProgramConfigInitialized(
     // Vérification finale pour s'assurer que l'admin est correct si initialAdmin était spécifié
     const finalConfig = await program.account.programConfig.fetch(pda);
     if (initialAdmin && !finalConfig.adminAuthority.equals(initialAdmin)) {
-        console.warn(`Warning: ProgramConfig admin ${finalConfig.adminAuthority.toBase58()} does not match specified initialAdmin ${initialAdmin.toBase58()}.`);
+        console.warn(`Warning: ProgramConfig admin ${shortenAddress(finalConfig.adminAuthority)} does not match specified initialAdmin ${shortenAddress(initialAdmin)}.`);
         // Selon la logique souhaitée, on pourrait vouloir lancer une erreur ici ou tenter de mettre à jour l'admin.
         // Pour l'instant, on se contente d'un avertissement.
     }

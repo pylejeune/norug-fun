@@ -2,7 +2,7 @@ import * as anchor from '@coral-xyz/anchor';
 import { Program } from '@coral-xyz/anchor';
 import { PublicKey, Keypair, SystemProgram } from '@solana/web3.js';
 import { assert, expect } from 'chai';
-import { Programs } from '../target/types/programs';
+import { Programs } from '../../target/types/programs';
 import { AnchorError } from '@coral-xyz/anchor';
 
 describe('TreasuryRoles (multi-admin & roles management)', () => {
@@ -22,7 +22,7 @@ describe('TreasuryRoles (multi-admin & roles management)', () => {
     provider = anchor.AnchorProvider.env();
     anchor.setProvider(provider);
     // program = anchor.workspace.NorugFun as Program<NorugFun>; // À adapter
-    program = anchor.workspace.Programs as Program<Programs>; 
+    program = anchor.workspace.Programs as Program<Programs>;
     admin1 = Keypair.generate();
     admin2 = Keypair.generate();
     admin3 = Keypair.generate();

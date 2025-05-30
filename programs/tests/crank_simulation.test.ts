@@ -76,7 +76,7 @@ describe("Simulation du traitement d'époque par le Crank", () => {
       } else {
         console.error("Erreur inattendue durant l'initialisation de ProgramConfig dans crank_simulation.test.ts:", error);
         throw error; // Relancer les erreurs inattendues
-      }
+        }
     }
      // --- Fin Initialisation ProgramConfig ---
 
