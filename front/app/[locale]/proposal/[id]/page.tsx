@@ -60,6 +60,10 @@ export default function ProposalDetailPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [supports, setSupports] = useState<ProposalSupport[]>([]);
   const [isLoadingSupports, setIsLoadingSupports] = useState(true);
+  const [dynamicAmounts, setDynamicAmounts] = useState<{
+    solRaised: number;
+    totalContributions: number;
+  } | null>(null);
 
   // 3. Callbacks
   const loadProposal = useCallback(async () => {
@@ -118,6 +122,20 @@ export default function ProposalDetailPage() {
     }
   }, [proposal?.publicKey, getProposalSupports, t]);
 
+  const updateAmounts = useCallback(async () => {
+    if (!id || !getProposalDetails) return;
+
+    try {
+      const details = await getProposalDetails(id as string);
+      setDynamicAmounts({
+        solRaised: details.solRaised,
+        totalContributions: details.totalContributions,
+      });
+    } catch (error) {
+      console.error("Error updating amounts:", error);
+    }
+  }, [id, getProposalDetails]);
+
   const handleSupport = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
@@ -131,15 +149,14 @@ export default function ProposalDetailPage() {
         );
         toast.success(t("supportSuccess"));
         setSupportAmount("");
-
-        await Promise.all([loadProposal(), loadSupports()]);
+        await updateAmounts();
       } catch (error: any) {
         toast.error(error.message || t("supportError"));
       } finally {
         setIsSubmitting(false);
       }
     },
-    [proposal, supportAmount, supportProposal, t, loadProposal, loadSupports]
+    [proposal, supportAmount, supportProposal, t, updateAmounts]
   );
 
   const handleReclaimSupport = async () => {
@@ -279,7 +296,9 @@ export default function ProposalDetailPage() {
                 <>
                   <p className="text-xl font-medium text-green-500">
                     {t("solanaRaised", {
-                      amount: proposal.solRaised.toLocaleString(locale, {
+                      amount: (
+                        dynamicAmounts?.solRaised ?? proposal.solRaised
+                      ).toLocaleString(locale, {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
                       }),
@@ -433,10 +452,15 @@ export default function ProposalDetailPage() {
               <div className="bg-gray-900/50 p-3 rounded-lg">
                 <p className="text-sm text-gray-400 mb-1">
                   {t("totalContributions", {
-                    count: proposal.totalContributions,
+                    count:
+                      dynamicAmounts?.totalContributions ??
+                      proposal.totalContributions,
                   })}
                 </p>
-                <p>{proposal.totalContributions}</p>
+                <p>
+                  {dynamicAmounts?.totalContributions ??
+                    proposal.totalContributions}
+                </p>
               </div>
               <div className="bg-gray-900/50 p-3 rounded-lg">
                 <p className="text-sm text-gray-400 mb-1">
@@ -450,7 +474,10 @@ export default function ProposalDetailPage() {
           </div>
 
           {/* Supporters Section */}
-          <ProposalSupportList proposal={proposal} />
+          <ProposalSupportList
+            proposal={proposal}
+            dynamicAmounts={dynamicAmounts}
+          />
         </div>
       </div>
     </div>

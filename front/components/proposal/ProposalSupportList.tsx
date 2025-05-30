@@ -3,14 +3,19 @@ import { ProposalSupport, useProgram } from "@/context/ProgramContext";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 type ProposalSupportListProps = {
   proposal: DetailedProposal;
+  dynamicAmounts?: {
+    solRaised: number;
+    totalContributions: number;
+  } | null;
 };
 
 export default function ProposalSupportList({
   proposal,
+  dynamicAmounts,
 }: ProposalSupportListProps) {
   const t = useTranslations("ProposalDetail");
   const { locale } = useParams();
@@ -18,25 +23,25 @@ export default function ProposalSupportList({
   const [supports, setSupports] = useState<ProposalSupport[]>([]);
   const [isLoadingSupports, setIsLoadingSupports] = useState(true);
 
-  useEffect(() => {
-    const loadSupports = async () => {
-      if (!proposal?.publicKey || !getProposalSupports) return;
+  const loadSupports = useCallback(async () => {
+    if (!proposal?.publicKey || !getProposalSupports) return;
 
-      try {
-        setIsLoadingSupports(true);
-        const proposalSupports = await getProposalSupports(
-          proposal.publicKey.toString()
-        );
-        setSupports(proposalSupports);
-      } catch (error) {
-        // Handle error if needed
-      } finally {
-        setIsLoadingSupports(false);
-      }
-    };
-
-    loadSupports();
+    try {
+      setIsLoadingSupports(true);
+      const proposalSupports = await getProposalSupports(
+        proposal.publicKey.toString()
+      );
+      setSupports(proposalSupports);
+    } catch (error) {
+      // Handle error if needed
+    } finally {
+      setIsLoadingSupports(false);
+    }
   }, [proposal?.publicKey, getProposalSupports]);
+
+  useEffect(() => {
+    loadSupports();
+  }, [loadSupports, dynamicAmounts]);
 
   return (
     <div className="bg-gray-800/50 p-4 rounded-lg">
