@@ -131,14 +131,15 @@ export default function ProposalDetailPage() {
         );
         toast.success(t("supportSuccess"));
         setSupportAmount("");
-        loadSupports();
+
+        await Promise.all([loadProposal(), loadSupports()]);
       } catch (error: any) {
         toast.error(error.message || t("supportError"));
       } finally {
         setIsSubmitting(false);
       }
     },
-    [proposal, supportAmount, supportProposal, t, loadSupports]
+    [proposal, supportAmount, supportProposal, t, loadProposal, loadSupports]
   );
 
   const handleReclaimSupport = async () => {
