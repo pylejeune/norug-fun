@@ -41,7 +41,7 @@ export function runCreateTokenProposalTests() {
                 name: "Test Token Alpha",
                 symbol: "TTA",
                 totalSupply: new anchor.BN(1000000),
-                creatorAllocationPercentage: 15,
+                creatorAllocationPercentage: 10,
                 description: "A great token for testing purposes.",
                 imageUrl: "http://example.com/image.png",
                 lockupPeriod: new anchor.BN(86400 * 7),
