@@ -20,6 +20,18 @@ export function shortenAddress(publicKey: { toString: () => string } | string): 
     return `${address.substring(0, 4)}...${address.substring(address.length - 4)}`;
 }
 
+/**
+ * Génère un anchor.BN aléatoire, utile pour les IDs d'époque, etc.
+ * @returns Un anchor.BN avec une valeur aléatoire positive.
+ */
+export function generateRandomBN(max: number = Number.MAX_SAFE_INTEGER): anchor.BN {
+    // Crée un BN à partir d'un nombre aléatoire. Max est utilisé pour limiter la taille si besoin.
+    // Attention: Math.random() génère entre 0 (inclus) et 1 (exclu).
+    // Pour des BN plus grands, il faudrait une approche différente (ex: depuis un buffer aléatoire).
+    const randomNumber = Math.floor(Math.random() * max);
+    return new anchor.BN(randomNumber);
+}
+
 // Ajoutez d'autres helpers ici au besoin.
 
 export {}; // Assure que le fichier est traité comme un module 

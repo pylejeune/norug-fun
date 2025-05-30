@@ -26,7 +26,7 @@ export interface TokenProposalDetails {
  * Calcule le PDA pour un compte Proposal.
  * @param programId L'ID du programme.
  * @param proposerPublicKey La clé publique du proposeur.
- * @param epochId L'ID de l'époque.
+ * @param epochId L'ID de l'époque (utilisé dans les seeds).
  * @param tokenName Le nom du token.
  * @returns La PublicKey du PDA de la proposition et le bump.
  */
@@ -49,27 +49,23 @@ export function getProposalPda(
 
 /**
  * Crée une proposition de token on-chain.
- * S'assure que l'époque, la config du programme et la trésorerie sont initialisées via le TestContext.
+ * S'assure que la config du programme et la trésorerie sont initialisées via le TestContext.
  * @param ctx Le contexte de test initialisé.
  * @param proposerKeypair Le Keypair du créateur de la proposition (signataire et payeur).
  * @param details Les détails de la proposition à créer.
+ * @param epochManagementAddress L'adresse PDA du compte EpochManagement pour l'époque de la proposition.
  * @returns La PublicKey du PDA de la proposition créée.
  */
 export async function createProposalOnChain(
     ctx: TestContext,
     proposerKeypair: Keypair,
-    details: TokenProposalDetails
+    details: TokenProposalDetails,
+    epochManagementAddress: PublicKey
 ): Promise<PublicKey> {
-    const { program, programConfigAddress, treasuryAddress, epochManagementAddress } = ctx;
+    const { program, treasuryAddress } = ctx;
 
-    if (!programConfigAddress) {
-        throw new Error("ProgramConfigAddress non trouvé dans TestContext. Assurez-vous qu'il est initialisé.");
-    }
     if (!treasuryAddress) {
         throw new Error("TreasuryAddress non trouvé dans TestContext. Assurez-vous qu'il est initialisé.");
-    }
-    if (!epochManagementAddress) {
-        throw new Error("EpochManagementAddress non trouvé dans TestContext pour epochId. Assurez-vous qu'une époque active est initialisée.");
     }
 
     const [proposalPda] = getProposalPda(
@@ -84,25 +80,23 @@ export async function createProposalOnChain(
 
     try {
         await program.methods
-            .createTokenProposal(
-                details.epochId,
+            .createProposal(
                 details.name,
                 details.symbol,
+                details.description,
+                details.imageUrl || null,
                 details.totalSupply,
                 details.creatorAllocationPercentage,
-                details.description,
-                details.imageUrl || null, // Assurer null si undefined
                 details.lockupPeriod
             )
             .accounts({
-                proposal: proposalPda,
-                proposer: proposerKeypair.publicKey,
-                epochManagement: epochManagementAddress, // Doit correspondre à details.epochId
+                tokenProposal: proposalPda,
+                creator: proposerKeypair.publicKey,
+                epoch: epochManagementAddress,
                 treasury: treasuryAddress,
-                programConfig: programConfigAddress,
                 systemProgram: SystemProgram.programId,
-            })
-            .signers([proposerKeypair]) // Le proposeur signe et paie les frais
+            } as any)
+            .signers([proposerKeypair])
             .rpc();
         console.log(`  [ProposalSetup] Proposition "${details.name}" créée avec succès.`);
     } catch (error) {
@@ -114,22 +108,25 @@ export async function createProposalOnChain(
 }
 
 /**
- * Calcule le PDA pour un compte Support.
+ * Calcule le PDA pour un compte Support (UserProposalSupport dans l'IDL).
  * @param programId L'ID du programme.
- * @param proposalPda La PublicKey du PDA de la proposition.
+ * @param epochIdOfProposal L'ID de l'époque de la proposition à soutenir (nécessaire pour dériver le PDA de UserProposalSupport).
  * @param supporterPublicKey La clé publique du supporter.
+ * @param proposalPda La PublicKey du PDA de la proposition.
  * @returns La PublicKey du PDA du support et le bump.
  */
 export function getSupportPda(
     programId: PublicKey,
-    proposalPda: PublicKey,
-    supporterPublicKey: PublicKey
+    epochIdOfProposal: anchor.BN,
+    supporterPublicKey: PublicKey,
+    proposalPda: PublicKey
 ): [PublicKey, number] {
     return PublicKey.findProgramAddressSync(
         [
             Buffer.from("support"),
-            proposalPda.toBuffer(),
+            epochIdOfProposal.toArrayLike(Buffer, "le", 8),
             supporterPublicKey.toBuffer(),
+            proposalPda.toBuffer(),
         ],
         programId
     );
@@ -137,48 +134,49 @@ export function getSupportPda(
 
 /**
  * Soutient une proposition on-chain.
- * S'assure que la config du programme et la trésorerie sont initialisées via le TestContext.
  * @param ctx Le contexte de test initialisé.
  * @param supporterKeypair Le Keypair du supporter (signataire et payeur).
- * @param proposalToSupportPda Le PDA de la proposition à soutenir.
+ * @param proposalToSupportPda Le PDA de la proposition (TokenProposal) à soutenir.
+ * @param epochIdOfProposal L'ID de l'époque de la proposition à soutenir (nécessaire pour dériver le PDA de UserProposalSupport).
+ * @param epochManagementAddressForProposalEpoch L'adresse PDA du compte EpochManagement pour l'époque de la proposition.
  * @param supportAmount Le montant en lamports à engager pour le soutien.
- * @returns La PublicKey du PDA du compte Support créé.
+ * @returns La PublicKey du PDA du compte UserProposalSupport créé.
  */
 export async function supportProposalOnChain(
     ctx: TestContext,
     supporterKeypair: Keypair,
     proposalToSupportPda: PublicKey,
+    epochIdOfProposal: anchor.BN,
+    epochManagementAddressForProposalEpoch: PublicKey,
     supportAmount: anchor.BN
 ): Promise<PublicKey> {
-    const { program, programConfigAddress, treasuryAddress } = ctx;
+    const { program, treasuryAddress } = ctx;
 
-    if (!programConfigAddress) {
-        throw new Error("ProgramConfigAddress non trouvé dans TestContext. Assurez-vous qu'il est initialisé.");
-    }
     if (!treasuryAddress) {
         throw new Error("TreasuryAddress non trouvé dans TestContext. Assurez-vous qu'il est initialisé.");
     }
 
-    const [supportPda] = getSupportPda(
+    const [userSupportPda] = getSupportPda(
         program.programId,
-        proposalToSupportPda,
-        supporterKeypair.publicKey
+        epochIdOfProposal,
+        supporterKeypair.publicKey,
+        proposalToSupportPda
     );
 
-    console.log(`  [ProposalSetup] Soutien de la proposition ${proposalToSupportPda.toBase58()} par ${supporterKeypair.publicKey.toBase58()} avec ${supportAmount.toString()} lamports.`);
-    console.log(`  [ProposalSetup] PDA Support: ${supportPda.toBase58()}`);
+    console.log(`  [ProposalSetup] Soutien de la proposition ${proposalToSupportPda.toBase58()} (époque ${epochIdOfProposal.toString()}) par ${supporterKeypair.publicKey.toBase58()} avec ${supportAmount.toString()} lamports.`);
+    console.log(`  [ProposalSetup] PDA UserProposalSupport: ${userSupportPda.toBase58()}`);
 
     try {
         await program.methods
             .supportProposal(supportAmount)
             .accounts({
-                support: supportPda,
+                userSupport: userSupportPda,
                 proposal: proposalToSupportPda,
-                supporter: supporterKeypair.publicKey,
+                user: supporterKeypair.publicKey,
+                epoch: epochManagementAddressForProposalEpoch,
                 treasury: treasuryAddress,
-                programConfig: programConfigAddress,
                 systemProgram: SystemProgram.programId,
-            })
+            } as any)
             .signers([supporterKeypair])
             .rpc();
         console.log(`  [ProposalSetup] Soutien enregistré avec succès pour la proposition ${proposalToSupportPda.toBase58()}.`);
@@ -187,7 +185,7 @@ export async function supportProposalOnChain(
         throw error;
     }
     
-    return supportPda;
+    return userSupportPda;
 }
 
 // Fonctions de setup pour les Propositions de token
