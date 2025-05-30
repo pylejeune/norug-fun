@@ -1,10 +1,7 @@
 "use client";
 
 import { ActiveProposalsView } from "@/components/home/ActiveProposalsView";
-import { PreviousEpochsView } from "@/components/home/PreviousEpochsView";
-import { ViewModeToggle } from "@/components/home/ViewModeToggle";
 import { TypewriterEffect } from "@/components/ui/typewriter-effect";
-
 import {
   EpochState,
   ProposalState,
@@ -20,7 +17,6 @@ export default function Home() {
   const { locale } = useParams();
   const { getAllProposals, getAllEpochs } = useProgram();
 
-  const [viewMode, setViewMode] = useState<"active" | "previous">("active");
   const [selectedEpochId, setSelectedEpochId] = useState<string>();
   const [allProposals, setAllProposals] = useState<ProposalState[]>([]);
   const [loading, setLoading] = useState(false);
@@ -92,43 +88,6 @@ export default function Home() {
     return allProposals.filter((p) => p.epochId === selectedEpochId);
   }, [selectedEpochId, allProposals]);
 
-  // Sort proposals by SOL amount raised
-  const sortedProposals = useMemo(() => {
-    return [...filteredProposals].sort((a, b) => b.solRaised - a.solRaised);
-  }, [filteredProposals]);
-
-  // Handle mode change effect
-  useEffect(() => {
-    const initializeEpoch = async () => {
-      setAllProposals([]); // Reset proposals during transition
-      setSelectedEpochDetails(null); // Reset epoch details
-
-      try {
-        const epochs = await getAllEpochs();
-        const filteredEpochs =
-          viewMode === "active"
-            ? epochs.filter((epoch) => "active" in epoch.status)
-            : epochs.filter((epoch) => "closed" in epoch.status);
-
-        if (filteredEpochs.length > 0) {
-          setSelectedEpochId(filteredEpochs[0].epochId);
-        } else {
-          setSelectedEpochId(undefined);
-          setSelectedEpochDetails(null); // Ensure details are null if no epochs
-        }
-
-        // NE PAS recharger les propositions ici. Le filtrage s'en chargera.
-        // const proposals = await getAllProposals();
-        // setAllProposals(proposals);
-      } catch (error) {
-        console.error("Failed to fetch epochs:", error);
-        setSelectedEpochDetails(null); // Reset on error
-      }
-    };
-
-    initializeEpoch();
-  }, [getAllEpochs, viewMode]);
-
   // Prepare words for TypewriterEffect
   const sloganWords = [
     { text: "10" },
@@ -136,48 +95,31 @@ export default function Home() {
     { text: "rise." },
     { text: "The" },
     { text: "rest" },
-    { text: "burn.", className: "text-red-600 dark:text-red-500" }, // Changed to red color
+    { text: "burn.", className: "text-red-600 dark:text-red-500" },
     { text: "Choose" },
     { text: "your" },
-    { text: "side." }, // Removed specific class, will use base color
+    { text: "side." },
   ];
 
   return (
     <div className="container mx-auto px-4 pt-4 pb-8">
       {/* Slogan Section with Typewriter Effect */}
       <div className="text-center mb-6">
-        {" "}
-        {/* Container for centering */}
         <TypewriterEffect
           words={sloganWords}
           className="text-xl"
-          cursorClassName="bg-white" // Set cursor to white
+          cursorClassName="bg-white"
         />
       </div>
 
-      {/* Toggle Switch: Align to the right */}
-      <div className="flex justify-end mb-4">
-        <ViewModeToggle viewMode={viewMode} onChangeMode={setViewMode} />
-      </div>
-
-      {viewMode === "active" ? (
-        <ActiveProposalsView
-          selectedEpochId={selectedEpochId}
-          selectedEpochDetails={selectedEpochDetails}
-          filteredProposals={filteredProposals}
-          loading={loading}
-          locale={currentLocale}
-          onSelectEpoch={setSelectedEpochId}
-        />
-      ) : (
-        <PreviousEpochsView
-          selectedEpochId={selectedEpochId}
-          selectedEpochDetails={selectedEpochDetails}
-          sortedProposals={sortedProposals}
-          onSelectEpoch={setSelectedEpochId}
-          locale={currentLocale}
-        />
-      )}
+      <ActiveProposalsView
+        selectedEpochId={selectedEpochId}
+        selectedEpochDetails={selectedEpochDetails}
+        filteredProposals={filteredProposals}
+        loading={loading}
+        locale={currentLocale}
+        onSelectEpoch={setSelectedEpochId}
+      />
     </div>
   );
 }
