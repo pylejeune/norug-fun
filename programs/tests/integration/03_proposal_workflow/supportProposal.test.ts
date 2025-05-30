@@ -32,14 +32,14 @@ export function runSupportProposalTests() {
 
             // Setup Proposer
             proposerKeypair = Keypair.generate();
-            let资金充足 = await ctx.provider.connection.requestAirdrop(proposerKeypair.publicKey, 2 * LAMPORTS_PER_SOL);
-            await ctx.provider.connection.confirmTransaction(资金充足, "confirmed");
+            let airdropSignatureProposer = await ctx.provider.connection.requestAirdrop(proposerKeypair.publicKey, 2 * LAMPORTS_PER_SOL);
+            await ctx.provider.connection.confirmTransaction(airdropSignatureProposer, "confirmed");
             console.log(`  [SupportProposalTests] Proposer for tests: ${shortenAddress(proposerKeypair.publicKey)}`);
 
             // Setup Supporter
             supporterKeypair = Keypair.generate();
-            资金充足 = await ctx.provider.connection.requestAirdrop(supporterKeypair.publicKey, 3 * LAMPORTS_PER_SOL); // Un peu plus pour le supporter
-            await ctx.provider.connection.confirmTransaction(资金充足, "confirmed");
+            let airdropSignatureSupporter = await ctx.provider.connection.requestAirdrop(supporterKeypair.publicKey, 3 * LAMPORTS_PER_SOL); // Un peu plus pour le supporter
+            await ctx.provider.connection.confirmTransaction(airdropSignatureSupporter, "confirmed");
             console.log(`  [SupportProposalTests] Supporter for tests: ${shortenAddress(supporterKeypair.publicKey)}`);
 
             // Setup Epoch & Proposal (une seule fois pour tous les tests de ce describe)
