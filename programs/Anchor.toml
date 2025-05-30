@@ -24,7 +24,3 @@ wallet = "~/.config/solana/id.json"
 
 [scripts]
 test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/main.test.ts"
-test-mod00 = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/main.test.ts -g 'Module 00'"
-test-mod01 = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/main.test.ts -g 'Module 01'"
-test-mod02 = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/main.test.ts -g 'Module 02'"
-test-mod03 = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/main.test.ts -g 'Module 03'"

@@ -1,3 +1,4 @@
+import * as anchor from '@coral-xyz/anchor'; // Ajout de l'import pour anchor.BN
 // Placeholder pour les fonctions d'aide aux tests 
 
 // Fonctions d'aide pour les tests (génération d'ID aléatoires, parsing de logs, etc.)
