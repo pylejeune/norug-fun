@@ -30,6 +30,9 @@ import { runAddTreasuryRoleTests } from './integration/02_treasury_and_roles/rol
 import { runRemoveTreasuryRoleTests } from './integration/02_treasury_and_roles/roles_management/removeTreasuryRole.test';
 import { runUpdateTreasuryRoleTests } from './integration/02_treasury_and_roles/roles_management/updateTreasuryRole.test';
 
+// Importer les tests pour le workflow des propositions
+import { runCreateTokenProposalTests } from './integration/03_proposal_workflow/createTokenProposal.test';
+
 describe('Norug Fun - Integration Tests Orchestrator', () => {
     let ctx: TestContext;
     let program: Program<Programs>;
@@ -108,6 +111,21 @@ describe('Norug Fun - Integration Tests Orchestrator', () => {
         });
 
         after(() => console.log("==================== MODULE 02 END: Treasury and Roles ======================\n"));
+    });
+
+    describe('Module 03: Proposal Workflow', () => {
+        before(() => {
+            console.log("\n==================== MODULE 03 START: Proposal Workflow ====================");
+            // S'assurer que les dépendances (Epoch, Treasury, ProgramConfig) sont prêtes.
+            // Elles devraient l'être grâce au setup global et aux ensureX dans les modules précédents si nécessaire.
+            // Les tests de proposition eux-mêmes utiliseront ensureEpochIsActive pour leurs propres besoins.
+        });
+
+        runCreateTokenProposalTests();
+        // runSupportProposalTests(); // À ajouter quand le fichier sera créé
+        // etc.
+
+        after(() => console.log("==================== MODULE 03 END: Proposal Workflow ======================\n"));
     });
 
     after(async () => {
