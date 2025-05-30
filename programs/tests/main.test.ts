@@ -32,6 +32,7 @@ import { runUpdateTreasuryRoleTests } from './integration/02_treasury_and_roles/
 
 // Importer les tests pour le workflow des propositions
 import { runCreateTokenProposalTests } from './integration/03_proposal_workflow/createTokenProposal.test';
+import { runSupportProposalTests } from './integration/03_proposal_workflow/supportProposal.test';
 
 describe('Norug Fun - Integration Tests Orchestrator', () => {
     let ctx: TestContext;
@@ -122,6 +123,7 @@ describe('Norug Fun - Integration Tests Orchestrator', () => {
         });
 
         runCreateTokenProposalTests();
+        runSupportProposalTests();
         // runSupportProposalTests(); // À ajouter quand le fichier sera créé
         // etc.
 
