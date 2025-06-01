@@ -85,34 +85,35 @@ export function ProposalCard({
       </div>
 
       {/* Right: Support Button and Stats */}
-      <div className="flex items-center gap-4 ml-auto flex-shrink-0">
-        {/* Support Button */}
-        <Link
-          href={`/${locale}/proposal/${proposal.publicKey.toString()}#support`}
-          className={cn(
-            "px-4 py-2",
-            "bg-emerald-700",
-            "text-white rounded-lg",
-            "text-sm flex-shrink-0 whitespace-nowrap",
-            "hover:bg-emerald-500",
-            "hover:shadow-lg hover:shadow-emerald-500/50",
-            "transition-all duration-200"
-          )}
-        >
-          {t("supportProject")}
-        </Link>
+      <div className="flex flex-col sm:flex-row gap-4 ml-auto flex-shrink-0 min-w-[200px]">
         {/* Stats Column */}
-        <div className="flex flex-col items-end space-y-0.5">
-          <span className="text-base font-semibold text-gray-100 whitespace-nowrap">
+        <div className="flex flex-col items-end space-y-0.5 w-full">
+          <span className="text-base w-full text-center sm:w-32 font-semibold text-gray-100 whitespace-nowrap">
             {t("solanaRaised", {
               amount: (proposal.solRaised / LAMPORTS_PER_SOL).toFixed(2),
             })}
           </span>
-          <span className="text-xs text-gray-400 whitespace-nowrap">
+          <span className="text-xs w-full text-center sm:w-32 text-gray-400 whitespace-nowrap">
             {t("totalContributions", {
               count: proposal.totalContributions,
             })}
           </span>
+          {/* Support Button */}
+          <Link
+            href={`/${locale}/proposal/${proposal.publicKey.toString()}#support`}
+            className={cn(
+              "px-4 py-2 mt-2",
+              "bg-emerald-700",
+              "text-white rounded-lg",
+              "text-sm whitespace-nowrap",
+              "hover:bg-emerald-500",
+              "hover:shadow-lg hover:shadow-emerald-500/50",
+              "transition-all duration-200",
+              "w-full text-center sm:w-32" // Fixed width on desktop
+            )}
+          >
+            {t("supportProject")}
+          </Link>
         </div>
       </div>
     </>
