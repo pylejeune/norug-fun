@@ -15,10 +15,9 @@ import {
   useState,
 } from "react";
 
+// --- Types and Interfaces ---
 export type { Programs };
-
 type ProgramType = Program<Programs>;
-
 export type ProposalStatus = "active" | "validated" | "rejected";
 
 export type EpochStatus =
@@ -96,9 +95,11 @@ type ProgramContextType = {
   getProposalsByEpoch: (epochId: string) => Promise<ProposalState[]>;
 };
 
+// --- Context Creation ---
 const ProgramContext = createContext<ProgramContextType | null>(null);
 
 export function ProgramProvider({ children }: { children: React.ReactNode }) {
+  // --- State & Connection Setup ---
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -106,6 +107,7 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
   const wallet = useAnchorWallet();
   const isConnected = !!wallet;
 
+  // --- Program Initialization ---
   const program = useMemo(() => {
     if (connection) {
       // Cast le wallet pour qu'il corresponde au type attendu par utils.ts
@@ -124,95 +126,75 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
     return null;
   }, [connection, wallet]);
 
-  const getEpochState = async (epochId: number): Promise<EpochState | null> => {
-    if (!program) return null;
+  // --- Getters ---
+  const getAllProposals = useCallback(async (): Promise<ProposalState[]> => {
+    if (!program) return [];
 
     try {
-      const [epochManagementPDA] = PublicKey.findProgramAddressSync(
-        [Buffer.from("epoch"), new BN(epochId).toArrayLike(Buffer, "le", 8)],
-        program.programId
-      );
-
-      const epochAccount = await (
+      const proposals = await (
         program as ProgramType
-      ).account.epochManagement.fetch(epochManagementPDA);
+      ).account.tokenProposal.all();
 
-      return {
-        epochId: epochAccount.epochId.toString(),
-        startTime: epochAccount.startTime.toNumber(),
-        endTime: epochAccount.endTime.toNumber(),
-        status: epochAccount.status,
-        publicKey: epochManagementPDA,
-      };
-    } catch (err: any) {
-      // If account not found, return null
-      if (err.message.includes("Account does not exist")) {
+      const mappedProposals = proposals.map((p: any) => ({
+        epochId: p.account.epochId.toString(),
+        creator: p.account.creator,
+        tokenName: p.account.tokenName,
+        tokenSymbol: p.account.tokenSymbol,
+        totalSupply: p.account.totalSupply.toNumber(),
+        creatorAllocation: p.account.creatorAllocation,
+        supporterAllocation: p.account.supporterAllocation,
+        solRaised: p.account.solRaised.toNumber(),
+        totalContributions: p.account.totalContributions.toNumber(),
+        lockupPeriod: p.account.lockupPeriod.toNumber(),
+        status: p.account.status,
+        publicKey: p.publicKey,
+        imageUrl: p.account.imageUrl,
+        creationTimestamp: p.account.creationTimestamp.toNumber(),
+      }));
+
+      return mappedProposals.sort(
+        (a, b) => b.creationTimestamp - a.creationTimestamp
+      );
+    } catch (err) {
+      console.error("Error fetching proposals:", err);
+      return [];
+    }
+  }, [program]);
+
+  const getEpochState = useCallback(
+    async (epochId: number): Promise<EpochState | null> => {
+      if (!program) return null;
+
+      try {
+        const [epochManagementPDA] = PublicKey.findProgramAddressSync(
+          [Buffer.from("epoch"), new BN(epochId).toArrayLike(Buffer, "le", 8)],
+          program.programId
+        );
+
+        const epochAccount = await (
+          program as ProgramType
+        ).account.epochManagement.fetch(epochManagementPDA);
+
+        return {
+          epochId: epochAccount.epochId.toString(),
+          startTime: epochAccount.startTime.toNumber(),
+          endTime: epochAccount.endTime.toNumber(),
+          status: epochAccount.status,
+          publicKey: epochManagementPDA,
+        };
+      } catch (err: any) {
+        // If account not found, return null
+        if (err.message.includes("Account does not exist")) {
+          return null;
+        }
+        console.error("❌ Error getting epoch state:", err);
         return null;
       }
-      console.error("❌ Error getting epoch state:", err);
-      return null;
-    }
-  };
+    },
+    [program]
+  );
 
-  const startEpoch = async (
-    epochId: number,
-    startTime: string,
-    endTime: string
-  ) => {
-    if (!program || !isConnected || !wallet) {
-      console.error("❌ Program not initialized or wallet not connected");
-      throw new Error("Please connect your wallet first");
-    }
-
-    try {
-      // Check wallet balance and request airdrop if needed
-      const balance = await connection.getBalance(wallet.publicKey);
-      if (balance < LAMPORTS_PER_SOL) {
-        console.log("💰 Requesting airdrop for transaction fees...");
-        const signature = await connection.requestAirdrop(
-          wallet.publicKey,
-          2 * LAMPORTS_PER_SOL
-        );
-        await connection.confirmTransaction(signature);
-      }
-
-      // Convert dates to timestamps
-      const startTimestamp = Math.floor(new Date(startTime).getTime() / 1000);
-      const endTimestamp = Math.floor(new Date(endTime).getTime() / 1000);
-
-      // Generate PDA for epoch management account
-      const [epochManagementPDA] = PublicKey.findProgramAddressSync(
-        [Buffer.from("epoch"), new BN(epochId).toArrayLike(Buffer, "le", 8)],
-        program.programId
-      );
-
-      // Log available methods for debugging
-      console.log("📝 Available methods:", Object.keys(program.methods));
-
-      // Start the epoch
-      const tx = await (program as Program).methods
-        .startEpoch(
-          new BN(epochId),
-          new BN(startTimestamp),
-          new BN(endTimestamp)
-        )
-        .accounts({
-          authority: wallet.publicKey,
-          epoch_management: epochManagementPDA,
-          system_program: SystemProgram.programId,
-        })
-        .rpc();
-
-      console.log("✅ Transaction:", tx);
-      setSuccess("Epoch started successfully");
-    } catch (err: any) {
-      console.error("❌ Error:", err);
-      setError(err.message);
-      throw err;
-    }
-  };
-
-  const getAllEpochs = async (): Promise<EpochState[]> => {
+  const getAllEpochs = useCallback(async (): Promise<EpochState[]> => {
     if (!program) return [];
 
     try {
@@ -231,54 +213,338 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
       console.error("❌ Error fetching epochs:", err);
       return [];
     }
-  };
+  }, [program]);
 
-  const endEpoch = async (epochId: number) => {
-    if (!program || !isConnected || !wallet) {
-      console.error("❌ Program not initialized or wallet not connected");
-      throw new Error("Please connect your wallet first");
-    }
+  const getProposalsByEpoch = useCallback(
+    async (epochId: string): Promise<ProposalState[]> => {
+      if (!program) return [];
 
-    try {
-      // Check if epoch exists and is active
-      const epochState = await getEpochState(epochId);
-      if (!epochState) {
-        throw new Error("Epoch not found");
+      try {
+        // Récupérer toutes les propositions
+        const proposals = await (
+          program as ProgramType
+        ).account.tokenProposal.all();
+
+        // Filtrer les propositions par epochId
+        const filteredProposals = proposals
+          .filter((p: any) => p.account.epochId.toString() === epochId)
+          .map((p: any) => ({
+            epochId: p.account.epochId.toString(),
+            creator: p.account.creator,
+            tokenName: p.account.tokenName,
+            tokenSymbol: p.account.tokenSymbol,
+            totalSupply: p.account.totalSupply.toNumber(),
+            creatorAllocation: p.account.creatorAllocation,
+            supporterAllocation: p.account.supporterAllocation,
+            solRaised: p.account.solRaised.toNumber(),
+            totalContributions: p.account.totalContributions.toNumber(),
+            lockupPeriod: p.account.lockupPeriod.toNumber(),
+            status: p.account.status,
+            publicKey: p.publicKey,
+            imageUrl: p.account.imageUrl,
+            creationTimestamp: p.account.creationTimestamp.toNumber(),
+          }));
+
+        // Tri par timestamp décroissant
+        return filteredProposals.sort(
+          (a, b) => b.creationTimestamp - a.creationTimestamp
+        );
+      } catch (err) {
+        console.error("Error fetching proposals for epoch:", err);
+        return [];
+      }
+    },
+    [program]
+  );
+
+  const getProposalDetails = useCallback(
+    async (proposalId: string) => {
+      if (!program) throw new Error("Program not initialized");
+
+      try {
+        console.log("Fetching proposal:", proposalId);
+        const proposal = await (
+          program as ProgramType
+        ).account.tokenProposal.fetch(new PublicKey(proposalId));
+
+        // Debug logs pour le timestamp
+        const convertedTimestamp = proposal.creationTimestamp.toNumber();
+        console.log("Converted timestamp:", convertedTimestamp);
+        console.log(
+          "As date:",
+          new Date(convertedTimestamp * 1000).toISOString()
+        );
+
+        return {
+          epochId: proposal.epochId.toString(),
+          creator: proposal.creator,
+          tokenName: proposal.tokenName,
+          tokenSymbol: proposal.tokenSymbol,
+          description: proposal.description,
+          imageUrl: proposal.imageUrl,
+          totalSupply: proposal.totalSupply.toNumber(),
+          creatorAllocation: proposal.creatorAllocation,
+          supporterAllocation: proposal.supporterAllocation,
+          solRaised: proposal.solRaised.toNumber() / LAMPORTS_PER_SOL,
+          totalContributions: proposal.totalContributions.toNumber(),
+          lockupPeriod: proposal.lockupPeriod.toNumber(),
+          status: proposal.status,
+          publicKey: new PublicKey(proposalId),
+          creationTimestamp: convertedTimestamp,
+        };
+      } catch (error) {
+        console.error("Failed to fetch proposal details:", error);
+        return null;
+      }
+    },
+    [program]
+  );
+
+  const getProposalSupports = useCallback(
+    async (proposalId: string): Promise<ProposalSupport[]> => {
+      if (!program) throw new Error("Program not initialized");
+
+      try {
+        const proposal = await (
+          program as ProgramType
+        ).account.tokenProposal.fetch(new PublicKey(proposalId));
+
+        const allAccounts = await (
+          program as ProgramType
+        ).account.userProposalSupport.all();
+
+        type SupportAccount = {
+          account: {
+            user: PublicKey;
+            amount: BN;
+            proposal: PublicKey;
+          };
+        };
+
+        const proposalSupports = allAccounts
+          .filter(
+            (acc: SupportAccount) =>
+              acc.account.proposal.toString() === proposalId
+          )
+          .map((support: SupportAccount) => ({
+            user: support.account.user,
+            amount: support.account.amount.toNumber() / LAMPORTS_PER_SOL,
+            timestamp: Date.now(),
+            tokenAllocation: 0,
+          }));
+
+        // Calculer le total des SOL investis
+        const totalSolRaised = proposalSupports.reduce(
+          (sum, support) => sum + support.amount,
+          0
+        );
+
+        // Calculer le pourcentage de tokens pour chaque supporter
+        const supporterAllocation = proposal.supporterAllocation;
+
+        // Trier par montant investi (décroissant) et calculer le % individuel
+        const sortedSupports = proposalSupports
+          .map((support) => ({
+            ...support,
+            tokenAllocation:
+              totalSolRaised > 0
+                ? (support.amount / totalSolRaised) * supporterAllocation // Pourcentage direct de l'allocation supporter
+                : 0,
+          }))
+          .sort((a, b) => b.amount - a.amount)
+          .map((support, index) => ({
+            ...support,
+            rank: index + 1,
+          }));
+
+        return sortedSupports;
+      } catch (error) {
+        console.error("Failed to fetch proposal supports:", error);
+        throw error;
+      }
+    },
+    [program]
+  );
+
+  const getUserProposals = useCallback(
+    async (userAddress: PublicKey): Promise<ProposalState[]> => {
+      if (!program) throw new Error("Program not initialized");
+
+      try {
+        const allProposals = await getAllProposals();
+        const proposals = allProposals.filter(
+          (proposal) => proposal.creator.toString() === userAddress.toString()
+        );
+
+        // Trier les propositions par timestamp
+        proposals.sort((a, b) => b.creationTimestamp - a.creationTimestamp);
+
+        return proposals;
+      } catch (error) {
+        console.error("Failed to fetch user proposals:", error);
+        throw error;
+      }
+    },
+    [program, getAllProposals]
+  );
+
+  const getUserSupportedProposals = useCallback(
+    async (userAddress: PublicKey): Promise<ProposalState[]> => {
+      if (!program) throw new Error("Program not initialized");
+
+      try {
+        const allProposals = await getAllProposals();
+        const supportedProposals = [];
+
+        for (const proposal of allProposals) {
+          try {
+            const [userSupportPDA] = PublicKey.findProgramAddressSync(
+              [
+                Buffer.from("support"),
+                new BN(proposal.epochId).toArrayLike(Buffer, "le", 8),
+                userAddress.toBytes(),
+                proposal.publicKey.toBytes(),
+              ],
+              program.programId
+            );
+
+            const support = await (
+              program as ProgramType
+            ).account.userProposalSupport.fetch(userSupportPDA);
+
+            if (support) {
+              supportedProposals.push({
+                ...proposal,
+                userSupportAmount: support.amount.toNumber() / LAMPORTS_PER_SOL,
+              });
+            }
+          } catch (err) {
+            // If account doesn't exist, continue
+            continue;
+          }
+        }
+
+        // Trier les propositions par timestamp
+        supportedProposals.sort(
+          (a, b) => b.creationTimestamp - a.creationTimestamp
+        );
+
+        return supportedProposals;
+      } catch (error) {
+        console.error("Failed to fetch user supported proposals:", error);
+        throw error;
+      }
+    },
+    [program, getAllProposals]
+  );
+
+  // --- Actions ---
+  const startEpoch = useCallback(
+    async (epochId: number, startTime: string, endTime: string) => {
+      if (!program || !isConnected || !wallet) {
+        console.error("❌ Program not initialized or wallet not connected");
+        throw new Error("Please connect your wallet first");
       }
 
-      if (!("active" in epochState.status)) {
-        throw new Error("Epoch is not active");
+      try {
+        // Check wallet balance and request airdrop if needed
+        const balance = await connection.getBalance(wallet.publicKey);
+        if (balance < LAMPORTS_PER_SOL) {
+          console.log("💰 Requesting airdrop for transaction fees...");
+          const signature = await connection.requestAirdrop(
+            wallet.publicKey,
+            2 * LAMPORTS_PER_SOL
+          );
+          await connection.confirmTransaction(signature);
+        }
+
+        // Convert dates to timestamps
+        const startTimestamp = Math.floor(new Date(startTime).getTime() / 1000);
+        const endTimestamp = Math.floor(new Date(endTime).getTime() / 1000);
+
+        // Generate PDA for epoch management account
+        const [epochManagementPDA] = PublicKey.findProgramAddressSync(
+          [Buffer.from("epoch"), new BN(epochId).toArrayLike(Buffer, "le", 8)],
+          program.programId
+        );
+
+        // Log available methods for debugging
+        console.log("📝 Available methods:", Object.keys(program.methods));
+
+        // Start the epoch
+        const tx = await (program as Program).methods
+          .startEpoch(
+            new BN(epochId),
+            new BN(startTimestamp),
+            new BN(endTimestamp)
+          )
+          .accounts({
+            authority: wallet.publicKey,
+            epoch_management: epochManagementPDA,
+            system_program: SystemProgram.programId,
+          })
+          .rpc();
+
+        console.log("✅ Transaction:", tx);
+        setSuccess("Epoch started successfully");
+      } catch (err: any) {
+        console.error("❌ Error:", err);
+        setError(err.message);
+        throw err;
+      }
+    },
+    [program, isConnected, wallet, connection]
+  );
+
+  const endEpoch = useCallback(
+    async (epochId: number) => {
+      if (!program || !isConnected || !wallet) {
+        console.error("❌ Program not initialized or wallet not connected");
+        throw new Error("Please connect your wallet first");
       }
 
-      // Generate PDA with same format as getEpochState
-      const [epochManagementPDA] = PublicKey.findProgramAddressSync(
-        [Buffer.from("epoch"), new BN(epochId).toArrayLike(Buffer, "le", 8)],
-        program.programId
-      );
+      try {
+        // Check if epoch exists and is active
+        const epochState = await getEpochState(epochId);
+        if (!epochState) {
+          throw new Error("Epoch not found");
+        }
 
-      console.log("🔑 Ending epoch with PDA:", epochManagementPDA.toBase58());
+        if (!("active" in epochState.status)) {
+          throw new Error("Epoch is not active");
+        }
 
-      // End the epoch
-      const tx = await (program as Program).methods
-        .endEpoch(new BN(epochId))
-        .accounts({
-          epoch_management: epochManagementPDA,
-          authority: wallet.publicKey,
-          system_program: SystemProgram.programId,
-        })
-        .rpc();
+        // Generate PDA with same format as getEpochState
+        const [epochManagementPDA] = PublicKey.findProgramAddressSync(
+          [Buffer.from("epoch"), new BN(epochId).toArrayLike(Buffer, "le", 8)],
+          program.programId
+        );
 
-      console.log("✅ Epoch ended:", tx);
-      setSuccess("Epoch ended successfully");
+        console.log("🔑 Ending epoch with PDA:", epochManagementPDA.toBase58());
 
-      // Refresh epochs list
-      await getAllEpochs();
-    } catch (err: any) {
-      console.error("❌ Error ending epoch:", err);
-      setError(err.message);
-      throw err;
-    }
-  };
+        // End the epoch
+        const tx = await (program as Program).methods
+          .endEpoch(new BN(epochId))
+          .accounts({
+            epoch_management: epochManagementPDA,
+            authority: wallet.publicKey,
+            system_program: SystemProgram.programId,
+          })
+          .rpc();
+
+        console.log("✅ Epoch ended:", tx);
+        setSuccess("Epoch ended successfully");
+
+        // Refresh epochs list
+        await getAllEpochs();
+      } catch (err: any) {
+        console.error("❌ Error ending epoch:", err);
+        setError(err.message);
+        throw err;
+      }
+    },
+    [program, isConnected, wallet, getEpochState, getAllEpochs]
+  );
 
   const createProposal = useCallback(
     async (
@@ -358,87 +624,6 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
       }
     },
     [program, isConnected, wallet, getEpochState]
-  );
-
-  const getAllProposals = async (): Promise<ProposalState[]> => {
-    if (!program) return [];
-
-    try {
-      const proposals = await (
-        program as ProgramType
-      ).account.tokenProposal.all();
-
-      const mappedProposals = proposals.map((p: any) => {
-        const proposal = {
-          epochId: p.account.epochId.toString(),
-          creator: p.account.creator,
-          tokenName: p.account.tokenName,
-          tokenSymbol: p.account.tokenSymbol,
-          totalSupply: p.account.totalSupply.toNumber(),
-          creatorAllocation: p.account.creatorAllocation,
-          supporterAllocation: p.account.supporterAllocation,
-          solRaised: p.account.solRaised.toNumber(),
-          totalContributions: p.account.totalContributions.toNumber(),
-          lockupPeriod: p.account.lockupPeriod.toNumber(),
-          status: p.account.status,
-          publicKey: p.publicKey,
-          imageUrl: p.account.imageUrl,
-          creationTimestamp: p.account.creationTimestamp.toNumber(),
-        };
-        return proposal;
-      });
-
-      // Trier les propositions par timestamp (du plus récent au plus ancien)
-      mappedProposals.sort((a, b) => b.creationTimestamp - a.creationTimestamp);
-
-      return mappedProposals;
-    } catch (err) {
-      console.error("Error fetching proposals:", err);
-      return [];
-    }
-  };
-
-  const getProposalDetails = useCallback(
-    async (proposalId: string) => {
-      if (!program) throw new Error("Program not initialized");
-
-      try {
-        console.log("Fetching proposal:", proposalId);
-        const proposal = await (
-          program as ProgramType
-        ).account.tokenProposal.fetch(new PublicKey(proposalId));
-
-        // Debug logs pour le timestamp
-        const convertedTimestamp = proposal.creationTimestamp.toNumber();
-        console.log("Converted timestamp:", convertedTimestamp);
-        console.log(
-          "As date:",
-          new Date(convertedTimestamp * 1000).toISOString()
-        );
-
-        return {
-          epochId: proposal.epochId.toString(),
-          creator: proposal.creator,
-          tokenName: proposal.tokenName,
-          tokenSymbol: proposal.tokenSymbol,
-          description: proposal.description,
-          imageUrl: proposal.imageUrl,
-          totalSupply: proposal.totalSupply.toNumber(),
-          creatorAllocation: proposal.creatorAllocation,
-          supporterAllocation: proposal.supporterAllocation,
-          solRaised: proposal.solRaised.toNumber() / LAMPORTS_PER_SOL,
-          totalContributions: proposal.totalContributions.toNumber(),
-          lockupPeriod: proposal.lockupPeriod.toNumber(),
-          status: proposal.status,
-          publicKey: new PublicKey(proposalId),
-          creationTimestamp: convertedTimestamp,
-        };
-      } catch (error) {
-        console.error("Failed to fetch proposal details:", error);
-        return null;
-      }
-    },
-    [program]
   );
 
   const supportProposal = useCallback(
@@ -522,227 +707,49 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
     [program, isConnected, wallet, getProposalDetails, getEpochState]
   );
 
-  const getUserProposals = useCallback(
-    async (userAddress: PublicKey) => {
-      if (!program) throw new Error("Program not initialized");
+  const reclaimSupport = useCallback(
+    async (proposal: PublicKey, epochId: number) => {
+      if (!wallet?.publicKey || !program)
+        throw new Error("Wallet not connected");
 
       try {
-        const allProposals = await getAllProposals();
-        const proposals = allProposals.filter(
-          (proposal) => proposal.creator.toString() === userAddress.toString()
+        // Dériver le PDA pour user support
+        const [userSupportPda] = PublicKey.findProgramAddressSync(
+          [
+            Buffer.from("support"),
+            new BN(epochId).toArrayLike(Buffer, "le", 8),
+            wallet.publicKey.toBytes(),
+            proposal.toBytes(),
+          ],
+          program.programId
         );
 
-        // Trier les propositions par timestamp
-        proposals.sort((a, b) => b.creationTimestamp - a.creationTimestamp);
+        const [epochPda] = PublicKey.findProgramAddressSync(
+          [Buffer.from("epoch"), new BN(epochId).toArrayLike(Buffer, "le", 8)],
+          program.programId
+        );
 
-        return proposals;
+        const tx = await (program as Program).methods
+          .reclaimSupport()
+          .accounts({
+            user: wallet.publicKey,
+            tokenProposal: proposal,
+            user_support: userSupportPda,
+            epoch_management: epochPda,
+            system_program: SystemProgram.programId,
+          })
+          .rpc();
+
+        return tx;
       } catch (error) {
-        console.error("Failed to fetch user proposals:", error);
+        console.error("Error reclaiming support:", error);
         throw error;
       }
     },
-    [program, getAllProposals]
+    [program, wallet]
   );
 
-  const getUserSupportedProposals = useCallback(
-    async (userAddress: PublicKey) => {
-      if (!program) throw new Error("Program not initialized");
-
-      try {
-        const allProposals = await getAllProposals();
-        const supportedProposals = [];
-
-        for (const proposal of allProposals) {
-          try {
-            const [userSupportPDA] = PublicKey.findProgramAddressSync(
-              [
-                Buffer.from("support"),
-                new BN(proposal.epochId).toArrayLike(Buffer, "le", 8),
-                userAddress.toBytes(),
-                proposal.publicKey.toBytes(),
-              ],
-              program.programId
-            );
-
-            const support = await (
-              program as ProgramType
-            ).account.userProposalSupport.fetch(userSupportPDA);
-
-            if (support) {
-              supportedProposals.push({
-                ...proposal,
-                userSupportAmount: support.amount.toNumber() / LAMPORTS_PER_SOL,
-              });
-            }
-          } catch (err) {
-            // If account doesn't exist, continue
-            continue;
-          }
-        }
-
-        // Trier les propositions par timestamp
-        supportedProposals.sort(
-          (a, b) => b.creationTimestamp - a.creationTimestamp
-        );
-
-        return supportedProposals;
-      } catch (error) {
-        console.error("Failed to fetch user supported proposals:", error);
-        throw error;
-      }
-    },
-    [program, getAllProposals]
-  );
-
-  const getProposalSupports = useCallback(
-    async (proposalId: string): Promise<ProposalSupport[]> => {
-      if (!program) throw new Error("Program not initialized");
-
-      try {
-        const proposal = await (
-          program as ProgramType
-        ).account.tokenProposal.fetch(new PublicKey(proposalId));
-
-        const allAccounts = await (
-          program as ProgramType
-        ).account.userProposalSupport.all();
-
-        type SupportAccount = {
-          account: {
-            user: PublicKey;
-            amount: BN;
-            proposal: PublicKey;
-          };
-        };
-
-        const proposalSupports = allAccounts
-          .filter(
-            (acc: SupportAccount) =>
-              acc.account.proposal.toString() === proposalId
-          )
-          .map((support: SupportAccount) => ({
-            user: support.account.user,
-            amount: support.account.amount.toNumber() / LAMPORTS_PER_SOL,
-            timestamp: Date.now(),
-            tokenAllocation: 0,
-          }));
-
-        // Calculer le total des SOL investis
-        const totalSolRaised = proposalSupports.reduce(
-          (sum, support) => sum + support.amount,
-          0
-        );
-
-        // Calculer le pourcentage de tokens pour chaque supporter
-        const supporterAllocation = proposal.supporterAllocation;
-
-        // Trier par montant investi (décroissant) et calculer le % individuel
-        const sortedSupports = proposalSupports
-          .map((support) => ({
-            ...support,
-            tokenAllocation:
-              totalSolRaised > 0
-                ? (support.amount / totalSolRaised) * supporterAllocation // Pourcentage direct de l'allocation supporter
-                : 0,
-          }))
-          .sort((a, b) => b.amount - a.amount)
-          .map((support, index) => ({
-            ...support,
-            rank: index + 1,
-          }));
-
-        return sortedSupports;
-      } catch (error) {
-        console.error("Failed to fetch proposal supports:", error);
-        throw error;
-      }
-    },
-    [program]
-  );
-
-  const reclaimSupport = async (
-    proposal: PublicKey,
-    epochId: number
-  ): Promise<string> => {
-    if (!wallet?.publicKey || !program) throw new Error("Wallet not connected");
-
-    try {
-      // Dériver le PDA pour user support
-      const [userSupportPda] = PublicKey.findProgramAddressSync(
-        [
-          Buffer.from("support"),
-          new BN(epochId).toArrayLike(Buffer, "le", 8),
-          wallet.publicKey.toBytes(),
-          proposal.toBytes(),
-        ],
-        program.programId
-      );
-
-      const [epochPda] = PublicKey.findProgramAddressSync(
-        [Buffer.from("epoch"), new BN(epochId).toArrayLike(Buffer, "le", 8)],
-        program.programId
-      );
-
-      const tx = await (program as Program).methods
-        .reclaimSupport()
-        .accounts({
-          user: wallet.publicKey,
-          tokenProposal: proposal,
-          user_support: userSupportPda,
-          epoch_management: epochPda,
-          system_program: SystemProgram.programId,
-        })
-        .rpc();
-
-      return tx;
-    } catch (error) {
-      console.error("Error reclaiming support:", error);
-      throw error;
-    }
-  };
-
-  const getProposalsByEpoch = useCallback(
-    async (epochId: string): Promise<ProposalState[]> => {
-      if (!program) return [];
-
-      try {
-        // Récupérer toutes les propositions
-        const proposals = await (
-          program as ProgramType
-        ).account.tokenProposal.all();
-
-        // Filtrer les propositions par epochId
-        const filteredProposals = proposals
-          .filter((p: any) => p.account.epochId.toString() === epochId)
-          .map((p: any) => ({
-            epochId: p.account.epochId.toString(),
-            creator: p.account.creator,
-            tokenName: p.account.tokenName,
-            tokenSymbol: p.account.tokenSymbol,
-            totalSupply: p.account.totalSupply.toNumber(),
-            creatorAllocation: p.account.creatorAllocation,
-            supporterAllocation: p.account.supporterAllocation,
-            solRaised: p.account.solRaised.toNumber(),
-            totalContributions: p.account.totalContributions.toNumber(),
-            lockupPeriod: p.account.lockupPeriod.toNumber(),
-            status: p.account.status,
-            publicKey: p.publicKey,
-            imageUrl: p.account.imageUrl,
-            creationTimestamp: p.account.creationTimestamp.toNumber(),
-          }));
-
-        // Tri par timestamp décroissant
-        return filteredProposals.sort(
-          (a, b) => b.creationTimestamp - a.creationTimestamp
-        );
-      } catch (err) {
-        console.error("Error fetching proposals for epoch:", err);
-        return [];
-      }
-    },
-    [program]
-  );
-
+  // --- Context Value & Provider ---
   const value = useMemo(
     () => ({
       program,
