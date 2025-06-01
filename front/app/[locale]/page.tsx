@@ -1,6 +1,6 @@
 "use client";
 
-import { ActiveProposalsView } from "@/components/home/ActiveProposalsView";
+import { ProposalsList } from "@/components/home/ProposalsList";
 import { SloganBanner } from "@/components/home/SloganBanner";
 import { EpochState, useProgram } from "@/context/ProgramContext";
 import { useLocale, useTranslations } from "next-intl";
@@ -62,7 +62,7 @@ export default function Home() {
     <>
       <SloganBanner />
       <div className="container mx-auto px-4 pb-8">
-        <ActiveProposalsView
+        <ProposalsList
           selectedEpochId={selectedEpochId}
           selectedEpochDetails={selectedEpochDetails}
           locale={locale}
