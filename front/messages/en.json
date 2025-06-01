@@ -153,7 +153,13 @@
       "validated": "Validated",
       "rejected": "Rejected"
     },
-    "errorLoadingEpochs": "Error loading epochs"
+    "errorLoadingEpochs": "Error loading epochs",
+    "pagination": {
+      "showing": "Showing {start} to {end} of {total} proposals",
+      "previous": "Previous",
+      "next": "Next",
+      "itemsPerPage": "{count} per page"
+    }
   },
   "Treasury": {
     "title": "Treasury",
