@@ -8,19 +8,19 @@ import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
 // --- Props type definition ---
-type ActiveProposalsViewProps = {
+type ProposalsListProps = {
   selectedEpochId?: string;
   selectedEpochDetails: EpochState | null;
   locale: string | undefined;
   onSelectEpoch: (epochId: string) => void;
 };
 
-export function ActiveProposalsView({
+export function ProposalsList({
   selectedEpochId,
   selectedEpochDetails,
   locale,
   onSelectEpoch,
-}: ActiveProposalsViewProps) {
+}: ProposalsListProps) {
   // --- Hooks and state ---
   const t = useTranslations("Home");
   const { proposals, isLoading } = useProposals(selectedEpochId);
