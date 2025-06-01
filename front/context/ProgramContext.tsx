@@ -93,6 +93,7 @@ type ProgramContextType = {
   ) => Promise<ProposalState[]>;
   getProposalSupports: (proposalId: string) => Promise<ProposalSupport[]>;
   reclaimSupport: (proposal: PublicKey, epochId: number) => Promise<string>;
+  getProposalsByEpoch: (epochId: string) => Promise<ProposalState[]>;
 };
 
 const ProgramContext = createContext<ProgramContextType | null>(null);
@@ -702,6 +703,53 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const getProposalsByEpoch = async (
+    epochId: string
+  ): Promise<ProposalState[]> => {
+    if (!program) return [];
+
+    try {
+      // Trouver le PDA de l'epoch
+      const [epochPda] = PublicKey.findProgramAddressSync(
+        [Buffer.from("epoch"), new BN(epochId).toArrayLike(Buffer, "le", 8)],
+        program.programId
+      );
+
+      // Récupérer toutes les propositions
+      const proposals = await (
+        program as ProgramType
+      ).account.tokenProposal.all();
+
+      // Filtrer les propositions par epochId
+      const filteredProposals = proposals
+        .filter((p: any) => p.account.epochId.toString() === epochId)
+        .map((p: any) => ({
+          epochId: p.account.epochId.toString(),
+          creator: p.account.creator,
+          tokenName: p.account.tokenName,
+          tokenSymbol: p.account.tokenSymbol,
+          totalSupply: p.account.totalSupply.toNumber(),
+          creatorAllocation: p.account.creatorAllocation,
+          supporterAllocation: p.account.supporterAllocation,
+          solRaised: p.account.solRaised.toNumber(),
+          totalContributions: p.account.totalContributions.toNumber(),
+          lockupPeriod: p.account.lockupPeriod.toNumber(),
+          status: p.account.status,
+          publicKey: p.publicKey,
+          imageUrl: p.account.imageUrl,
+          creationTimestamp: p.account.creationTimestamp.toNumber(),
+        }));
+
+      // Tri par timestamp décroissant
+      return filteredProposals.sort(
+        (a, b) => b.creationTimestamp - a.creationTimestamp
+      );
+    } catch (err) {
+      console.error("Error fetching proposals for epoch:", err);
+      return [];
+    }
+  };
+
   const value = useMemo(
     () => ({
       program,
@@ -722,6 +770,7 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
       getUserSupportedProposals,
       getProposalSupports,
       reclaimSupport,
+      getProposalsByEpoch,
     }),
     [program, isConnected, error, success]
   );

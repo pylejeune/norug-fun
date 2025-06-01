@@ -9,13 +9,13 @@ import {
 } from "@/context/ProgramContext";
 import { useTranslations } from "next-intl";
 import { useParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export default function Home() {
   const t = useTranslations("Home");
   const { locale } = useParams();
-  const { getAllProposals, getAllEpochs } = useProgram();
+  const { getAllEpochs, getProposalsByEpoch } = useProgram();
 
   const [selectedEpochId, setSelectedEpochId] = useState<string>();
   const [allProposals, setAllProposals] = useState<ProposalState[]>([]);
@@ -49,9 +49,11 @@ export default function Home() {
   // Reload proposals when landing on the page
   useEffect(() => {
     const loadProposals = async () => {
+      if (!selectedEpochId) return;
+
       setLoading(true);
       try {
-        const proposals = await getAllProposals();
+        const proposals = await getProposalsByEpoch(selectedEpochId);
         setAllProposals(proposals);
       } catch (error) {
         console.error("Failed to load proposals:", error);
@@ -62,7 +64,7 @@ export default function Home() {
     };
 
     loadProposals();
-  }, [getAllProposals, t]);
+  }, [selectedEpochId, getProposalsByEpoch, t]);
 
   // Load epoch details when one is selected
   useEffect(() => {
@@ -82,12 +84,6 @@ export default function Home() {
     loadEpochDetails();
   }, [selectedEpochId, getAllEpochs]);
 
-  // Filter proposals by epoch
-  const filteredProposals = useMemo(() => {
-    if (!selectedEpochId) return [];
-    return allProposals.filter((p) => p.epochId === selectedEpochId);
-  }, [selectedEpochId, allProposals]);
-
   return (
     <>
       <SloganBanner />
@@ -95,7 +91,7 @@ export default function Home() {
         <ActiveProposalsView
           selectedEpochId={selectedEpochId}
           selectedEpochDetails={selectedEpochDetails}
-          filteredProposals={filteredProposals}
+          filteredProposals={allProposals}
           loading={loading}
           locale={currentLocale}
           onSelectEpoch={setSelectedEpochId}
