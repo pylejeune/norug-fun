@@ -1,7 +1,7 @@
 "use client";
 
 import { ActiveProposalsView } from "@/components/home/ActiveProposalsView";
-import { TypewriterEffect } from "@/components/ui/typewriter-effect";
+import { SloganBanner } from "@/components/home/SloganBanner";
 import {
   EpochState,
   ProposalState,
@@ -88,38 +88,19 @@ export default function Home() {
     return allProposals.filter((p) => p.epochId === selectedEpochId);
   }, [selectedEpochId, allProposals]);
 
-  // Prepare words for TypewriterEffect
-  const sloganWords = [
-    { text: "10" },
-    { text: "tokens" },
-    { text: "rise." },
-    { text: "The" },
-    { text: "rest" },
-    { text: "burn.", className: "text-red-600 dark:text-red-500" },
-    { text: "Choose" },
-    { text: "your" },
-    { text: "side." },
-  ];
-
   return (
-    <div className="container mx-auto px-4 pt-4 pb-8">
-      {/* Slogan Section with Typewriter Effect */}
-      <div className="text-center mb-6">
-        <TypewriterEffect
-          words={sloganWords}
-          className="text-xl"
-          cursorClassName="bg-white"
+    <>
+      <SloganBanner />
+      <div className="container mx-auto px-4 pb-8">
+        <ActiveProposalsView
+          selectedEpochId={selectedEpochId}
+          selectedEpochDetails={selectedEpochDetails}
+          filteredProposals={filteredProposals}
+          loading={loading}
+          locale={currentLocale}
+          onSelectEpoch={setSelectedEpochId}
         />
       </div>
-
-      <ActiveProposalsView
-        selectedEpochId={selectedEpochId}
-        selectedEpochDetails={selectedEpochDetails}
-        filteredProposals={filteredProposals}
-        loading={loading}
-        locale={currentLocale}
-        onSelectEpoch={setSelectedEpochId}
-      />
-    </div>
+    </>
   );
 }
