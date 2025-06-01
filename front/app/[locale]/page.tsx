@@ -2,29 +2,18 @@
 
 import { ActiveProposalsView } from "@/components/home/ActiveProposalsView";
 import { SloganBanner } from "@/components/home/SloganBanner";
-import {
-  EpochState,
-  ProposalState,
-  useProgram,
-} from "@/context/ProgramContext";
-import { useTranslations } from "next-intl";
-import { useParams } from "next/navigation";
+import { EpochState, useProgram } from "@/context/ProgramContext";
+import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export default function Home() {
   const t = useTranslations("Home");
-  const { locale } = useParams();
-  const { getAllEpochs, getProposalsByEpoch } = useProgram();
-
+  const locale = useLocale();
+  const { getAllEpochs } = useProgram();
   const [selectedEpochId, setSelectedEpochId] = useState<string>();
-  const [allProposals, setAllProposals] = useState<ProposalState[]>([]);
-  const [loading, setLoading] = useState(false);
   const [selectedEpochDetails, setSelectedEpochDetails] =
     useState<EpochState | null>(null);
-
-  // Convertir le locale en string
-  const currentLocale = Array.isArray(locale) ? locale[0] : locale;
 
   // Load and select the first active epoch
   useEffect(() => {
@@ -46,30 +35,14 @@ export default function Home() {
     }
   }, [getAllEpochs, selectedEpochId, t]);
 
-  // Reload proposals when landing on the page
-  useEffect(() => {
-    const loadProposals = async () => {
-      if (!selectedEpochId) return;
-
-      setLoading(true);
-      try {
-        const proposals = await getProposalsByEpoch(selectedEpochId);
-        setAllProposals(proposals);
-      } catch (error) {
-        console.error("Failed to load proposals:", error);
-        toast.error(t("errorLoadingProposals"));
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadProposals();
-  }, [selectedEpochId, getProposalsByEpoch, t]);
-
-  // Load epoch details when one is selected
+  // Mettre à jour les détails de l'epoch quand l'ID change
   useEffect(() => {
     const loadEpochDetails = async () => {
-      if (!selectedEpochId) return;
+      if (!selectedEpochId) {
+        setSelectedEpochDetails(null);
+        return;
+      }
+
       try {
         const epochs = await getAllEpochs();
         const epoch = epochs.find((e) => e.epochId === selectedEpochId);
@@ -78,11 +51,12 @@ export default function Home() {
         }
       } catch (error) {
         console.error("Failed to fetch epoch details:", error);
+        toast.error(t("errorLoadingEpochDetails"));
       }
     };
 
     loadEpochDetails();
-  }, [selectedEpochId, getAllEpochs]);
+  }, [selectedEpochId, getAllEpochs, t]);
 
   return (
     <>
@@ -91,9 +65,7 @@ export default function Home() {
         <ActiveProposalsView
           selectedEpochId={selectedEpochId}
           selectedEpochDetails={selectedEpochDetails}
-          filteredProposals={allProposals}
-          loading={loading}
-          locale={currentLocale}
+          locale={locale}
           onSelectEpoch={setSelectedEpochId}
         />
       </div>
