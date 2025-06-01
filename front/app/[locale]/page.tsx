@@ -35,7 +35,7 @@ export default function Home() {
     }
   }, [getAllEpochs, selectedEpochId, t]);
 
-  // Mettre à jour les détails de l'epoch quand l'ID change
+  // Update epoch details when ID changes
   useEffect(() => {
     const loadEpochDetails = async () => {
       if (!selectedEpochId) {

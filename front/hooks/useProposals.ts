@@ -1,6 +1,9 @@
 import { useProgram } from "@/context/ProgramContext";
 import useSWR from "swr";
 
+/**
+ * Hook to fetch and auto-refresh proposals for a given epoch
+ */
 export function useProposals(epochId?: string) {
   const { getProposalsByEpoch } = useProgram();
 
@@ -15,9 +18,9 @@ export function useProposals(epochId?: string) {
       return getProposalsByEpoch(epochId);
     },
     {
-      refreshInterval: 5000, // Rafraîchir toutes les 5 secondes
-      revalidateOnFocus: true, // Rafraîchir quand l'utilisateur revient sur la page
-      dedupingInterval: 2000, // Éviter les requêtes trop fréquentes
+      refreshInterval: 5000, // Refresh every 5 seconds
+      revalidateOnFocus: true, // Refresh when user returns to the page
+      dedupingInterval: 2000, // Prevent too frequent requests
     }
   );
 
@@ -25,6 +28,6 @@ export function useProposals(epochId?: string) {
     proposals: proposals || [],
     isLoading: !error && !proposals,
     isError: error,
-    mutate, // Pour forcer une mise à jour
+    mutate, // Function to force refresh
   };
 }
