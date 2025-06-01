@@ -1,6 +1,7 @@
 import EpochSelector from "@/components/epoch/EpochSelector";
 import { ProposalCard } from "@/components/home/ProposalCard";
-import { EpochState, ProposalState } from "@/context/ProgramContext";
+import { EpochState } from "@/context/ProgramContext";
+import { useProposals } from "@/hooks/useProposals";
 import { format } from "date-fns";
 import { enUS, fr } from "date-fns/locale";
 import { useTranslations } from "next-intl";
@@ -9,8 +10,6 @@ import { useMemo, useState } from "react";
 type ActiveProposalsViewProps = {
   selectedEpochId?: string;
   selectedEpochDetails: EpochState | null;
-  filteredProposals: ProposalState[];
-  loading: boolean;
   locale: string | undefined;
   onSelectEpoch: (epochId: string) => void;
 };
@@ -18,17 +17,16 @@ type ActiveProposalsViewProps = {
 export function ActiveProposalsView({
   selectedEpochId,
   selectedEpochDetails,
-  filteredProposals,
-  loading,
   locale,
   onSelectEpoch,
 }: ActiveProposalsViewProps) {
   const t = useTranslations("Home");
+  const { proposals, isLoading } = useProposals(selectedEpochId);
   const [sortBy, setSortBy] = useState<"sol" | "date" | "name">("sol");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   const sortedFilteredProposals = useMemo(() => {
-    let sorted = [...filteredProposals];
+    let sorted = [...proposals];
 
     switch (sortBy) {
       case "date":
@@ -54,7 +52,7 @@ export function ActiveProposalsView({
     }
 
     return sorted;
-  }, [filteredProposals, sortBy, sortOrder]);
+  }, [proposals, sortBy, sortOrder]);
 
   return (
     <>
@@ -134,7 +132,7 @@ export function ActiveProposalsView({
                   {t("proposalsCount")}
                 </h3>
                 <p className="text-lg font-semibold">
-                  {t("proposalCount", { count: filteredProposals.length })}
+                  {t("proposalCount", { count: proposals.length })}
                 </p>
               </div>
             </div>
@@ -142,7 +140,7 @@ export function ActiveProposalsView({
         )}
       </div>
 
-      {loading ? (
+      {isLoading ? (
         <div className="flex justify-center py-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
         </div>
