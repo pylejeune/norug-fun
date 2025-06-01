@@ -7,6 +7,7 @@ import { enUS, fr } from "date-fns/locale";
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
+// --- Props type definition ---
 type ActiveProposalsViewProps = {
   selectedEpochId?: string;
   selectedEpochDetails: EpochState | null;
@@ -20,11 +21,13 @@ export function ActiveProposalsView({
   locale,
   onSelectEpoch,
 }: ActiveProposalsViewProps) {
+  // --- Hooks and state ---
   const t = useTranslations("Home");
   const { proposals, isLoading } = useProposals(selectedEpochId);
   const [sortBy, setSortBy] = useState<"sol" | "date" | "name">("sol");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
+  // --- Sorting logic ---
   const sortedFilteredProposals = useMemo(() => {
     let sorted = [...proposals];
 
@@ -56,13 +59,14 @@ export function ActiveProposalsView({
 
   return (
     <>
+      {/* --- Filters and Epoch Selection --- */}
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
         <EpochSelector
           selectedEpochId={selectedEpochId}
           onSelect={onSelectEpoch}
           activeOnly
         />
-
+        {/* Sort controls */}
         {selectedEpochDetails && (
           <div className="flex flex-wrap gap-2">
             <select
@@ -94,7 +98,7 @@ export function ActiveProposalsView({
         )}
       </div>
 
-      {/* Container for Epoch Selector and Details Card */}
+      {/* --- Epoch Details Card --- */}
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
         {selectedEpochDetails && (
           <div className="px-6 py-2 bg-gray-800/50 rounded-xl border border-gray-700 flex-grow md:flex-grow-0">
@@ -140,11 +144,14 @@ export function ActiveProposalsView({
         )}
       </div>
 
+      {/* --- Proposals List --- */}
       {isLoading ? (
+        // Loading spinner
         <div className="flex justify-center py-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
         </div>
       ) : sortedFilteredProposals.length > 0 ? (
+        // Proposals grid
         <div className="flex flex-col gap-4">
           {sortedFilteredProposals.map((proposal, index) => {
             let borderClass = "";
@@ -167,6 +174,7 @@ export function ActiveProposalsView({
           })}
         </div>
       ) : (
+        // Empty state message
         <div className="text-center py-8 text-gray-400">
           {selectedEpochId
             ? t("noProposalsInEpoch")

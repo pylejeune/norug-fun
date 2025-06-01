@@ -8,6 +8,7 @@ import { useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
 
+// --- Props type definition ---
 type ProposalCardProps = {
   proposal: ProposalState;
   locale: string | undefined;
@@ -21,6 +22,7 @@ export function ProposalCard({
 }: ProposalCardProps) {
   const t = useTranslations("Home");
 
+  // --- Helper functions ---
   // Format relative date (e.g. "2 hours ago")
   const formatRelativeDate = (timestamp: number) => {
     const date = new Date(timestamp * 1000);
@@ -30,30 +32,34 @@ export function ProposalCard({
     });
   };
 
+  // --- Card Content Layout ---
   const CardContent = (
     <>
+      {/* Left: Project Image */}
       <div className="relative w-24 h-24 bg-gray-800 rounded-lg overflow-hidden">
         {proposal.imageUrl && proposal.imageUrl.length > 0 ? (
-          <>
-            <Image
-              src={ipfsToHttp(proposal.imageUrl)}
-              alt={proposal.tokenName}
-              fill
-              className="object-cover"
-              onError={(e) => {
-                console.error("Image failed to load:", e);
-                const target = e.target as HTMLImageElement;
-                target.style.display = "none";
-              }}
-              onLoad={() => console.log("Image loaded successfully")}
-            />
-          </>
+          <Image
+            src={ipfsToHttp(proposal.imageUrl)}
+            alt={proposal.tokenName}
+            fill
+            sizes="(max-width: 96px) 100vw, 96px"
+            priority={true}
+            className="object-cover"
+            onError={(e) => {
+              console.error("Image failed to load:", e);
+              const target = e.target as HTMLImageElement;
+              target.style.display = "none";
+            }}
+            onLoad={() => console.log("Image loaded successfully")}
+          />
         ) : (
           <div className="flex items-center justify-center h-full text-gray-400 text-sm">
             {t("noImage")}
           </div>
         )}
       </div>
+
+      {/* Center: Project Info */}
       <div className="flex-grow mr-4 space-y-1 ml-2">
         <p className="font-bold text-lg text-gray-100">
           ${proposal.tokenSymbol}
@@ -77,9 +83,10 @@ export function ProposalCard({
           </p>
         </div>
       </div>
-      {/* Section Droite : Réorganisée en Ligne (Bouton à gauche, Stats à droite) */}
+
+      {/* Right: Support Button and Stats */}
       <div className="flex items-center gap-4 ml-auto flex-shrink-0">
-        {/* Bouton Support (maintenant à gauche dans cette section) */}
+        {/* Support Button */}
         <Link
           href={`/${locale}/proposal/${proposal.publicKey.toString()}#support`}
           className={cn(
@@ -94,10 +101,8 @@ export function ProposalCard({
         >
           {t("supportProject")}
         </Link>
-        {/* Colonne interne pour les stats (SOL levés et Contributions) */}
+        {/* Stats Column */}
         <div className="flex flex-col items-end space-y-0.5">
-          {" "}
-          {/* Espace vertical réduit */}
           <span className="text-base font-semibold text-gray-100 whitespace-nowrap">
             {t("solanaRaised", {
               amount: (proposal.solRaised / LAMPORTS_PER_SOL).toFixed(2),
@@ -113,37 +118,33 @@ export function ProposalCard({
     </>
   );
 
-  // Check if the passed className includes 'gradient-border-'
+  // --- Card Border Styles ---
   const hasGradientBorder = className?.includes("gradient-border-");
 
   if (hasGradientBorder) {
-    // Structure simple : un seul div avec .gradient-border, la couleur, le fond, le layout, le padding interne
+    // Gradient border version
     return (
       <div
         className={cn(
-          "gradient-border", // Classe CSS de base pour l'effet
-          className, // Classe de couleur (ex: "gradient-border-green")
-          "bg-gray-800/50", // Fond réel de la carte
-          "rounded-xl", // Applique le radius (sera hérité par ::before)
-          "flex items-center", // Layout du contenu
-          "px-4 py-1" // Padding INTERNE global réduit (py-2 -> py-1)
-          // Le CSS .gradient-border::before ajoutera le padding EXTERNE pour la bordure
+          "gradient-border", // Base gradient effect class
+          className, // Color class (e.g. "gradient-border-green")
+          "bg-gray-800/50", // Card background
+          "rounded-xl", // Border radius
+          "flex items-center", // Layout
+          "px-4 py-1" // Internal padding
         )}
       >
-        {/* Le contenu est directement enfant. Le z-index du ::before devrait le placer derrière ce contenu */}
         <div className="relative z-10 flex items-center w-full">
-          {" "}
-          {/* Ajout d'un wrapper pour z-index */}
           {CardContent}
         </div>
       </div>
     );
   } else {
-    // Structure pour bordure statique (padding global réduit aussi)
+    // Static border version
     return (
       <div
         className={cn(
-          "flex items-center bg-gray-800/50 px-4 py-1 rounded-xl", // Padding global réduit (py-2 -> py-1)
+          "flex items-center bg-gray-800/50 px-4 py-1 rounded-xl",
           className ? className : "border border-gray-700",
           "hover:border-gray-500 transition-all duration-200 shadow-md hover:shadow-lg",
           "transform hover:-translate-y-1"
