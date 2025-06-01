@@ -365,7 +365,7 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
 
     try {
       const proposals = await (
-        program as Program<Programs>
+        program as ProgramType
       ).account.tokenProposal.all();
 
       const mappedProposals = proposals.map((p: any) => {
@@ -405,7 +405,7 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
       try {
         console.log("Fetching proposal:", proposalId);
         const proposal = await (
-          program as Program<Programs>
+          program as ProgramType
         ).account.tokenProposal.fetch(new PublicKey(proposalId));
 
         // Debug logs pour le timestamp
@@ -466,9 +466,9 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
             program.programId
           );
 
-          await (
-            program as Program<Programs>
-          ).account.userProposalSupport.fetch(userSupportPDA);
+          await (program as ProgramType).account.userProposalSupport.fetch(
+            userSupportPDA
+          );
         } catch (err: any) {
           // If account doesn't exist, continue
           if (!err.message.includes("Account does not exist")) {
@@ -600,11 +600,11 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
 
       try {
         const proposal = await (
-          program as Program<Programs>
+          program as ProgramType
         ).account.tokenProposal.fetch(new PublicKey(proposalId));
 
         const allAccounts = await (
-          program as Program<Programs>
+          program as ProgramType
         ).account.userProposalSupport.all();
 
         type SupportAccount = {
