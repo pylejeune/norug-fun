@@ -772,7 +772,25 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
       reclaimSupport,
       getProposalsByEpoch,
     }),
-    [program, isConnected, error, success]
+    [
+      program,
+      isConnected,
+      error,
+      success,
+      startEpoch,
+      getEpochState,
+      getAllEpochs,
+      endEpoch,
+      createProposal,
+      getAllProposals,
+      getProposalDetails,
+      supportProposal,
+      getUserProposals,
+      getUserSupportedProposals,
+      getProposalSupports,
+      reclaimSupport,
+      getProposalsByEpoch,
+    ]
   );
 
   return (
