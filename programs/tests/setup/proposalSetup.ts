@@ -188,5 +188,50 @@ export async function supportProposalOnChain(
     return userSupportPda;
 }
 
+// Pas d'import direct pour ProposalStatus car il est défini dans le type Programs
+// et utilisé comme un objet tel que { active: {} }, { rejected: {} }, etc.
+
+/**
+ * Met à jour le statut d'une proposition on-chain.
+ * @param ctx Le contexte de test initialisé (doit contenir programConfigAddress et adminKeypair).
+ * @param proposalPda Le PDA de la proposition (TokenProposal) à mettre à jour.
+ * @param epochManagementAddress L'adresse PDA du compte EpochManagement de l'époque de la proposition.
+ * @param newStatus Le nouveau statut de la proposition (ex: { rejected: {} } ou { validated: {} }). Doit être un objet simple.
+ */
+export async function updateProposalStatusOnChain(
+    ctx: TestContext,
+    proposalPda: PublicKey,
+    epochManagementAddress: PublicKey, // Doit être l'adresse de l'epoch de la proposition
+    newStatus: object // Accepter un objet simple, ex: { rejected: {} }
+): Promise<void> {
+    const { program, adminKeypair, programConfigAddress } = ctx;
+
+    if (!adminKeypair) {
+        throw new Error("adminKeypair non trouvé dans TestContext.");
+    }
+    if (!programConfigAddress) {
+        throw new Error("programConfigAddress non trouvé dans TestContext.");
+    }
+
+    console.log(`  [ProposalSetup] Mise à jour du statut de la proposition ${proposalPda.toBase58()} vers ${JSON.stringify(newStatus)}.`);
+
+    try {
+        await program.methods
+            .updateProposalStatus(newStatus as any) // `as any` pour correspondre à la méthode générée par Anchor
+            .accounts({
+                authority: adminKeypair.publicKey,
+                programConfig: programConfigAddress,
+                epochManagement: epochManagementAddress,
+                proposal: proposalPda,
+            })
+            .signers([adminKeypair])
+            .rpc();
+        console.log(`  [ProposalSetup] Statut de la proposition ${proposalPda.toBase58()} mis à jour avec succès vers ${JSON.stringify(newStatus)}.`);
+    } catch (error) {
+        console.error(`  [ProposalSetup] Erreur lors de la mise à jour du statut de la proposition ${proposalPda.toBase58()}:`, error);
+        throw error;
+    }
+}
+
 // Fonctions de setup pour les Propositions de token
 export {}; // Pour que le fichier soit traité comme un module 
