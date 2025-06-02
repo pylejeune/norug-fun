@@ -1,6 +1,7 @@
 import * as anchor from '@coral-xyz/anchor';
 import { Program } from '@coral-xyz/anchor';
 import { Keypair, PublicKey, LAMPORTS_PER_SOL, SystemProgram } from '@solana/web3.js';
+import chai from 'chai';
 import { expect } from 'chai';
 import { Programs } from '../../../target/types/programs';
 import { TestContext, getInitializedContext, generateRandomBN, shortenAddress } from '../../setup';
@@ -11,6 +12,10 @@ import {
     supportProposalOnChain,
     getSupportPda
 } from '../../setup/proposalSetup';
+
+// Constantes pour le calcul des frais (dupliquées de constants.rs pour le test)
+const SUPPORT_FEE_PERCENTAGE_NUMERATOR = new anchor.BN(5);
+const SUPPORT_FEE_PERCENTAGE_DENOMINATOR = new anchor.BN(1000);
 
 export function runSupportProposalTests() {
     describe('Instruction: support_proposal', () => {
@@ -23,8 +28,20 @@ export function runSupportProposalTests() {
         let currentEpochId: anchor.BN;
         let activeEpochPda: PublicKey; // PDA de EpochManagement pour l'époque active
         let proposalPda: PublicKey;    // PDA de la TokenProposal créée
+        let userSupportPda: PublicKey; // Stocker le PDA du UserProposalSupport après sa création
 
-        const supportAmount = new anchor.BN(1 * LAMPORTS_PER_SOL); // Exemple: 1 SOL de support
+        // Pour stocker les états initiaux et finaux
+        let initialProposalAccountState: any; // eslint-disable-line @typescript-eslint/no-explicit-any
+        let updatedProposalAccountState: any; // eslint-disable-line @typescript-eslint/no-explicit-any
+        let userSupportAccountState: any;     // eslint-disable-line @typescript-eslint/no-explicit-any
+        let initialSupporterBalance: number;
+        let finalSupporterBalance: number;
+        let initialTreasuryBalance: number;
+        let finalTreasuryBalance: number;
+
+        const supportAmountGross = new anchor.BN(1 * LAMPORTS_PER_SOL); // Montant brut que l'utilisateur envoie
+        let expectedFeeAmount: anchor.BN;
+        let expectedNetSupportAmount: anchor.BN;
 
         before(async () => {
             ctx = getInitializedContext();
@@ -34,18 +51,18 @@ export function runSupportProposalTests() {
             proposerKeypair = Keypair.generate();
             let airdropSignatureProposer = await ctx.provider.connection.requestAirdrop(proposerKeypair.publicKey, 2 * LAMPORTS_PER_SOL);
             await ctx.provider.connection.confirmTransaction(airdropSignatureProposer, "confirmed");
-            console.log(`  [SupportProposalTests] Proposer for tests: ${shortenAddress(proposerKeypair.publicKey)}`);
+            console.log(`  [SupportProposalTests:GlobalBefore] Proposer for tests: ${shortenAddress(proposerKeypair.publicKey)}`);
 
             // Setup Supporter
             supporterKeypair = Keypair.generate();
             let airdropSignatureSupporter = await ctx.provider.connection.requestAirdrop(supporterKeypair.publicKey, 3 * LAMPORTS_PER_SOL); // Un peu plus pour le supporter
             await ctx.provider.connection.confirmTransaction(airdropSignatureSupporter, "confirmed");
-            console.log(`  [SupportProposalTests] Supporter for tests: ${shortenAddress(supporterKeypair.publicKey)}`);
+            console.log(`  [SupportProposalTests:GlobalBefore] Supporter for tests: ${shortenAddress(supporterKeypair.publicKey)}`);
 
             // Setup Epoch & Proposal (une seule fois pour tous les tests de ce describe)
             currentEpochId = generateRandomBN();
             activeEpochPda = await ensureEpochIsActive(ctx, currentEpochId);
-            console.log(`  [SupportProposalTests] Active Epoch for tests: ${currentEpochId.toString()} (${shortenAddress(activeEpochPda)})`);
+            console.log(`  [SupportProposalTests:GlobalBefore] Active Epoch for tests: ${currentEpochId.toString()} (${shortenAddress(activeEpochPda)})`);
 
             const proposalDetails: TokenProposalDetails = {
                 epochId: currentEpochId,
@@ -58,52 +75,93 @@ export function runSupportProposalTests() {
                 lockupPeriod: new anchor.BN(0), // Pas de lockup pour simplifier
             };
             proposalPda = await createProposalOnChain(ctx, proposerKeypair, proposalDetails, activeEpochPda);
-            console.log(`  [SupportProposalTests] Proposal to be supported: ${shortenAddress(proposalPda)}`);
-        });
+            console.log(`  [SupportProposalTests:GlobalBefore] Proposal to be supported: ${shortenAddress(proposalPda)}`);
 
-        it('should allow a user to successfully support an active proposal', async () => {
-            const initialProposalAccount = await program.account.tokenProposal.fetch(proposalPda);
-            const initialSupporterBalance = await ctx.provider.connection.getBalance(supporterKeypair.publicKey);
-            const initialTreasuryBalance = await ctx.provider.connection.getBalance(ctx.treasuryAddress!);
+            // Calcul des frais attendus et du montant net
+            expectedFeeAmount = supportAmountGross
+                .mul(SUPPORT_FEE_PERCENTAGE_NUMERATOR)
+                .div(SUPPORT_FEE_PERCENTAGE_DENOMINATOR);
+            expectedNetSupportAmount = supportAmountGross.sub(expectedFeeAmount);
+            console.log(`  [SupportProposalTests:GlobalBefore] supportAmountGross: ${supportAmountGross.toString()}, expectedFeeAmount: ${expectedFeeAmount.toString()}, expectedNetSupportAmount: ${expectedNetSupportAmount.toString()}`);
 
-            const userSupportPda = await supportProposalOnChain(
+            // Action principale : un utilisateur soutient la proposition
+            // Les états initiaux sont récupérés avant cette action
+            initialProposalAccountState = await program.account.tokenProposal.fetch(proposalPda);
+            initialSupporterBalance = await ctx.provider.connection.getBalance(supporterKeypair.publicKey);
+            initialTreasuryBalance = await ctx.provider.connection.getBalance(ctx.treasuryAddress!);
+            console.log(`  [SupportProposalTests:GlobalBefore] Initial states recorded.`);
+
+            userSupportPda = await supportProposalOnChain(
                 ctx,
                 supporterKeypair,
                 proposalPda,
                 currentEpochId, // epochId de la proposition, requis pour le PDA de UserProposalSupport
                 activeEpochPda, // epochManagementAddress pour l'époque de la proposition
-                supportAmount
+                supportAmountGross // L'utilisateur initie le soutien avec le montant brut
             );
+            console.log(`  [SupportProposalTests:GlobalBefore] Supporter ${shortenAddress(supporterKeypair.publicKey)} supported proposal ${shortenAddress(proposalPda)}.`);
+
+            // Les états finaux/mis à jour sont récupérés après l'action
+            updatedProposalAccountState = await program.account.tokenProposal.fetch(proposalPda);
+            userSupportAccountState = await program.account.userProposalSupport.fetch(userSupportPda);
+            finalSupporterBalance = await ctx.provider.connection.getBalance(supporterKeypair.publicKey);
+            finalTreasuryBalance = await ctx.provider.connection.getBalance(ctx.treasuryAddress!);
+            console.log(`  [SupportProposalTests:GlobalBefore] Updated states recorded.`);
+        });
+
+        it('should create a valid UserProposalSupport account with the net amount', async () => {
             expect(userSupportPda).to.exist;
+            expect(userSupportAccountState).to.exist;
+            expect(userSupportAccountState.user.equals(supporterKeypair.publicKey)).to.be.true;
+            expect(userSupportAccountState.proposal.equals(proposalPda)).to.be.true;
+            expect(userSupportAccountState.epochId.eq(currentEpochId)).to.be.true;
+            
+            console.log(`  [SupportProposalTests] DEBUG: userSupportAccountState.amount = ${userSupportAccountState.amount.toString()}`);
+            console.log(`  [SupportProposalTests] DEBUG: expectedNetSupportAmount = ${expectedNetSupportAmount.toString()}`);
+            expect(userSupportAccountState.amount.eq(expectedNetSupportAmount)).to.be.true;
+            console.log(`  [SupportProposalTests] UserProposalSupport account ${shortenAddress(userSupportPda)} verified (amount net: ${expectedNetSupportAmount.toString()}).`);
+        });
 
-            // 1. Vérifier le compte UserProposalSupport
-            const userSupportAccount = await program.account.userProposalSupport.fetch(userSupportPda);
-            expect(userSupportAccount.user.equals(supporterKeypair.publicKey)).to.be.true;
-            expect(userSupportAccount.proposal.equals(proposalPda)).to.be.true;
-            expect(userSupportAccount.epochId.eq(currentEpochId)).to.be.true;
-            expect(userSupportAccount.amount.eq(supportAmount)).to.be.true;
-            console.log(`  [SupportProposalTests] UserProposalSupport account ${shortenAddress(userSupportPda)} verified.`);
+        it('should correctly update solRaised on the TokenProposal account with the net amount', async () => {
+            const expectedSolRaisedAfterSupport = initialProposalAccountState.solRaised.add(expectedNetSupportAmount);
+            console.log(`  [SupportProposalTests] DEBUG: initialProposalAccountState.solRaised = ${initialProposalAccountState.solRaised.toString()}`);
+            console.log(`  [SupportProposalTests] DEBUG: expectedNetSupportAmount = ${expectedNetSupportAmount.toString()}`);
+            console.log(`  [SupportProposalTests] DEBUG: expectedSolRaisedAfterSupport = ${expectedSolRaisedAfterSupport.toString()}`);
+            console.log(`  [SupportProposalTests] DEBUG: updatedProposalAccountState.solRaised = ${updatedProposalAccountState.solRaised.toString()}`);
+            // expect(updatedProposalAccountState.solRaised.eq(expectedSolRaisedAfterSupport)).to.be.true;
+            expect(updatedProposalAccountState.solRaised.toString()).to.equal(expectedSolRaisedAfterSupport.toString());
+            console.log(`  [SupportProposalTests] TokenProposal.solRaised updated correctly with net amount.`);
+        });
 
-            // 2. Vérifier la mise à jour du compte TokenProposal
-            const updatedProposalAccount = await program.account.tokenProposal.fetch(proposalPda);
-            const expectedSolRaised = initialProposalAccount.solRaised.add(supportAmount);
-            const expectedTotalContributions = initialProposalAccount.totalContributions.add(supportAmount);
-            expect(updatedProposalAccount.solRaised.eq(expectedSolRaised)).to.be.true;
-            expect(updatedProposalAccount.totalContributions.eq(expectedTotalContributions)).to.be.true;
-            console.log(`  [SupportProposalTests] TokenProposal account ${shortenAddress(proposalPda)} updated state verified.`);
+        it('should increment totalContributions on the TokenProposal account by one', async () => {
+            const expectedTotalContributionsAfterSupport = initialProposalAccountState.totalContributions.add(new anchor.BN(1));
+            console.log(`  [SupportProposalTests] DEBUG: initialProposalAccountState.totalContributions = ${initialProposalAccountState.totalContributions.toString()}`);
+            console.log(`  [SupportProposalTests] DEBUG: expectedTotalContributionsAfterSupport = ${expectedTotalContributionsAfterSupport.toString()}`);
+            console.log(`  [SupportProposalTests] DEBUG: updatedProposalAccountState.totalContributions = ${updatedProposalAccountState.totalContributions.toString()}`);
+            // expect(updatedProposalAccountState.totalContributions.eq(expectedTotalContributionsAfterSupport)).to.be.true;
+            expect(updatedProposalAccountState.totalContributions.toString()).to.equal(expectedTotalContributionsAfterSupport.toString());
+            console.log(`  [SupportProposalTests] TokenProposal.totalContributions incremented correctly.`);
+        });
 
-            // 3. Vérifier le solde du supporter
-            // Il faut prendre en compte les frais de transaction.
-            // Pour une estimation simple, on vérifie que le solde a diminué d'AU MOINS le supportAmount.
-            // Une vérification plus précise nécessiterait de calculer les frais exacts.
-            const finalSupporterBalance = await ctx.provider.connection.getBalance(supporterKeypair.publicKey);
-            expect(finalSupporterBalance <= initialSupporterBalance - supportAmount.toNumber()).to.be.true;
-            console.log(`  [SupportProposalTests] Supporter balance change verified (approximately).`);
+        it('should decrease the supporter\'s SOL balance by at least the gross support amount', async () => {
+            const difference = initialSupporterBalance - finalSupporterBalance;
+            const grossAmountNum = supportAmountGross.toNumber();
+            console.log(`  [SupportProposalTests] Initial Supporter Balance: ${initialSupporterBalance}`);
+            console.log(`  [SupportProposalTests] Final Supporter Balance:   ${finalSupporterBalance}`);
+            console.log(`  [SupportProposalTests] Difference:                ${difference}`);
+            console.log(`  [SupportProposalTests] Gross Support Amount:      ${grossAmountNum}`);
+            expect(difference >= grossAmountNum).to.be.true;
+            console.log(`  [SupportProposalTests] Supporter balance decrease verified.`);
+        });
 
-            // 4. Vérifier le solde de la trésorerie
-            const finalTreasuryBalance = await ctx.provider.connection.getBalance(ctx.treasuryAddress!);
-            expect(finalTreasuryBalance).to.equal(initialTreasuryBalance + supportAmount.toNumber());
-            console.log(`  [SupportProposalTests] Treasury balance increase verified.`);
+        it('should increase the treasury\'s SOL balance by the fee amount', async () => {
+            const expectedTreasuryBalanceAfterSupport = initialTreasuryBalance + expectedFeeAmount.toNumber();
+            console.log(`  [SupportProposalTests] DEBUG: initialTreasuryBalance = ${initialTreasuryBalance}`);
+            console.log(`  [SupportProposalTests] DEBUG: expectedFeeAmount = ${expectedFeeAmount.toNumber()}`);
+            console.log(`  [SupportProposalTests] DEBUG: expectedTreasuryBalanceAfterSupport = ${expectedTreasuryBalanceAfterSupport}`);
+            console.log(`  [SupportProposalTests] DEBUG: finalTreasuryBalance = ${finalTreasuryBalance}`);
+            expect(finalTreasuryBalance).to.equal(expectedTreasuryBalanceAfterSupport);
+            console.log(`  [SupportProposalTests] Treasury balance increase (by fee amount) verified.`);
         });
 
         // TODO: Cas d'erreur à ajouter:
