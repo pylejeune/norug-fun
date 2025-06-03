@@ -3,9 +3,11 @@
 // Fonctions de setup pour les Propositions de token
 import * as anchor from '@coral-xyz/anchor';
 import { Program } from '@coral-xyz/anchor';
-import { PublicKey, Keypair, SystemProgram } from '@solana/web3.js';
-import { Programs } from '../../target/types/programs'; // Ajustez le chemin si nécessaire
-import { TestContext } from './index'; // Assumant que TestContext est exporté depuis index.ts
+import { PublicKey, Keypair, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { expect } from 'chai';
+// import { TOKEN_PROGRAM_ID } from '@solana/spl-token'; // Commenté car non utilisé par les fonctions actuelles de ce module
+import { Programs } from '../../target/types/programs';
+import { TestContext, shortenAddress, generateRandomBN } from './index'; // Assurer que shortenAddress et generateRandomBN sont importés
 import { getEpochManagementPda } from './epochSetup'; // À créer ou vérifier
 
 /**
@@ -16,10 +18,10 @@ export interface TokenProposalDetails {
     name: string;
     symbol: string;
     totalSupply: anchor.BN;
-    creatorAllocationPercentage: number; // u8
+    creatorAllocationPercentage: number; // Entier, ex: 5 pour 5%
     description: string;
-    imageUrl?: string | null; // Option<String>
-    lockupPeriod: anchor.BN;
+    imageUrl: string | null;
+    lockupPeriod: anchor.BN; // En secondes
 }
 
 /**
@@ -188,9 +190,6 @@ export async function supportProposalOnChain(
     return userSupportPda;
 }
 
-// Pas d'import direct pour ProposalStatus car il est défini dans le type Programs
-// et utilisé comme un objet tel que { active: {} }, { rejected: {} }, etc.
-
 /**
  * Met à jour le statut d'une proposition on-chain.
  * @param ctx Le contexte de test initialisé (doit contenir programConfigAddress et adminKeypair).
@@ -201,35 +200,25 @@ export async function supportProposalOnChain(
 export async function updateProposalStatusOnChain(
     ctx: TestContext,
     proposalPda: PublicKey,
-    epochManagementAddress: PublicKey, // Doit être l'adresse de l'epoch de la proposition
-    newStatus: object // Accepter un objet simple, ex: { rejected: {} }
+    epochManagementAddress: PublicKey,
+    newStatus: object
 ): Promise<void> {
-    const { program, adminKeypair, programConfigAddress } = ctx;
-
-    if (!adminKeypair) {
-        throw new Error("adminKeypair non trouvé dans TestContext.");
-    }
-    if (!programConfigAddress) {
-        throw new Error("programConfigAddress non trouvé dans TestContext.");
-    }
-
-    console.log(`  [ProposalSetup] Mise à jour du statut de la proposition ${proposalPda.toBase58()} vers ${JSON.stringify(newStatus)}.`);
-
+    console.log(`  [ProposalSetup] Attempting to update proposal ${shortenAddress(proposalPda)} status to: ${JSON.stringify(newStatus)} using epoch ${shortenAddress(epochManagementAddress)}`);
     try {
-        await program.methods
-            .updateProposalStatus(newStatus as any) // `as any` pour correspondre à la méthode générée par Anchor
+        await ctx.program.methods
+            .updateProposalStatus(newStatus as any)
             .accounts({
-                authority: adminKeypair.publicKey,
-                programConfig: programConfigAddress,
+                authority: ctx.adminKeypair.publicKey,
+                programConfig: ctx.programConfigAddress,
                 epochManagement: epochManagementAddress,
                 proposal: proposalPda,
             })
-            .signers([adminKeypair])
+            .signers([ctx.adminKeypair])
             .rpc();
-        console.log(`  [ProposalSetup] Statut de la proposition ${proposalPda.toBase58()} mis à jour avec succès vers ${JSON.stringify(newStatus)}.`);
+        console.log(`  [ProposalSetup] Status of proposal ${shortenAddress(proposalPda)} updated successfully to ${JSON.stringify(newStatus)}.`);
     } catch (error) {
-        console.error(`  [ProposalSetup] Erreur lors de la mise à jour du statut de la proposition ${proposalPda.toBase58()}:`, error);
-        throw error;
+        console.error(`  [ProposalSetup] Error updating status for proposal ${shortenAddress(proposalPda)} to ${JSON.stringify(newStatus)}:`, error);
+        throw error; // Rethrow pour que le test puisse l'attraper
     }
 }
 
