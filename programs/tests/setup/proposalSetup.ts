@@ -102,7 +102,7 @@ export async function createProposalOnChain(
             .rpc();
         console.log(`  [ProposalSetup] Proposition "${details.name}" créée avec succès.`);
     } catch (error) {
-        console.error(`  [ProposalSetup] Erreur lors de la création de la proposition "${details.name}":`, error);
+        // console.error(`  [ProposalSetup] Erreur lors de la création de la proposition "${details.name}":`, error);
         throw error;
     }
     
@@ -183,7 +183,7 @@ export async function supportProposalOnChain(
             .rpc();
         console.log(`  [ProposalSetup] Soutien enregistré avec succès pour la proposition ${proposalToSupportPda.toBase58()}.`);
     } catch (error) {
-        console.error(`  [ProposalSetup] Erreur lors du soutien de la proposition ${proposalToSupportPda.toBase58()}:`, error);
+        // console.error(`  [ProposalSetup] Erreur lors du soutien de la proposition ${proposalToSupportPda.toBase58()}:`, error);
         throw error;
     }
     
@@ -217,7 +217,7 @@ export async function updateProposalStatusOnChain(
             .rpc();
         console.log(`  [ProposalSetup] Status of proposal ${shortenAddress(proposalPda)} updated successfully to ${JSON.stringify(newStatus)}.`);
     } catch (error) {
-        console.error(`  [ProposalSetup] Error updating status for proposal ${shortenAddress(proposalPda)} to ${JSON.stringify(newStatus)}:`, error);
+        // console.error(`  [ProposalSetup] Error updating status for proposal ${shortenAddress(proposalPda)} to ${JSON.stringify(newStatus)}:`, error);
         throw error; // Rethrow pour que le test puisse l'attraper
     }
 }

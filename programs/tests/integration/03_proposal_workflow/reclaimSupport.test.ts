@@ -3,15 +3,13 @@ import { Program } from '@coral-xyz/anchor';
 import { Keypair, PublicKey, LAMPORTS_PER_SOL, SystemProgram } from '@solana/web3.js';
 import chai from 'chai';
 import { expect } from 'chai';
-import { Programs } from '../../../../target/types/programs';
+import { Programs } from '../../../target/types/programs';
 import { TestContext, getInitializedContext, generateRandomBN, shortenAddress } from '../../setup';
 import { ensureEpochIsActive, closeEpochOnChain, markEpochAsProcessedOnChain } from '../../setup/epochSetup';
 import { 
     createProposalOnChain, 
     supportProposalOnChain, 
     TokenProposalDetails, 
-    getProposalPda, 
-    getUserSupportPda,
     getSupportPda
 } from '../../setup/proposalSetup';
 
@@ -113,7 +111,7 @@ export function runReclaimSupportTests() {
                         userProposalSupport: userSupportPda,
                         epochManagement: activeEpochPda,
                         systemProgram: SystemProgram.programId,
-                    })
+                    } as any)
                     .signers([supporterKeypair])
                     .rpc();
 
@@ -149,7 +147,7 @@ export function runReclaimSupportTests() {
                             userProposalSupport: userSupportPda,
                             epochManagement: activeEpochPda,
                             systemProgram: SystemProgram.programId,
-                        })
+                        } as any)
                         .signers([supporterKeypair])
                         .rpc();
                 } catch (error) {
@@ -186,7 +184,7 @@ export function runReclaimSupportTests() {
                             userProposalSupport: userSupportPda,
                             epochManagement: activeEpochPda,
                             systemProgram: SystemProgram.programId,
-                        })
+                        } as any) 
                         .signers([supporterKeypair])
                         .rpc();
                 } catch (error) {
@@ -212,7 +210,7 @@ export function runReclaimSupportTests() {
                             userProposalSupport: userSupportPda, // Ce PDA appartient à supporterKeypair, pas à otherSupporter
                             epochManagement: activeEpochPda,
                             systemProgram: SystemProgram.programId,
-                        })
+                        } as any)
                         .signers([otherSupporter]) // otherSupporter signe
                         .rpc();
                 } catch (error) {
@@ -235,7 +233,7 @@ export function runReclaimSupportTests() {
                         userProposalSupport: userSupportPda,
                         epochManagement: activeEpochPda,
                         systemProgram: SystemProgram.programId,
-                    })
+                    } as any)
                     .signers([supporterKeypair])
                     .rpc();
 
@@ -249,7 +247,7 @@ export function runReclaimSupportTests() {
                             userProposalSupport: userSupportPda,
                             epochManagement: activeEpochPda,
                             systemProgram: SystemProgram.programId,
-                        })
+                        } as any)
                         .signers([supporterKeypair])
                         .rpc();
                 } catch (error) {
