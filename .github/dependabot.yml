@@ -1,0 +1,17 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    reviewers:
+      - "alexandre-bourdois"
+      - "AlexLakarm"
+      - "pylejeune"
+    assignees:
+      - "alexandre-bourdois"
+      - "AlexLakarm"
+      - "pylejeune"
+    labels:
+      - "dependencies"
+      - "automated-pr"
