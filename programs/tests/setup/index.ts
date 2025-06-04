@@ -89,3 +89,6 @@ export const getInitializedContext = (): TestContext => {
 
 // Exporter d'autres éléments de setup communs si nécessaire
 // Par exemple, des keypairs d'utilisateurs par défaut, etc. 
+
+// Exporter les helpers utiles depuis le module d'utils
+export { shortenAddress, generateRandomBN } from '../utils_for_tests/helpers'; 

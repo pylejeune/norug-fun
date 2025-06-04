@@ -4,10 +4,10 @@ console.log("=====================================\n");
 
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
-import { Programs } from "../target/types/programs";
+import { Programs } from "../../target/types/programs";
 import { PublicKey, Keypair, SystemProgram, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import chai, { expect } from "chai";
-import { generateRandomId, setupTestEnvironment } from "./utils.test";
+import { generateRandomId, setupTestEnvironment } from "../utils.test";
 import { BN } from "bn.js"; // Importer BN comme type
 
 // Ajout de la seed admin déterministe (identique à updateproposal.test.ts)
