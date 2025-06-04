@@ -2,21 +2,24 @@ import { DetailedProposal } from "@/app/[locale]/proposal/[id]/page";
 import { useProgram } from "@/context/ProgramContext";
 import useSWR from "swr";
 
+/**
+ * Hook to fetch proposal details with supports using SWR
+ */
 export function useProposalDetails(proposalId: string | null) {
   const { getProposalDetails, getProposalSupports } = useProgram();
 
-  const {
-    data: proposal,
-    error: proposalError,
-    mutate: mutateProposal,
-  } = useSWR(
-    proposalId ? ["proposal", proposalId] : null,
+  // Combined SWR query for proposal and supports data
+  const { data, error, mutate } = useSWR(
+    proposalId ? ["proposalWithSupports", proposalId] : null,
     async () => {
-      if (!proposalId || !getProposalDetails) return null;
+      if (!proposalId || !getProposalDetails || !getProposalSupports)
+        return null;
+
       const details = await getProposalDetails(proposalId);
       if (!details) return null;
 
-      return {
+      // Transform proposal data
+      const proposal: DetailedProposal = {
         id: proposalId,
         name: details.tokenName,
         ticker: details.tokenSymbol,
@@ -34,7 +37,12 @@ export function useProposalDetails(proposalId: string | null) {
         publicKey: details.publicKey,
         supporters: details.supporters,
         creationTimestamp: details.creationTimestamp,
-      } as DetailedProposal;
+      };
+
+      // Fetch supports data
+      const supports = await getProposalSupports(details.publicKey.toString());
+
+      return { proposal, supports };
     },
     {
       refreshInterval: 5000,
@@ -43,44 +51,20 @@ export function useProposalDetails(proposalId: string | null) {
     }
   );
 
-  const {
-    data: supports,
-    error: supportsError,
-    mutate: mutateSupports,
-  } = useSWR(
-    proposal?.publicKey ? ["supports", proposal.publicKey.toString()] : null,
-    async () => {
-      if (!proposal?.publicKey || !getProposalSupports) return [];
-      return getProposalSupports(proposal.publicKey.toString());
-    },
-    {
-      refreshInterval: 5000,
-      revalidateOnFocus: true,
-      dedupingInterval: 1000,
-    }
-  );
-
+  // Force refresh function for user actions
   const forceRefresh = async () => {
-    await Promise.all([
-      mutateProposal(undefined, {
-        revalidate: true,
-        rollbackOnError: false,
-      }),
-      mutateSupports(undefined, {
-        revalidate: true,
-        rollbackOnError: false,
-      }),
-    ]);
+    await mutate(undefined, {
+      revalidate: true,
+      rollbackOnError: false,
+    });
   };
 
   return {
-    proposal,
-    supports,
-    isLoading: !proposalError && !proposal,
-    isLoadingSupports: !supportsError && !supports,
-    error: proposalError || supportsError,
-    mutateProposal,
-    mutateSupports,
+    proposal: data?.proposal || null,
+    supports: data?.supports || [],
+    isLoading: !error && !data,
+    isLoadingSupports: !error && !data,
+    error,
     forceRefresh,
   };
 }
