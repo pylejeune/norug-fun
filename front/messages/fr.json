@@ -153,7 +153,13 @@
       "validated": "Validée",
       "rejected": "Rejetée"
     },
-    "errorLoadingEpochs": "Erreur lors du chargement des epochs"
+    "errorLoadingEpochs": "Erreur lors du chargement des epochs",
+    "pagination": {
+      "showing": "Affichage de {start} à {end} sur {total} propositions",
+      "previous": "Précédent",
+      "next": "Suivant",
+      "itemsPerPage": "{count} par page"
+    }
   },
   "Treasury": {
     "title": "Trésorerie",

@@ -1,34 +1,37 @@
 import EpochSelector from "@/components/epoch/EpochSelector";
 import { ProposalCard } from "@/components/home/ProposalCard";
-import { EpochState, ProposalState } from "@/context/ProgramContext";
+import { EpochState } from "@/context/ProgramContext";
+import { useProposals } from "@/hooks/useProposals";
 import { format } from "date-fns";
 import { enUS, fr } from "date-fns/locale";
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
-type ActiveProposalsViewProps = {
+// --- Props type definition ---
+type ProposalsListProps = {
   selectedEpochId?: string;
   selectedEpochDetails: EpochState | null;
-  filteredProposals: ProposalState[];
-  loading: boolean;
   locale: string | undefined;
   onSelectEpoch: (epochId: string) => void;
 };
 
-export function ActiveProposalsView({
+export function ProposalsList({
   selectedEpochId,
   selectedEpochDetails,
-  filteredProposals,
-  loading,
   locale,
   onSelectEpoch,
-}: ActiveProposalsViewProps) {
+}: ProposalsListProps) {
+  // --- Hooks and state ---
   const t = useTranslations("Home");
+  const { proposals, isLoading } = useProposals(selectedEpochId);
   const [sortBy, setSortBy] = useState<"sol" | "date" | "name">("sol");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState<number>(10);
 
+  // --- Sorting logic ---
   const sortedFilteredProposals = useMemo(() => {
-    let sorted = [...filteredProposals];
+    let sorted = [...proposals];
 
     switch (sortBy) {
       case "date":
@@ -54,17 +57,27 @@ export function ActiveProposalsView({
     }
 
     return sorted;
-  }, [filteredProposals, sortBy, sortOrder]);
+  }, [proposals, sortBy, sortOrder]);
+
+  // Pagination calculation
+  const paginatedProposals = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    return sortedFilteredProposals.slice(start, end);
+  }, [sortedFilteredProposals, currentPage, itemsPerPage]);
+
+  const totalPages = Math.ceil(sortedFilteredProposals.length / itemsPerPage);
 
   return (
     <>
+      {/* --- Filters and Epoch Selection --- */}
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
         <EpochSelector
           selectedEpochId={selectedEpochId}
           onSelect={onSelectEpoch}
           activeOnly
         />
-
+        {/* Sort controls */}
         {selectedEpochDetails && (
           <div className="flex flex-wrap gap-2">
             <select
@@ -96,7 +109,7 @@ export function ActiveProposalsView({
         )}
       </div>
 
-      {/* Container for Epoch Selector and Details Card */}
+      {/* --- Epoch Details Card --- */}
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
         {selectedEpochDetails && (
           <div className="px-6 py-2 bg-gray-800/50 rounded-xl border border-gray-700 flex-grow md:flex-grow-0">
@@ -134,7 +147,7 @@ export function ActiveProposalsView({
                   {t("proposalsCount")}
                 </h3>
                 <p className="text-lg font-semibold">
-                  {t("proposalCount", { count: filteredProposals.length })}
+                  {t("proposalCount", { count: proposals.length })}
                 </p>
               </div>
             </div>
@@ -142,32 +155,105 @@ export function ActiveProposalsView({
         )}
       </div>
 
-      {loading ? (
+      {/* --- Proposals List --- */}
+      {isLoading ? (
         <div className="flex justify-center py-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
         </div>
-      ) : sortedFilteredProposals.length > 0 ? (
-        <div className="flex flex-col gap-4">
-          {sortedFilteredProposals.map((proposal, index) => {
-            let borderClass = "";
-            if (index < 3) {
-              borderClass = "gradient-border gradient-border-green";
-            } else if (index < 7) {
-              borderClass = "gradient-border gradient-border-blue";
-            } else {
-              borderClass = "border-1 border-gray-700";
-            }
+      ) : paginatedProposals.length > 0 ? (
+        <>
+          <div className="flex flex-col gap-4">
+            {paginatedProposals.map((proposal, index) => {
+              let borderClass = "";
+              if (index < 3) {
+                borderClass = "gradient-border gradient-border-green";
+              } else if (index < 7) {
+                borderClass = "gradient-border gradient-border-blue";
+              } else {
+                borderClass = "border-1 border-gray-700";
+              }
 
-            return (
-              <ProposalCard
-                key={proposal.publicKey.toString()}
-                proposal={proposal}
-                locale={locale}
-                className={borderClass}
-              />
-            );
-          })}
-        </div>
+              return (
+                <ProposalCard
+                  key={proposal.publicKey.toString()}
+                  proposal={proposal}
+                  locale={locale}
+                  className={borderClass}
+                />
+              );
+            })}
+          </div>
+
+          {/* Pagination controls */}
+          {sortedFilteredProposals.length > 10 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 text-sm">
+              <div className="flex items-center gap-4">
+                <div className="text-gray-400">
+                  {t("pagination.showing", {
+                    start: (currentPage - 1) * itemsPerPage + 1,
+                    end: Math.min(
+                      currentPage * itemsPerPage,
+                      sortedFilteredProposals.length
+                    ),
+                    total: sortedFilteredProposals.length,
+                  })}
+                </div>
+
+                <select
+                  value={itemsPerPage}
+                  onChange={(e) => {
+                    setItemsPerPage(Number(e.target.value));
+                    setCurrentPage(1); // Reset to first page when changing items per page
+                  }}
+                  className="px-3 py-1.5 rounded-lg bg-gray-800/50 hover:bg-gray-800 
+                            text-gray-300 border border-gray-700 transition-colors"
+                >
+                  <option value={10}>
+                    {t("pagination.itemsPerPage", { count: 10 })}
+                  </option>
+                  <option value={50}>
+                    {t("pagination.itemsPerPage", { count: 50 })}
+                  </option>
+                  <option value={100}>
+                    {t("pagination.itemsPerPage", { count: 100 })}
+                  </option>
+                </select>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className={`px-3 py-1.5 rounded-lg transition-colors ${
+                    currentPage === 1
+                      ? "bg-gray-800/50 text-gray-500 cursor-not-allowed"
+                      : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                  }`}
+                >
+                  {t("pagination.previous")}
+                </button>
+
+                <span className="px-3 py-1.5 bg-gray-800/50 rounded-lg">
+                  {currentPage} / {totalPages}
+                </span>
+
+                <button
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(totalPages, p + 1))
+                  }
+                  disabled={currentPage === totalPages}
+                  className={`px-3 py-1.5 rounded-lg transition-colors ${
+                    currentPage === totalPages
+                      ? "bg-gray-800/50 text-gray-500 cursor-not-allowed"
+                      : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                  }`}
+                >
+                  {t("pagination.next")}
+                </button>
+              </div>
+            </div>
+          )}
+        </>
       ) : (
         <div className="text-center py-8 text-gray-400">
           {selectedEpochId
