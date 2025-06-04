@@ -2,7 +2,8 @@
 
 import ProposalSupportList from "@/components/proposal/ProposalSupportList";
 import BackButton from "@/components/ui/BackButton";
-import { ProposalSupport, useProgram } from "@/context/ProgramContext";
+import { useProgram } from "@/context/ProgramContext";
+import { useProposalDetails } from "@/hooks/useProposalDetails";
 import { ipfsToHttp } from "@/utils/ImageStorage";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey } from "@solana/web3.js";
@@ -46,96 +47,22 @@ export default function ProposalDetailPage() {
   const t = useTranslations("ProposalDetail");
   const { locale, id } = useParams();
   const { publicKey } = useWallet();
+  const { supportProposal, reclaimSupport } = useProgram();
   const {
-    getProposalDetails,
-    supportProposal,
-    getProposalSupports,
-    reclaimSupport,
-  } = useProgram();
+    proposal,
+    supports,
+    isLoading,
+    isLoadingSupports,
+    mutateProposal,
+    mutateSupports,
+    forceRefresh,
+  } = useProposalDetails(id as string);
 
   // 2. States
   const [supportAmount, setSupportAmount] = useState<string>("");
-  const [proposal, setProposal] = useState<DetailedProposal | null>(null);
-  const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [supports, setSupports] = useState<ProposalSupport[]>([]);
-  const [isLoadingSupports, setIsLoadingSupports] = useState(true);
-  const [dynamicAmounts, setDynamicAmounts] = useState<{
-    solRaised: number;
-    totalContributions: number;
-  } | null>(null);
 
   // 3. Callbacks
-  const loadProposal = useCallback(async () => {
-    if (!id || !getProposalDetails) return;
-
-    try {
-      setLoading(true);
-      const details = await getProposalDetails(id as string);
-
-      if (!details) {
-        toast.error(t("proposalNotFound"));
-        return;
-      }
-
-      setProposal({
-        id: id as string,
-        name: details.tokenName,
-        ticker: details.tokenSymbol,
-        description: details.description,
-        imageUrl: details.imageUrl,
-        epoch_id: details.epochId,
-        solRaised: details.solRaised,
-        creator: details.creator,
-        totalSupply: details.totalSupply,
-        creatorAllocation: details.creatorAllocation,
-        supporterAllocation: details.supporterAllocation,
-        status: details.status as unknown as ProposalStatusType,
-        totalContributions: details.totalContributions,
-        lockupPeriod: details.lockupPeriod,
-        publicKey: details.publicKey,
-        supporters: details.supporters,
-        creationTimestamp: details.creationTimestamp,
-      });
-    } catch (error) {
-      console.error("Error loading proposal:", error);
-      toast.error(t("errorLoadingProposal"));
-    } finally {
-      setLoading(false);
-    }
-  }, [id, getProposalDetails, t]);
-
-  const loadSupports = useCallback(async () => {
-    if (!proposal?.publicKey || !getProposalSupports) return;
-
-    try {
-      setIsLoadingSupports(true);
-      const proposalSupports = await getProposalSupports(
-        proposal.publicKey.toString()
-      );
-      setSupports(proposalSupports);
-    } catch (error) {
-      console.error("Error loading supports:", error);
-      toast.error(t("errorLoadingSupports"));
-    } finally {
-      setIsLoadingSupports(false);
-    }
-  }, [proposal?.publicKey, getProposalSupports, t]);
-
-  const updateAmounts = useCallback(async () => {
-    if (!id || !getProposalDetails) return;
-
-    try {
-      const details = await getProposalDetails(id as string);
-      setDynamicAmounts({
-        solRaised: details.solRaised,
-        totalContributions: details.totalContributions,
-      });
-    } catch (error) {
-      console.error("Error updating amounts:", error);
-    }
-  }, [id, getProposalDetails]);
-
   const handleSupport = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
@@ -149,14 +76,15 @@ export default function ProposalDetailPage() {
         );
         toast.success(t("supportSuccess"));
         setSupportAmount("");
-        await updateAmounts();
+        // Forcer un refresh immédiat et complet
+        await forceRefresh();
       } catch (error: any) {
         toast.error(error.message || t("supportError"));
       } finally {
         setIsSubmitting(false);
       }
     },
-    [proposal, supportAmount, supportProposal, t, updateAmounts]
+    [proposal, supportAmount, supportProposal, t, forceRefresh]
   );
 
   const handleReclaimSupport = async () => {
@@ -165,7 +93,8 @@ export default function ProposalDetailPage() {
     try {
       await reclaimSupport(proposal.publicKey, parseInt(proposal.epoch_id));
       toast.success(t("claimSuccess"));
-      await loadProposal();
+      // Forcer un refresh immédiat et complet
+      await forceRefresh();
     } catch (error) {
       console.error("Failed to reclaim support:", error);
       toast.error(t("claimError"));
@@ -174,14 +103,11 @@ export default function ProposalDetailPage() {
 
   // 4. Effects
   useEffect(() => {
-    loadProposal();
-  }, [loadProposal]);
-
-  useEffect(() => {
     if (proposal) {
-      loadSupports();
+      // Mettre à jour les supports
+      mutateSupports();
     }
-  }, [proposal, loadSupports]);
+  }, [proposal, mutateSupports]);
 
   // 5. Render helpers
   const formatNumber = useCallback(
@@ -227,10 +153,11 @@ export default function ProposalDetailPage() {
     return "unknown";
   };
 
-  const isFullyLoaded = !loading && !isLoadingSupports && proposal && supports;
+  const isFullyLoaded =
+    !isLoading && !isLoadingSupports && proposal && supports;
 
   // Loading state
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex justify-center py-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white" />
@@ -296,9 +223,7 @@ export default function ProposalDetailPage() {
                 <>
                   <p className="text-xl font-medium text-green-500">
                     {t("solanaRaised", {
-                      amount: (
-                        dynamicAmounts?.solRaised ?? proposal.solRaised
-                      ).toLocaleString(locale, {
+                      amount: proposal.solRaised.toLocaleString(locale, {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
                       }),
@@ -364,7 +289,7 @@ export default function ProposalDetailPage() {
                       ) && (
                         <button
                           onClick={handleReclaimSupport}
-                          disabled={loading}
+                          disabled={isLoading}
                           className="w-full px-6 py-3 rounded-lg font-medium 
                                   bg-red-900/50 hover:bg-red-900 text-red-100 
                                   transition-colors hover:bg-opacity-80"
@@ -452,15 +377,10 @@ export default function ProposalDetailPage() {
               <div className="bg-gray-900/50 p-3 rounded-lg">
                 <p className="text-sm text-gray-400 mb-1">
                   {t("totalContributions", {
-                    count:
-                      dynamicAmounts?.totalContributions ??
-                      proposal.totalContributions,
+                    count: proposal.totalContributions,
                   })}
                 </p>
-                <p>
-                  {dynamicAmounts?.totalContributions ??
-                    proposal.totalContributions}
-                </p>
+                <p>{proposal.totalContributions}</p>
               </div>
               <div className="bg-gray-900/50 p-3 rounded-lg">
                 <p className="text-sm text-gray-400 mb-1">
@@ -474,10 +394,7 @@ export default function ProposalDetailPage() {
           </div>
 
           {/* Supporters Section */}
-          <ProposalSupportList
-            proposal={proposal}
-            dynamicAmounts={dynamicAmounts}
-          />
+          <ProposalSupportList proposal={proposal} supports={supports || []} />
         </div>
       </div>
     </div>

@@ -1,47 +1,17 @@
 import { DetailedProposal } from "@/app/[locale]/proposal/[id]/page";
-import { ProposalSupport, useProgram } from "@/context/ProgramContext";
+import { ProposalSupport } from "@/context/ProgramContext";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
 
-type ProposalSupportListProps = {
+type Props = {
   proposal: DetailedProposal;
-  dynamicAmounts?: {
-    solRaised: number;
-    totalContributions: number;
-  } | null;
+  supports: ProposalSupport[];
 };
 
-export default function ProposalSupportList({
-  proposal,
-  dynamicAmounts,
-}: ProposalSupportListProps) {
+export default function ProposalSupportList({ proposal, supports }: Props) {
   const t = useTranslations("ProposalDetail");
   const { locale } = useParams();
-  const { getProposalSupports } = useProgram();
-  const [supports, setSupports] = useState<ProposalSupport[]>([]);
-  const [isLoadingSupports, setIsLoadingSupports] = useState(true);
-
-  const loadSupports = useCallback(async () => {
-    if (!proposal?.publicKey || !getProposalSupports) return;
-
-    try {
-      setIsLoadingSupports(true);
-      const proposalSupports = await getProposalSupports(
-        proposal.publicKey.toString()
-      );
-      setSupports(proposalSupports);
-    } catch (error) {
-      // Handle error if needed
-    } finally {
-      setIsLoadingSupports(false);
-    }
-  }, [proposal?.publicKey, getProposalSupports]);
-
-  useEffect(() => {
-    loadSupports();
-  }, [loadSupports, dynamicAmounts]);
 
   return (
     <div className="bg-gray-800/50 p-4 rounded-lg">
@@ -54,11 +24,7 @@ export default function ProposalSupportList({
         )}
       </h2>
 
-      {isLoadingSupports ? (
-        <div className="flex justify-center py-4">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white" />
-        </div>
-      ) : supports.length === 0 ? (
+      {supports.length === 0 ? (
         <div className="text-center text-gray-400 py-4">
           {t("noSupportersYet")}
         </div>
