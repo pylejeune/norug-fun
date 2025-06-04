@@ -53,7 +53,6 @@ export default function ProposalDetailPage() {
     supports,
     isLoading,
     isLoadingSupports,
-    mutateProposal,
     mutateSupports,
     forceRefresh,
   } = useProposalDetails(id as string);
