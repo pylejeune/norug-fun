@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
 import { useProgram } from "@/context/ProgramContext";
+import { useProposals } from "@/hooks/useProposals";
 import { uploadImageToIPFS } from "@/utils/ImageStorage";
 import { Info } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -34,6 +35,7 @@ export default function ProposalForm() {
   const router = useRouter();
   const { locale } = useParams();
   const [selectedEpochId, setSelectedEpochId] = useState<string>();
+  const { mutate } = useProposals(selectedEpochId);
 
   // Form state with default values
   const [formData, setFormData] = useState<FormData>({
@@ -149,6 +151,9 @@ export default function ProposalForm() {
         formData.lockupPeriod,
         imageIpfsUrl // Pass the IPFS URL here
       );
+
+      // Forcer une mise à jour des propositions
+      await mutate();
 
       toast.dismiss(loadingToast);
       toast.success(t("proposalCreated"));

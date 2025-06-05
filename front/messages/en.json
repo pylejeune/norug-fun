@@ -153,7 +153,13 @@
       "validated": "Validated",
       "rejected": "Rejected"
     },
-    "errorLoadingEpochs": "Error loading epochs"
+    "errorLoadingEpochs": "Error loading epochs",
+    "pagination": {
+      "showing": "Showing {start} to {end} of {total} proposals",
+      "previous": "Previous",
+      "next": "Next",
+      "itemsPerPage": "{count} per page"
+    }
   },
   "Treasury": {
     "title": "Treasury",
@@ -241,9 +247,6 @@
     "endTimeTooFar": "End time cannot be more than 2 years in the future"
   },
   "backButton": "Back",
-  "Wallet": {
-    "connect": "Connect Wallet"
-  },
   "HowItWorksPage": {
     "title": "How NoRug.fun Works",
     "subtitle": "The trenches, with a helmet on.",
@@ -272,32 +275,6 @@
     "selectEpoch": "Select an epoch",
     "selectPlaceholder": "Choose an epoch",
     "epochOption": "Epoch #{id} ({startDate} - {endDate})"
-  },
-  "MyPage": {
-    "title": "My Page",
-    "viewMode": {
-      "myProposals": "My Proposals",
-      "supportedTokens": "Supported Tokens"
-    },
-    "sort": {
-      "byDate": "Sort by Date",
-      "byName": "Sort by Name",
-      "byVotes": "Sort by Votes",
-      "desc": "Descending",
-      "asc": "Ascending"
-    },
-    "connectWallet": "Please connect your wallet to view your proposals",
-    "noProposals": "You haven't created any proposals yet",
-    "noSupportedTokens": "You haven't supported any tokens yet",
-    "yourSupport": "Your support: {amount} SOL",
-    "status": {
-      "active": "Active",
-      "validated": "Validated",
-      "rejected": "Rejected"
-    },
-    "errorLoadingProposals": "Error loading proposals",
-    "noImage": "No image",
-    "epochId": "Epoch"
   },
   "Privacy": {
     "title": "Privacy Policy",
@@ -434,10 +411,5 @@
     "title": "Connect Wallet",
     "moreWallets": "More Wallets",
     "connectMessage": "Connect your wallet to start using NoRug.fun"
-  },
-  "Proposal": {
-    "claimButton": "Claim",
-    "claimSuccess": "Funds claimed successfully!",
-    "claimError": "Error claiming funds"
   }
 }
