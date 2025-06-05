@@ -52,6 +52,14 @@ export function runProposalCreationFeeTests() {
             const proposerBalanceBefore = await program.provider.connection.getBalance(proposerKeypair.publicKey);
             const treasuryBalanceBefore = await program.provider.connection.getBalance(ctx.treasuryAddress!);
 
+            // Récupérer les soldes initiaux des sous-comptes de la trésorerie
+            const treasuryAccountInitial = await program.account.treasury.fetch(ctx.treasuryAddress!);
+            const initialMarketingBalance = treasuryAccountInitial.marketing.solBalance;
+            const initialTeamBalance = treasuryAccountInitial.team.solBalance;
+            const initialOperationsBalance = treasuryAccountInitial.operations.solBalance;
+            const initialInvestmentsBalance = treasuryAccountInitial.investments.solBalance;
+            const initialCrankBalance = treasuryAccountInitial.crank.solBalance;
+
             const proposalDetails: proposalSetup.TokenProposalDetails = {
                 epochId: epochId,
                 name: "Fee Test Token",
@@ -92,6 +100,52 @@ export function runProposalCreationFeeTests() {
             expect(proposalAccount.tokenName).to.equal(proposalDetails.name);
             // TODO: Décommenter et ajuster lorsque le programme Rust tracera les frais payés sur le compte TokenProposal.
             // expect(proposalAccount.feesApplied.creationFeePaid).to.be.true;
+
+            // 4. Vérifier la distribution des frais de création aux sous-comptes de la trésorerie
+            const treasuryAccountAfter = await program.account.treasury.fetch(ctx.treasuryAddress!);
+
+            console.log(`      Sous-comptes Trésorerie (Creation Fee: ${CREATION_FEE_LAMPORTS.toString()}):`);
+            console.log(`        Marketing:`);
+            console.log(`          - Avant:      ${initialMarketingBalance.toString()}`);
+            console.log(`          - Attendu:    ${initialMarketingBalance.toString()} (pas de changement)`);
+            console.log(`          - Après:      ${treasuryAccountAfter.marketing.solBalance.toString()}`);
+            console.log(`        Team:`);
+            console.log(`          - Avant:      ${initialTeamBalance.toString()}`);
+            console.log(`          - Attendu:    ${initialTeamBalance.toString()} (pas de changement)`);
+            console.log(`          - Après:      ${treasuryAccountAfter.team.solBalance.toString()}`);
+            console.log(`        Opérations:`);
+            console.log(`          - Avant:      ${initialOperationsBalance.toString()}`);
+            console.log(`          - Attendu après: ${initialOperationsBalance.add(CREATION_FEE_LAMPORTS).toString()} (+${CREATION_FEE_LAMPORTS.toString()})`);
+            console.log(`          - Après:      ${treasuryAccountAfter.operations.solBalance.toString()}`);
+            console.log(`        Investissements:`);
+            console.log(`          - Avant:      ${initialInvestmentsBalance.toString()}`);
+            console.log(`          - Attendu:    ${initialInvestmentsBalance.toString()} (pas de changement)`);
+            console.log(`          - Après:      ${treasuryAccountAfter.investments.solBalance.toString()}`);
+            console.log(`        Crank:`);
+            console.log(`          - Avant:      ${initialCrankBalance.toString()}`);
+            console.log(`          - Attendu:    ${initialCrankBalance.toString()} (pas de changement)`);
+            console.log(`          - Après:      ${treasuryAccountAfter.crank.solBalance.toString()}`);
+
+            expect(treasuryAccountAfter.operations.solBalance.toString()).to.equal(
+                initialOperationsBalance.add(CREATION_FEE_LAMPORTS).toString(),
+                "Operations balance should increase by creation fee"
+            );
+            expect(treasuryAccountAfter.marketing.solBalance.toString()).to.equal(
+                initialMarketingBalance.toString(),
+                "Marketing balance should not change for creation fee"
+            );
+            expect(treasuryAccountAfter.team.solBalance.toString()).to.equal(
+                initialTeamBalance.toString(),
+                "Team balance should not change for creation fee"
+            );
+            expect(treasuryAccountAfter.investments.solBalance.toString()).to.equal(
+                initialInvestmentsBalance.toString(),
+                "Investments balance should not change for creation fee"
+            );
+            expect(treasuryAccountAfter.crank.solBalance.toString()).to.equal(
+                initialCrankBalance.toString(),
+                "Crank balance should not change for creation fee"
+            );
 
             console.log(`      Proposer balance before: ${proposerBalanceBefore}`);
             console.log(`      Proposer balance after:  ${proposerBalanceAfter}`);

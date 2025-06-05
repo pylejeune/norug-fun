@@ -16,3 +16,10 @@ export const SUPPORT_FEE_LAMPORTS = new anchor.BN(5000000);
 // Pourcentage des frais de support (aligné sur le programme Rust)
 export const SUPPORT_FEE_PERCENTAGE_NUMERATOR = 5;
 export const SUPPORT_FEE_PERCENTAGE_DENOMINATOR = 1000;
+
+// Pourcentages de Distribution de la Trésorerie (sur une base de 100, alignés sur le programme Rust)
+export const TREASURY_DISTRIBUTION_MARKETING_PERCENT = 10;
+export const TREASURY_DISTRIBUTION_TEAM_PERCENT = 40;
+export const TREASURY_DISTRIBUTION_OPERATIONS_PERCENT = 5;
+export const TREASURY_DISTRIBUTION_INVESTMENTS_PERCENT = 44;
+export const TREASURY_DISTRIBUTION_CRANK_PERCENT = 1;

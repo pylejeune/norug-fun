@@ -16,7 +16,12 @@ import {
     CREATION_FEE_LAMPORTS, 
     SUPPORT_FEE_LAMPORTS, // Peut être gardé pour d'autres contextes, mais pas pour le calcul de frais ici
     SUPPORT_FEE_PERCENTAGE_NUMERATOR,
-    SUPPORT_FEE_PERCENTAGE_DENOMINATOR 
+    SUPPORT_FEE_PERCENTAGE_DENOMINATOR,
+    TREASURY_DISTRIBUTION_MARKETING_PERCENT,
+    TREASURY_DISTRIBUTION_TEAM_PERCENT,
+    TREASURY_DISTRIBUTION_OPERATIONS_PERCENT,
+    TREASURY_DISTRIBUTION_INVESTMENTS_PERCENT,
+    TREASURY_DISTRIBUTION_CRANK_PERCENT
 } from '../../utils_for_tests/constants';
 
 export function runProposalSupportFeeTests() {
@@ -76,6 +81,14 @@ export function runProposalSupportFeeTests() {
             const proposalAccountBefore = await program.account.tokenProposal.fetch(proposalPda);
             const proposalSolRaisedBefore = proposalAccountBefore.solRaised;
 
+            // Récupérer les soldes initiaux des sous-comptes de la trésorerie
+            const treasuryAccountInitial = await program.account.treasury.fetch(ctx.treasuryAddress!);
+            const initialMarketingBalance = treasuryAccountInitial.marketing.solBalance;
+            const initialTeamBalance = treasuryAccountInitial.team.solBalance;
+            const initialOperationsBalance = treasuryAccountInitial.operations.solBalance;
+            const initialInvestmentsBalance = treasuryAccountInitial.investments.solBalance;
+            const initialCrankBalance = treasuryAccountInitial.crank.solBalance;
+
             // Calculer les frais de support attendus en fonction du pourcentage
             const expectedSupportFee = supportAmountLamports
                 .mul(new anchor.BN(SUPPORT_FEE_PERCENTAGE_NUMERATOR))
@@ -120,6 +133,76 @@ export function runProposalSupportFeeTests() {
             const expectedNetAmount = supportAmountLamports.sub(expectedSupportFee);
             expect(supportAccount.amount.eq(expectedNetAmount)).to.be.true;
             // TODO: Ajouter une vérification si un champ `feePaid` est ajouté à `UserProposalSupport`
+
+            // 5. Vérifier la distribution des frais aux sous-comptes de la trésorerie
+            const treasuryAccountAfter = await program.account.treasury.fetch(ctx.treasuryAddress!);
+
+            const expectedMarketingShare = expectedSupportFee
+                .mul(new anchor.BN(TREASURY_DISTRIBUTION_MARKETING_PERCENT))
+                .div(new anchor.BN(100));
+            const expectedTeamShare = expectedSupportFee
+                .mul(new anchor.BN(TREASURY_DISTRIBUTION_TEAM_PERCENT))
+                .div(new anchor.BN(100));
+            const expectedOperationsShare = expectedSupportFee
+                .mul(new anchor.BN(TREASURY_DISTRIBUTION_OPERATIONS_PERCENT))
+                .div(new anchor.BN(100));
+            const expectedInvestmentsShare = expectedSupportFee
+                .mul(new anchor.BN(TREASURY_DISTRIBUTION_INVESTMENTS_PERCENT))
+                .div(new anchor.BN(100));
+            
+            let expectedCrankShare = new anchor.BN(expectedSupportFee);
+            expectedCrankShare = expectedCrankShare.sub(expectedMarketingShare);
+            expectedCrankShare = expectedCrankShare.sub(expectedTeamShare);
+            expectedCrankShare = expectedCrankShare.sub(expectedOperationsShare);
+            expectedCrankShare = expectedCrankShare.sub(expectedInvestmentsShare);
+
+            console.log(`      Sous-comptes Trésorerie (Support Fee: ${expectedSupportFee.toString()}):`);
+            console.log(`        Marketing:`);
+            console.log(`          - Avant:      ${initialMarketingBalance.toString()}`);
+            console.log(`          - Part attendue: ${expectedMarketingShare.toString()}`);
+            console.log(`          - Après:      ${treasuryAccountAfter.marketing.solBalance.toString()}`);
+            console.log(`          - Augmentation: ${treasuryAccountAfter.marketing.solBalance.sub(initialMarketingBalance).toString()}`);
+            console.log(`        Team:`);
+            console.log(`          - Avant:      ${initialTeamBalance.toString()}`);
+            console.log(`          - Part attendue: ${expectedTeamShare.toString()}`);
+            console.log(`          - Après:      ${treasuryAccountAfter.team.solBalance.toString()}`);
+            console.log(`          - Augmentation: ${treasuryAccountAfter.team.solBalance.sub(initialTeamBalance).toString()}`);
+            console.log(`        Opérations:`);
+            console.log(`          - Avant:      ${initialOperationsBalance.toString()}`);
+            console.log(`          - Part attendue: ${expectedOperationsShare.toString()}`);
+            console.log(`          - Après:      ${treasuryAccountAfter.operations.solBalance.toString()}`);
+            console.log(`          - Augmentation: ${treasuryAccountAfter.operations.solBalance.sub(initialOperationsBalance).toString()}`);
+            console.log(`        Investissements:`);
+            console.log(`          - Avant:      ${initialInvestmentsBalance.toString()}`);
+            console.log(`          - Part attendue: ${expectedInvestmentsShare.toString()}`);
+            console.log(`          - Après:      ${treasuryAccountAfter.investments.solBalance.toString()}`);
+            console.log(`          - Augmentation: ${treasuryAccountAfter.investments.solBalance.sub(initialInvestmentsBalance).toString()}`);
+            console.log(`        Crank:`);
+            console.log(`          - Avant:      ${initialCrankBalance.toString()}`);
+            console.log(`          - Part attendue: ${expectedCrankShare.toString()}`);
+            console.log(`          - Après:      ${treasuryAccountAfter.crank.solBalance.toString()}`);
+            console.log(`          - Augmentation: ${treasuryAccountAfter.crank.solBalance.sub(initialCrankBalance).toString()}`);
+
+            expect(treasuryAccountAfter.marketing.solBalance.toString()).to.equal(
+                initialMarketingBalance.add(expectedMarketingShare).toString(),
+                "Marketing balance incorrect"
+            );
+            expect(treasuryAccountAfter.team.solBalance.toString()).to.equal(
+                initialTeamBalance.add(expectedTeamShare).toString(),
+                "Team balance incorrect"
+            );
+            expect(treasuryAccountAfter.operations.solBalance.toString()).to.equal(
+                initialOperationsBalance.add(expectedOperationsShare).toString(),
+                "Operations balance incorrect"
+            );
+            expect(treasuryAccountAfter.investments.solBalance.toString()).to.equal(
+                initialInvestmentsBalance.add(expectedInvestmentsShare).toString(),
+                "Investments balance incorrect"
+            );
+            expect(treasuryAccountAfter.crank.solBalance.toString()).to.equal(
+                initialCrankBalance.add(expectedCrankShare).toString(),
+                "Crank balance incorrect"
+            );
 
             console.log(`      Supporter balance before: ${supporterBalanceBefore}`);
             console.log(`      Supporter balance after:  ${supporterBalanceAfter}`);
