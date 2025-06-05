@@ -276,32 +276,6 @@
     "selectPlaceholder": "Choisir une epoch",
     "epochOption": "Epoch #{id} ({startDate} - {endDate})"
   },
-  "MyPage": {
-    "title": "Ma Page",
-    "viewMode": {
-      "myProposals": "Mes Propositions",
-      "supportedTokens": "Tokens Soutenus"
-    },
-    "sort": {
-      "byDate": "Trier par Date",
-      "byName": "Trier par Nom",
-      "byVotes": "Trier par Votes",
-      "desc": "Décroissant",
-      "asc": "Croissant"
-    },
-    "connectWallet": "Veuillez connecter votre wallet pour voir vos propositions",
-    "noProposals": "Vous n'avez pas encore créé de propositions",
-    "noSupportedTokens": "Vous n'avez pas encore soutenu de tokens",
-    "yourSupport": "Votre soutien : {amount} SOL",
-    "status": {
-      "active": "Actif",
-      "validated": "Validé",
-      "rejected": "Rejeté"
-    },
-    "errorLoadingProposals": "Erreur lors du chargement des propositions",
-    "noImage": "Pas d'image",
-    "epochId": "Epoch"
-  },
   "Privacy": {
     "title": "Politique de Confidentialité",
     "lastUpdated": "Dernière mise à jour : Mai 2025",
@@ -437,10 +411,5 @@
     "title": "Connecter un Wallet",
     "moreWallets": "Plus de Wallets",
     "connectMessage": "Connectez votre wallet pour utiliser NoRug.fun"
-  },
-  "Proposal": {
-    "claimButton": "Récupérer",
-    "claimSuccess": "Fonds récupérés avec succès !",
-    "claimError": "Erreur lors de la récupération des fonds"
   }
 }

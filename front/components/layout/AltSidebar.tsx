@@ -5,7 +5,6 @@ import {
   BookOpenText,
   CirclePlus,
   Home,
-  Hourglass,
   MessagesSquare,
   PanelLeftClose,
   PanelLeftOpen,
@@ -54,11 +53,7 @@ export function AltSidebar() {
       url: `/${locale}`,
       icon: Home,
     },
-    {
-      titleKey: "manageEpoch",
-      url: `/${locale}/epoch`,
-      icon: Hourglass,
-    },
+
     {
       titleKey: "createProposal",
       url: `/${locale}/proposal/create`,
