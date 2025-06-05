@@ -12,8 +12,12 @@ import * as programConfigSetup from '../../setup/programConfigSetup';
 import * as epochSetup from '../../setup/epochSetup';
 import * as treasurySetup from '../../setup/treasurySetup';
 import * as proposalSetup from '../../setup/proposalSetup';
-import * as userSupportSetup from '../../setup/userSupportSetup';
-import { CREATION_FEE_LAMPORTS, SUPPORT_FEE_LAMPORTS } from '../../utils_for_tests/constants';
+import { 
+    CREATION_FEE_LAMPORTS, 
+    SUPPORT_FEE_LAMPORTS, // Peut être gardé pour d'autres contextes, mais pas pour le calcul de frais ici
+    SUPPORT_FEE_PERCENTAGE_NUMERATOR,
+    SUPPORT_FEE_PERCENTAGE_DENOMINATOR 
+} from '../../utils_for_tests/constants';
 
 export function runProposalSupportFeeTests() {
     describe('Instruction: support_proposal (Fee Logic)', () => {
@@ -72,10 +76,16 @@ export function runProposalSupportFeeTests() {
             const proposalAccountBefore = await program.account.tokenProposal.fetch(proposalPda);
             const proposalSolRaisedBefore = proposalAccountBefore.solRaised;
 
-            const userSupportPda = await userSupportSetup.supportProposalOnChain(
+            // Calculer les frais de support attendus en fonction du pourcentage
+            const expectedSupportFee = supportAmountLamports
+                .mul(new anchor.BN(SUPPORT_FEE_PERCENTAGE_NUMERATOR))
+                .div(new anchor.BN(SUPPORT_FEE_PERCENTAGE_DENOMINATOR));
+
+            const userSupportPda = await proposalSetup.supportProposalOnChain(
                 ctx,
                 supporterKeypair,
                 proposalPda,
+                epochId,
                 activeEpochPda,
                 supportAmountLamports
             );
@@ -88,25 +98,27 @@ export function runProposalSupportFeeTests() {
             const userSupportAccountRent = await program.provider.connection.getMinimumBalanceForRentExemption(
                 program.account.userProposalSupport.size 
             );
-            // Calcul plus précis des frais de transaction
-            const expectedSupporterBalanceAfter = supporterBalanceBefore - supportAmountLamports.toNumber() - SUPPORT_FEE_LAMPORTS.toNumber() - userSupportAccountRent;
-            const actualTransactionFee = supporterBalanceBefore - supporterBalanceAfter - supportAmountLamports.toNumber() - SUPPORT_FEE_LAMPORTS.toNumber() - userSupportAccountRent;
+            
+            const actualTransactionFee = supporterBalanceBefore - supporterBalanceAfter - supportAmountLamports.toNumber() - expectedSupportFee.toNumber() - userSupportAccountRent;
 
-            // 1. Le solde du supporter a diminué du montant du support + frais de support + rent + frais de tx
+            // 1. Le solde du supporter a diminué du montant du support + frais de support calculés + rent + frais de tx
             expect(supporterBalanceAfter).to.be.closeTo(
-                supporterBalanceBefore - supportAmountLamports.toNumber() - SUPPORT_FEE_LAMPORTS.toNumber() - userSupportAccountRent - actualTransactionFee,
+                supporterBalanceBefore - supportAmountLamports.toNumber() - expectedSupportFee.toNumber() - userSupportAccountRent - actualTransactionFee,
                 LAMPORTS_PER_SOL * 0.001 // Tolérance
             );
 
-            // 2. Le solde de la trésorerie a augmenté des frais de support
-            expect(treasuryBalanceAfter).to.equal(treasuryBalanceBefore + SUPPORT_FEE_LAMPORTS.toNumber());
+            // 2. Le solde de la trésorerie a augmenté des frais de support calculés
+            expect(treasuryBalanceAfter).to.equal(treasuryBalanceBefore + expectedSupportFee.toNumber());
 
-            // 3. Les SOL levés par la proposition ont augmenté du montant du support (hors frais)
-            expect(proposalSolRaisedAfter.toNumber()).to.equal(proposalSolRaisedBefore.toNumber() + supportAmountLamports.toNumber());
+            // 3. Les SOL levés par la proposition ont augmenté du montant du support (net des frais)
+            expect(proposalSolRaisedAfter.toNumber()).to.equal(
+                proposalSolRaisedBefore.toNumber() + supportAmountLamports.toNumber() - expectedSupportFee.toNumber()
+            );
 
             // 4. Le support a été enregistré
             const supportAccount = await program.account.userProposalSupport.fetch(userSupportPda);
-            expect(supportAccount.amount.eq(supportAmountLamports)).to.be.true;
+            const expectedNetAmount = supportAmountLamports.sub(expectedSupportFee);
+            expect(supportAccount.amount.eq(expectedNetAmount)).to.be.true;
             // TODO: Ajouter une vérification si un champ `feePaid` est ajouté à `UserProposalSupport`
 
             console.log(`      Supporter balance before: ${supporterBalanceBefore}`);
@@ -116,7 +128,7 @@ export function runProposalSupportFeeTests() {
             console.log(`      Proposal SOL raised before: ${proposalSolRaisedBefore.toString()}`);
             console.log(`      Proposal SOL raised after:  ${proposalSolRaisedAfter.toString()}`);
             console.log(`      Support amount:        ${supportAmountLamports.toString()}`);
-            console.log(`      Support fee:           ${SUPPORT_FEE_LAMPORTS.toString()}`);
+            console.log(`      Support fee (calc %):  ${expectedSupportFee.toString()}`);
             console.log(`      UserSupport rent:      ${userSupportAccountRent}`);
             console.log(`      Transaction fee (est.):${actualTransactionFee}`);
         });

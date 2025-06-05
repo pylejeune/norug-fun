@@ -38,6 +38,7 @@ import { runReclaimSupportTests } from './integration/03_proposal_workflow/recla
 
 // Importer les tests pour la logique des frais
 import { runProposalCreationFeeTests } from './integration/04_fee_distribution_logic/proposalCreationFee.test';
+import { runProposalSupportFeeTests } from './integration/04_fee_distribution_logic/proposalSupportFee.test';
 
 describe('Norug Fun - Integration Tests Orchestrator', () => {
     let ctx: TestContext;
@@ -143,7 +144,7 @@ describe('Norug Fun - Integration Tests Orchestrator', () => {
         });
 
         runProposalCreationFeeTests();
-        // TODO: Ajouter runProposalSupportFeeTests();
+        runProposalSupportFeeTests();
         // TODO: Ajouter runFeeDistributionUtilTests();
 
         after(() => console.log("==================== MODULE 04 END: Fee Distribution Logic ======================\n"));

@@ -10,5 +10,9 @@ export const ADMIN_SEED = Uint8Array.from([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,1
 // Frais de création d'une proposition en lamports (0.005 SOL, aligné sur le programme Rust)
 export const CREATION_FEE_LAMPORTS = new anchor.BN(5000000);
 
-// Frais de support d'une proposition en lamports (par exemple 0.005 SOL)
+// Frais de support d'une proposition en lamports (par exemple 0.005 SOL) - Conservé pour l'instant, mais le test utilisera le %
 export const SUPPORT_FEE_LAMPORTS = new anchor.BN(5000000);
+
+// Pourcentage des frais de support (aligné sur le programme Rust)
+export const SUPPORT_FEE_PERCENTAGE_NUMERATOR = 5;
+export const SUPPORT_FEE_PERCENTAGE_DENOMINATOR = 1000;
