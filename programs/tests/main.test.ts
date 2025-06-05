@@ -36,6 +36,9 @@ import { runSupportProposalTests } from './integration/03_proposal_workflow/supp
 import { runUpdateProposalStatusTests } from './integration/03_proposal_workflow/updateProposalStatus.test';
 import { runReclaimSupportTests } from './integration/03_proposal_workflow/reclaimSupport.test';
 
+// Importer les tests pour la logique des frais
+import { runProposalCreationFeeTests } from './integration/04_fee_distribution_logic/proposalCreationFee.test';
+
 describe('Norug Fun - Integration Tests Orchestrator', () => {
     let ctx: TestContext;
     let program: Program<Programs>;
@@ -130,6 +133,20 @@ describe('Norug Fun - Integration Tests Orchestrator', () => {
         runReclaimSupportTests();
 
         after(() => console.log("==================== MODULE 03 END: Proposal Workflow ======================\n"));
+    });
+
+    describe('Module 04: Fee Distribution Logic', () => {
+        before(() => {
+            console.log("\n==================== MODULE 04 START: Fee Distribution Logic ====================");
+            // Le setup global (ProgramConfig, Treasury) devrait être suffisant ici.
+            // Les tests spécifiques peuvent créer des époques/propositions au besoin.
+        });
+
+        runProposalCreationFeeTests();
+        // TODO: Ajouter runProposalSupportFeeTests();
+        // TODO: Ajouter runFeeDistributionUtilTests();
+
+        after(() => console.log("==================== MODULE 04 END: Fee Distribution Logic ======================\n"));
     });
 
     after(async () => {

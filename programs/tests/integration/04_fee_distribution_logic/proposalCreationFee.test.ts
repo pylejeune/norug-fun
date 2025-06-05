@@ -2,17 +2,17 @@ import * as anchor from '@coral-xyz/anchor';
 import { Program } from '@coral-xyz/anchor';
 import { Keypair, PublicKey, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import chai, { expect } from 'chai';
-import { Programs } from '../../../../../target/types/programs'; // Ajusté pour la profondeur
+import { Programs } from '../../../target/types/programs'; // Corrigé
 import {
     TestContext,
     getInitializedContext,
     generateRandomBN,
-} from '../../../setup'; // Ajusté pour la profondeur
-import * as programConfigSetup from '../../../setup/programConfigSetup';
-import * as epochSetup from '../../../setup/epochSetup';
-import * as treasurySetup from '../../../setup/treasurySetup';
-import * as proposalSetup from '../../../setup/proposalSetup';
-import { CREATION_FEE_LAMPORTS } from '../../../utils_for_tests/constants'; // Supposant que cette constante y sera
+} from '../../setup'; // Corrigé
+import * as programConfigSetup from '../../setup/programConfigSetup'; // Corrigé
+import * as epochSetup from '../../setup/epochSetup'; // Corrigé
+import * as treasurySetup from '../../setup/treasurySetup'; // Corrigé
+import * as proposalSetup from '../../setup/proposalSetup'; // Corrigé
+import { CREATION_FEE_LAMPORTS } from '../../utils_for_tests/constants'; // Corrigé
 
 export function runProposalCreationFeeTests() {
     describe('Instruction: create_proposal (Fee Logic)', () => {
@@ -89,7 +89,7 @@ export function runProposalCreationFeeTests() {
 
             // 3. La proposition a été créée (vérification basique)
             const proposalAccount = await program.account.tokenProposal.fetch(proposalPda);
-            expect(proposalAccount.name).to.equal(proposalDetails.name);
+            expect(proposalAccount.tokenName).to.equal(proposalDetails.name);
             // TODO: Décommenter et ajuster lorsque le programme Rust tracera les frais payés sur le compte TokenProposal.
             // expect(proposalAccount.feesApplied.creationFeePaid).to.be.true;
 

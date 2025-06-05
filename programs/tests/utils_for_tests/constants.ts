@@ -7,5 +7,8 @@ export const ADMIN_SEED = Uint8Array.from([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,1
 // Optionnellement, on peut aussi exporter directement le Keypair dérivé si c'est plus pratique.
 // export const ADMIN_KEYPAIR = Keypair.fromSeed(ADMIN_SEED); 
 
-// Frais de création d'une proposition en lamports (par exemple 0.01 SOL)
-export const CREATION_FEE_LAMPORTS = new anchor.BN(10000000);
+// Frais de création d'une proposition en lamports (0.005 SOL, aligné sur le programme Rust)
+export const CREATION_FEE_LAMPORTS = new anchor.BN(5000000);
+
+// Frais de support d'une proposition en lamports (par exemple 0.005 SOL)
+export const SUPPORT_FEE_LAMPORTS = new anchor.BN(5000000);
