@@ -2,7 +2,8 @@
 
 import ProposalSupportList from "@/components/proposal/ProposalSupportList";
 import BackButton from "@/components/ui/BackButton";
-import { ProposalSupport, useProgram } from "@/context/ProgramContext";
+import { useProgram } from "@/context/ProgramContext";
+import { useProposalDetails } from "@/hooks/useProposalDetails";
 import { ipfsToHttp } from "@/utils/ImageStorage";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey } from "@solana/web3.js";
@@ -15,6 +16,7 @@ import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
+// Type definitions
 type ProposalStatusType = {
   active?: {};
   validated?: {};
@@ -41,83 +43,23 @@ export type DetailedProposal = {
   creationTimestamp: number;
 };
 
+/**
+ * Proposal detail page component with real-time updates
+ */
 export default function ProposalDetailPage() {
-  // 1. Hooks
+  // Hooks setup
   const t = useTranslations("ProposalDetail");
   const { locale, id } = useParams();
   const { publicKey } = useWallet();
-  const {
-    getProposalDetails,
-    supportProposal,
-    getProposalSupports,
-    reclaimSupport,
-  } = useProgram();
+  const { supportProposal, reclaimSupport } = useProgram();
+  const { proposal, supports, isLoading, isLoadingSupports, forceRefresh } =
+    useProposalDetails(id as string);
 
-  // 2. States
+  // Component state
   const [supportAmount, setSupportAmount] = useState<string>("");
-  const [proposal, setProposal] = useState<DetailedProposal | null>(null);
-  const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [supports, setSupports] = useState<ProposalSupport[]>([]);
-  const [isLoadingSupports, setIsLoadingSupports] = useState(true);
 
-  // 3. Callbacks
-  const loadProposal = useCallback(async () => {
-    if (!id || !getProposalDetails) return;
-
-    try {
-      setLoading(true);
-      const details = await getProposalDetails(id as string);
-
-      if (!details) {
-        toast.error(t("proposalNotFound"));
-        return;
-      }
-
-      setProposal({
-        id: id as string,
-        name: details.tokenName,
-        ticker: details.tokenSymbol,
-        description: details.description,
-        imageUrl: details.imageUrl,
-        epoch_id: details.epochId,
-        solRaised: details.solRaised,
-        creator: details.creator,
-        totalSupply: details.totalSupply,
-        creatorAllocation: details.creatorAllocation,
-        supporterAllocation: details.supporterAllocation,
-        status: details.status as unknown as ProposalStatusType,
-        totalContributions: details.totalContributions,
-        lockupPeriod: details.lockupPeriod,
-        publicKey: details.publicKey,
-        supporters: details.supporters,
-        creationTimestamp: details.creationTimestamp,
-      });
-    } catch (error) {
-      console.error("Error loading proposal:", error);
-      toast.error(t("errorLoadingProposal"));
-    } finally {
-      setLoading(false);
-    }
-  }, [id, getProposalDetails, t]);
-
-  const loadSupports = useCallback(async () => {
-    if (!proposal?.publicKey || !getProposalSupports) return;
-
-    try {
-      setIsLoadingSupports(true);
-      const proposalSupports = await getProposalSupports(
-        proposal.publicKey.toString()
-      );
-      setSupports(proposalSupports);
-    } catch (error) {
-      console.error("Error loading supports:", error);
-      toast.error(t("errorLoadingSupports"));
-    } finally {
-      setIsLoadingSupports(false);
-    }
-  }, [proposal?.publicKey, getProposalSupports, t]);
-
+  // Event handlers
   const handleSupport = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
@@ -131,14 +73,14 @@ export default function ProposalDetailPage() {
         );
         toast.success(t("supportSuccess"));
         setSupportAmount("");
-        loadSupports();
+        await forceRefresh();
       } catch (error: any) {
         toast.error(error.message || t("supportError"));
       } finally {
         setIsSubmitting(false);
       }
     },
-    [proposal, supportAmount, supportProposal, t, loadSupports]
+    [proposal, supportAmount, supportProposal, t, forceRefresh]
   );
 
   const handleReclaimSupport = async () => {
@@ -147,25 +89,21 @@ export default function ProposalDetailPage() {
     try {
       await reclaimSupport(proposal.publicKey, parseInt(proposal.epoch_id));
       toast.success(t("claimSuccess"));
-      await loadProposal();
+      await forceRefresh();
     } catch (error) {
       console.error("Failed to reclaim support:", error);
       toast.error(t("claimError"));
     }
   };
 
-  // 4. Effects
-  useEffect(() => {
-    loadProposal();
-  }, [loadProposal]);
-
+  // Effects
   useEffect(() => {
     if (proposal) {
-      loadSupports();
+      // Plus besoin de charger les supports séparément
     }
-  }, [proposal, loadSupports]);
+  }, [proposal]);
 
-  // 5. Render helpers
+  // Utility functions
   const formatNumber = useCallback(
     (number: number) => {
       return number.toLocaleString(locale === "fr" ? "fr-FR" : "en-US");
@@ -173,10 +111,8 @@ export default function ProposalDetailPage() {
     [locale]
   );
 
-  // Format full date with validation
   const formatFullDate = (timestamp: number, locale: string) => {
     try {
-      // Validation plus stricte
       if (!timestamp || typeof timestamp !== "number") {
         console.warn("Invalid timestamp:", timestamp);
         return "-";
@@ -184,7 +120,6 @@ export default function ProposalDetailPage() {
 
       const date = new Date(timestamp * 1000);
 
-      // Validation de la date
       if (isNaN(date.getTime())) {
         console.warn("Invalid date from timestamp:", timestamp);
         return "-";
@@ -201,7 +136,6 @@ export default function ProposalDetailPage() {
     }
   };
 
-  // Get proposal status string
   const getStatusString = (status: any): string => {
     if ("active" in status) return "active";
     if ("validated" in status) return "validated";
@@ -209,10 +143,11 @@ export default function ProposalDetailPage() {
     return "unknown";
   };
 
-  const isFullyLoaded = !loading && !isLoadingSupports && proposal && supports;
+  const isFullyLoaded =
+    !isLoading && !isLoadingSupports && proposal && supports;
 
   // Loading state
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex justify-center py-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white" />
@@ -220,7 +155,7 @@ export default function ProposalDetailPage() {
     );
   }
 
-  // Not found state
+  // Error state
   if (!proposal) {
     return (
       <div className="text-center py-8 text-gray-400">
@@ -229,15 +164,15 @@ export default function ProposalDetailPage() {
     );
   }
 
+  // Main render
   return (
     <div className="w-full max-w-4xl mx-auto p-2 md:p-4 space-y-4 md:space-y-6">
-      {/* Back Button */}
       <BackButton />
 
       <div className="bg-gray-900/50 p-3 md:p-6 rounded-lg border border-gray-800">
-        {/* Header */}
+        {/* Proposal header section */}
         <div className="flex flex-col md:flex-row gap-8">
-          {/* Image and Basic Info */}
+          {/* Image section */}
           <div className="flex-shrink-0">
             <div className="relative w-full md:w-64 h-64 bg-gray-800 rounded-lg overflow-hidden">
               {proposal.imageUrl && proposal.imageUrl.length > 0 ? (
@@ -250,7 +185,7 @@ export default function ProposalDetailPage() {
                     const target = e.target as HTMLImageElement;
                     target.style.display = "none";
                   }}
-                  priority // Pour charger l'image en priorité
+                  priority
                 />
               ) : (
                 <div className="w-full aspect-square bg-gray-800 rounded-lg flex items-center justify-center text-gray-600">
@@ -260,9 +195,8 @@ export default function ProposalDetailPage() {
             </div>
           </div>
 
-          {/* Info */}
+          {/* Info and actions section */}
           <div className="flex-1 min-w-0">
-            {/* Title Section */}
             <div className="text-center lg:text-left mb-4">
               <h1 className="text-2xl md:text-3xl font-bold mb-2">
                 {proposal.name}
@@ -272,7 +206,7 @@ export default function ProposalDetailPage() {
               </p>
             </div>
 
-            {/* Stats Section */}
+            {/* Stats and support form */}
             <div className="flex flex-col items-center lg:items-start gap-2 mb-6">
               {isFullyLoaded ? (
                 <>
@@ -296,7 +230,7 @@ export default function ProposalDetailPage() {
                     {t(`status.${getStatusString(proposal.status)}`)}
                   </p>
 
-                  {/* Support Form */}
+                  {/* Support/reclaim actions */}
                   {publicKey ? (
                     "active" in proposal.status ? (
                       <div className="w-full max-w-sm mt-4">
@@ -344,7 +278,7 @@ export default function ProposalDetailPage() {
                       ) && (
                         <button
                           onClick={handleReclaimSupport}
-                          disabled={loading}
+                          disabled={isLoading}
                           className="w-full px-6 py-3 rounded-lg font-medium 
                                   bg-red-900/50 hover:bg-red-900 text-red-100 
                                   transition-colors hover:bg-opacity-80"
@@ -373,7 +307,9 @@ export default function ProposalDetailPage() {
           </div>
         </div>
 
+        {/* Details sections */}
         <div className="mt-6 space-y-4">
+          {/* Description */}
           <div className="bg-gray-800/50 p-4 rounded-lg">
             <h2 className="text-lg font-medium mb-4">{t("description")}</h2>
             <p className="text-gray-300 whitespace-pre-wrap">
@@ -404,7 +340,7 @@ export default function ProposalDetailPage() {
             </div>
           </div>
 
-          {/* Project Details */}
+          {/* Project details */}
           <div className="bg-gray-800/50 p-4 rounded-lg">
             <h2 className="text-lg font-medium mb-4">{t("details")}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -448,8 +384,8 @@ export default function ProposalDetailPage() {
             </div>
           </div>
 
-          {/* Supporters Section */}
-          <ProposalSupportList proposal={proposal} />
+          {/* Supporters list */}
+          <ProposalSupportList proposal={proposal} supports={supports || []} />
         </div>
       </div>
     </div>
