@@ -1,0 +1,157 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Guide IA : Création d'un Test d'Instruction Anchor
+
+Ce guide vous aide à créer un nouveau fichier de test d'intégration pour une instruction de programme Solana en utilisant Anchor, TypeScript, Mocha et Chai, en respectant les conventions du projet `norug-fun`.
+
+## 1. Emplacement et Nom du Fichier
+
+*   **Module :**
+    *   Si l'instruction appartient à un module existant (ex: `01_epoch_lifecycle`), placez le nouveau fichier de test dans `programs/tests/integration/XX_nom_du_module/`.
+    *   Sinon, créez un nouveau dossier `programs/tests/integration/YY_nouveau_module/`.
+*   **Nom du fichier :** Utilisez le nom de l'instruction en camelCase, suivi de `.test.ts` (ex: `myInstruction.test.ts`).
+
+## 2. Structure de Base du Fichier de Test
+
+```typescript
+import * as anchor from '@coral-xyz/anchor';
+import { Program } from '@coral-xyz/anchor';
+import { Keypair, PublicKey, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
+import chai, { expect } from 'chai';
+import { Programs } from '../../../target/types/programs'; // Ajustez le chemin relatif si nécessaire
+import {
+    TestContext,
+    getInitializedContext,
+    generateRandomBN, // Exemple d'import depuis setup/index ou utils_for_tests
+    // Importez d'autres helpers de setup et utils au besoin
+} from '../../setup'; 
+import * as programConfigSetup from '../../setup/programConfigSetup';
+import * as epochSetup from '../../setup/epochSetup';
+import * as treasurySetup from '../../setup/treasurySetup';
+import * as proposalSetup from '../../setup/proposalSetup';
+// import * as mySpecificSetup from '../../setup/mySpecificAccountSetup'; // Si pertinent
+
+export function runMyInstructionNameTests() { // Remplacer MyInstructionName
+    describe('Instruction: my_instruction_name', () => { // Remplacer my_instruction_name (snake_case)
+        let ctx: TestContext;
+        let program: Program<Programs>;
+        let adminKeypair: Keypair;
+        // Déclarez ici d'autres variables nécessaires pour la suite de tests (Keypairs, PDAs, etc.)
+
+        before(async () => {
+            ctx = getInitializedContext();
+            program = ctx.program;
+            adminKeypair = ctx.adminKeypair;
+
+            // Assurez la configuration initiale requise par la plupart des tests
+            await programConfigSetup.ensureProgramConfigInitialized(ctx);
+            // Optionnel: Initialisez la trésorerie si vos tests en dépendent globalement
+            // await treasurySetup.ensureTreasuryInitialized(ctx);
+            // await treasurySetup.ensureTreasuryRolesInitialized(ctx, [adminKeypair.publicKey]);
+        });
+
+        // Optionnel: beforeEach pour un état frais avant CHAQUE 'it'
+        // beforeEach(async () => {
+        //     // Exemple : const epochId = generateRandomBN();
+        //     // await epochSetup.ensureEpochIsActive(ctx, epochId);
+        // });
+
+        // Tests pour les cas de succès
+        it('should successfully execute my_instruction_name when [conditions]', async () => {
+            // 1. PREPARATION (Setup spécifique au test)
+            //    - Générer des IDs, des Keypairs pour de nouveaux comptes. Airdrop si nécessaire.
+            //    - Utiliser les helpers de `setup/` pour créer/modifier des comptes prérequis (époques, propositions, etc.).
+            //    - Calculer les PDAs nécessaires.
+
+            // 2. APPEL DE L'INSTRUCTION
+            //    const instructionArgs = { ... };
+            //    await program.methods.myInstructionName(arg1, arg2) // Remplacer
+            //        .accounts({
+            //            // Mappez les comptes requis par l'IDL
+            //        })
+            //        .signers([/* keypairs signataires */])
+            //        .rpc();
+
+            // 3. VERIFICATION (Assertions)
+            //    - Fetch les comptes qui ont dû être modifiés.
+            //    - Utilisez `expect` pour vérifier les nouveaux états, valeurs, ownerships, etc.
+            //    expect(fetchedAccount.field).to.equal(expectedValue);
+            //    expect(fetchedAccount.amount.eq(new anchor.BN(100))).to.be.true;
+        });
+
+        // Tests pour les cas d'erreur
+        it('should fail to execute my_instruction_name if [error_condition]', async () => {
+            // 1. PREPARATION (Setup spécifique pour provoquer l'erreur)
+            //    - Ex: mauvais signataire, compte non initialisé, solde insuffisant, état incorrect d'un compte.
+
+            // 2. APPEL DE L'INSTRUCTION (dans un try...catch)
+            try {
+            //    await program.methods.myInstructionName(arg1, arg2) // Remplacer
+            //        .accounts({ /* ... */ })
+            //        .signers([/* ... */])
+            //        .rpc();
+                expect.fail('Transaction should have failed but succeeded.');
+            } catch (error) {
+            // 3. VERIFICATION DE L'ERREUR
+            //    expect((error as anchor.AnchorError).error.errorCode.code).to.equal('MyExpectedErrorName');
+            //    // Ou pour d'autres types d'erreurs:
+            //    // expect(error.message).to.include('Specific error text');
+            }
+        });
+        
+        // Ajoutez d'autres tests 'it' pour couvrir tous les scénarios pertinents.
+    });
+}
+```
+
+## 3. Utilisation des Helpers de `setup/`
+
+Référez-vous à `programs/tests/README.md` pour la liste détaillée des fonctions disponibles dans :
+*   `programConfigSetup.ts` (pour `ensureProgramConfigInitialized`)
+*   `epochSetup.ts` (pour `ensureEpochIsActive`, `closeEpochOnChain`, etc.)
+*   `treasurySetup.ts` (pour `ensureTreasuryInitialized`, gestion des rôles)
+*   `proposalSetup.ts` (pour `createProposalOnChain`, `supportProposalOnChain`, etc.)
+*   `index.ts` (pour `getInitializedContext`, `TestContext`)
+
+**Important :** Toujours initialiser `TestContext` avec `getInitializedContext()`. La plupart des helpers de setup requièrent `ctx` et `ctx.programConfigAddress` (donc appelez `ensureProgramConfigInitialized` tôt).
+
+## 4. Utilisation des Utilitaires de `utils_for_tests/`
+
+*   `helpers.ts`: Contient `generateRandomBN()`, `shortenAddress()`, etc.
+*   `constants.ts`: Pour des valeurs constantes partagées.
+
+## 5. Écriture de la Logique de Test (Cas de Succès et d'Erreur)
+
+Suivez le modèle "Préparation, Appel, Vérification" décrit dans la structure de base ci-dessus.
+Pour les erreurs, utilisez `try...catch` et vérifiez le `errorCode.code` des `AnchorError` ou le `message` pour d'autres erreurs. Les codes d'erreur custom sont dans `programs/programs/programs/src/error.rs`.
+
+## 6. Intégration dans `main.test.ts`
+
+1.  **Importer** la fonction `runMyInstructionNameTests` dans `programs/tests/main.test.ts`.
+    ```typescript
+    import { runMyInstructionNameTests } from './integration/YY_nouveau_module/myInstruction.test'; 
+    ```
+2.  **Appeler** cette fonction dans une suite `describe` appropriée (créez un nouveau `describe` pour un nouveau module).
+    ```typescript
+    describe('Module YY: Nouveau Module', () => {
+        before(() => console.log("\n==================== MODULE YY START: ... ===================="));
+        runMyInstructionNameTests();
+        after(() => console.log("==================== MODULE YY END: ... ======================\n"));
+    });
+    ```
+
+## Checklist Avant de Finaliser
+
+- [ ] Le nom du fichier et de la fonction exportée sont corrects.
+- [ ] Tous les imports nécessaires sont présents.
+- [ ] `TestContext` est initialisé avec `getInitializedContext()`.
+- [ ] Les prérequis globaux (comme `ProgramConfig`) sont initialisés dans `before`.
+- [ ] Les états spécifiques aux tests sont bien préparés (dans `beforeEach` ou au début de chaque `it`).
+- [ ] Les cas de succès vérifient l'état final des comptes.
+- [ ] Les cas d'erreur attrapent les bonnes erreurs et vérifient leurs types/messages.
+- [ ] La suite de tests est ajoutée et appelée dans `main.test.ts`.
+- [ ] Les descriptions des `describe` et `it` sont claires.
+---
