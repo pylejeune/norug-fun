@@ -1,6 +1,5 @@
 "use client";
 
-import EpochSelector from "@/components/epoch/EpochSelector";
 import { TotalSupplyInfoDialog } from "@/components/TotalSupplyInfoDialog";
 import { Button } from "@/components/ui/button";
 import { DialogTrigger } from "@/components/ui/dialog";
@@ -50,6 +49,48 @@ export default function ProposalForm() {
     epochId: "",
   });
 
+  // Automatic epoch management
+  useEffect(() => {
+    const handleEpochManagement = async () => {
+      try {
+        console.log("🔍 Automatic epoch verification...");
+        const epochs = await getAllEpochs();
+        const activeEpochs = epochs.filter(
+          (epoch) => epoch.status && Object.keys(epoch.status)[0] === "active"
+        );
+
+        console.log(
+          `📊 Active epochs found: ${activeEpochs.length}`,
+          activeEpochs
+        );
+
+        if (activeEpochs.length === 0) {
+          console.log("❌ No active epoch available");
+          return;
+        } else if (activeEpochs.length === 1) {
+          console.log(
+            "✅ One active epoch found, auto-selecting:",
+            activeEpochs[0].epochId
+          );
+          setSelectedEpochId(activeEpochs[0].epochId);
+        } else if (activeEpochs.length >= 2) {
+          console.log(
+            "⚠️ Multiple active epochs detected:",
+            activeEpochs.length,
+            "active epochs. Auto-selecting the first one:",
+            activeEpochs[0].epochId
+          );
+          // Select the first epoch found
+          setSelectedEpochId(activeEpochs[0].epochId);
+        }
+      } catch (error) {
+        console.error("❌ Error during automatic epoch management:", error);
+      }
+    };
+
+    handleEpochManagement();
+  }, [getAllEpochs]);
+
   // Load epoch details when one is selected
   useEffect(() => {
     const loadEpochDetails = async () => {
@@ -58,6 +99,7 @@ export default function ProposalForm() {
         const epochs = await getAllEpochs();
         const epoch = epochs.find((e) => e.epochId === selectedEpochId);
         if (epoch) {
+          console.log("📋 Selected epoch details:", epoch);
           // Update minimum lockup period to epoch end date
           const epochEndDate = new Date(epoch.endTime * 1000);
           if (
@@ -89,13 +131,18 @@ export default function ProposalForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    console.log("Form data at submission:", formData); // Debug complet du formData
+    console.log("Form data at submission:", formData);
 
+    // Verify that an epoch is automatically selected
     if (!selectedEpochId) {
-      console.warn("No epoch selected");
-      toast.error(t("selectEpochFirst"));
+      console.warn("❌ No active epoch selected");
+      toast.error(
+        "No active epoch available to create a proposal. Please try again later."
+      );
       return;
     }
+
+    console.log("✅ Selected epoch for creation:", selectedEpochId);
 
     // Validate creator allocation
     if (formData.creatorAllocation > 10) {
@@ -152,7 +199,7 @@ export default function ProposalForm() {
         imageIpfsUrl // Pass the IPFS URL here
       );
 
-      // Forcer une mise à jour des propositions
+      // Force proposals refresh
       await mutate();
 
       toast.dismiss(loadingToast);
@@ -167,7 +214,7 @@ export default function ProposalForm() {
 
   // Handle file upload
   const onDrop = useCallback((acceptedFiles: File[]) => {
-    console.log("Files dropped:", acceptedFiles); // Debug dropzone
+    console.log("Files dropped:", acceptedFiles);
     if (acceptedFiles?.length > 0) {
       const file = acceptedFiles[0];
       console.log("Selected file:", {
@@ -197,11 +244,6 @@ export default function ProposalForm() {
         {t("title")}
       </h1>
       <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
-        <EpochSelector
-          selectedEpochId={selectedEpochId}
-          onSelect={setSelectedEpochId}
-          activeOnly
-        />
         {/* Project Name */}
         <div>
           <label
