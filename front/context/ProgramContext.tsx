@@ -65,11 +65,6 @@ type ProgramContextType = {
   success: string;
   setError: (error: string) => void;
   setSuccess: (success: string) => void;
-  startEpoch: (
-    epochId: number,
-    startTime: string,
-    endTime: string
-  ) => Promise<void>;
   getEpochState: (epochId: number) => Promise<EpochState | null>;
   getAllEpochs: () => Promise<EpochState[]>;
   endEpoch: (epochId: number) => Promise<void>;
@@ -439,63 +434,6 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
   );
 
   // --- Actions ---
-  const startEpoch = useCallback(
-    async (epochId: number, startTime: string, endTime: string) => {
-      if (!program || !isConnected || !wallet) {
-        console.error("❌ Program not initialized or wallet not connected");
-        throw new Error("Please connect your wallet first");
-      }
-
-      try {
-        // Check wallet balance and request airdrop if needed
-        const balance = await connection.getBalance(wallet.publicKey);
-        if (balance < LAMPORTS_PER_SOL) {
-          console.log("💰 Requesting airdrop for transaction fees...");
-          const signature = await connection.requestAirdrop(
-            wallet.publicKey,
-            2 * LAMPORTS_PER_SOL
-          );
-          await connection.confirmTransaction(signature);
-        }
-
-        // Convert dates to timestamps
-        const startTimestamp = Math.floor(new Date(startTime).getTime() / 1000);
-        const endTimestamp = Math.floor(new Date(endTime).getTime() / 1000);
-
-        // Generate PDA for epoch management account
-        const [epochManagementPDA] = PublicKey.findProgramAddressSync(
-          [Buffer.from("epoch"), new BN(epochId).toArrayLike(Buffer, "le", 8)],
-          program.programId
-        );
-
-        // Log available methods for debugging
-        console.log("📝 Available methods:", Object.keys(program.methods));
-
-        // Start the epoch
-        const tx = await (program as Program).methods
-          .startEpoch(
-            new BN(epochId),
-            new BN(startTimestamp),
-            new BN(endTimestamp)
-          )
-          .accounts({
-            authority: wallet.publicKey,
-            epoch_management: epochManagementPDA,
-            system_program: SystemProgram.programId,
-          })
-          .rpc();
-
-        console.log("✅ Transaction:", tx);
-        setSuccess("Epoch started successfully");
-      } catch (err: any) {
-        console.error("❌ Error:", err);
-        setError(err.message);
-        throw err;
-      }
-    },
-    [program, isConnected, wallet, connection]
-  );
-
   const endEpoch = useCallback(
     async (epochId: number) => {
       if (!program || !isConnected || !wallet) {
@@ -758,7 +696,6 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
       success,
       setError,
       setSuccess,
-      startEpoch,
       getEpochState,
       getAllEpochs,
       endEpoch,
@@ -777,7 +714,6 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
       isConnected,
       error,
       success,
-      startEpoch,
       getEpochState,
       getAllEpochs,
       endEpoch,
