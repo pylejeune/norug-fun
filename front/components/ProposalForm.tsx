@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
 import { useProgram } from "@/context/ProgramContext";
-import { useProposals } from "@/hooks/useProposals";
+import { useProposals } from "@/hooks/useSWRHooks";
 import { uploadImageToIPFS } from "@/utils/ImageStorage";
 import { Info } from "lucide-react";
 import { useTranslations } from "next-intl";

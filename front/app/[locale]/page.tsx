@@ -3,7 +3,7 @@
 import { ProposalsList } from "@/components/home/ProposalsList";
 import { SloganBanner } from "@/components/home/SloganBanner";
 import { EpochState } from "@/context/ProgramContext";
-import { useEpochs } from "@/hooks/useProposals";
+import { useEpochs } from "@/hooks/useSWRHooks";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";

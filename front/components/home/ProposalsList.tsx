@@ -1,7 +1,7 @@
 import Loading from "@/app/[locale]/loading";
 import { ProposalCard } from "@/components/home/ProposalCard";
 import { EpochState } from "@/context/ProgramContext";
-import { useProposals } from "@/hooks/useProposals";
+import { useProposals } from "@/hooks/useSWRHooks";
 import { format } from "date-fns";
 import { enUS, fr } from "date-fns/locale";
 import { useTranslations } from "next-intl";
