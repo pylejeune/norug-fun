@@ -67,7 +67,6 @@ type ProgramContextType = {
   setSuccess: (success: string) => void;
   getEpochState: (epochId: number) => Promise<EpochState | null>;
   getAllEpochs: () => Promise<EpochState[]>;
-  endEpoch: (epochId: number) => Promise<void>;
   createProposal: (
     epochId: string,
     tokenName: string,
@@ -434,56 +433,6 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
   );
 
   // --- Actions ---
-  const endEpoch = useCallback(
-    async (epochId: number) => {
-      if (!program || !isConnected || !wallet) {
-        console.error("❌ Program not initialized or wallet not connected");
-        throw new Error("Please connect your wallet first");
-      }
-
-      try {
-        // Check if epoch exists and is active
-        const epochState = await getEpochState(epochId);
-        if (!epochState) {
-          throw new Error("Epoch not found");
-        }
-
-        if (!("active" in epochState.status)) {
-          throw new Error("Epoch is not active");
-        }
-
-        // Generate PDA with same format as getEpochState
-        const [epochManagementPDA] = PublicKey.findProgramAddressSync(
-          [Buffer.from("epoch"), new BN(epochId).toArrayLike(Buffer, "le", 8)],
-          program.programId
-        );
-
-        console.log("🔑 Ending epoch with PDA:", epochManagementPDA.toBase58());
-
-        // End the epoch
-        const tx = await (program as Program).methods
-          .endEpoch(new BN(epochId))
-          .accounts({
-            epoch_management: epochManagementPDA,
-            authority: wallet.publicKey,
-            system_program: SystemProgram.programId,
-          })
-          .rpc();
-
-        console.log("✅ Epoch ended:", tx);
-        setSuccess("Epoch ended successfully");
-
-        // Refresh epochs list
-        await getAllEpochs();
-      } catch (err: any) {
-        console.error("❌ Error ending epoch:", err);
-        setError(err.message);
-        throw err;
-      }
-    },
-    [program, isConnected, wallet, getEpochState, getAllEpochs]
-  );
-
   const createProposal = useCallback(
     async (
       epochId: string,
@@ -698,7 +647,6 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
       setSuccess,
       getEpochState,
       getAllEpochs,
-      endEpoch,
       createProposal,
       getAllProposals,
       getProposalDetails,
@@ -716,7 +664,6 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
       success,
       getEpochState,
       getAllEpochs,
-      endEpoch,
       createProposal,
       getAllProposals,
       getProposalDetails,
