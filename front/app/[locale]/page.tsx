@@ -2,88 +2,71 @@
 
 import { ProposalsList } from "@/components/home/ProposalsList";
 import { SloganBanner } from "@/components/home/SloganBanner";
-import { EpochState, useProgram } from "@/context/ProgramContext";
+import { EpochState } from "@/context/ProgramContext";
+import { useEpochs } from "@/hooks/useProposals";
 import { useLocale, useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 export default function Home() {
   const t = useTranslations("Home");
   const locale = useLocale();
-  const { getAllEpochs } = useProgram();
+  const { epochs, isLoading: isLoadingEpochs, isError } = useEpochs();
   const [selectedEpochId, setSelectedEpochId] = useState<string>();
   const [selectedEpochDetails, setSelectedEpochDetails] =
     useState<EpochState | null>(null);
-  const [isLoadingEpochs, setIsLoadingEpochs] = useState(true);
 
   // Auto-select epoch based on rules:
   // - If 1 active epoch: auto-select it
   // - If 2+ active epochs: select the latest created one
   // - If 0 active epochs: show message
+  const activeEpochs = useMemo(() => {
+    return epochs.filter((epoch) => "active" in epoch.status);
+  }, [epochs]);
+
   useEffect(() => {
-    const initializeEpoch = async () => {
-      setIsLoadingEpochs(true);
-      try {
-        const epochs = await getAllEpochs();
-        const activeEpochs = epochs.filter((epoch) => "active" in epoch.status);
+    if (isLoadingEpochs || isError) return;
 
-        if (activeEpochs.length === 1) {
-          // Only one active epoch: auto-select it
-          setSelectedEpochId(activeEpochs[0].epochId);
-          console.log(
-            "Auto-selected single active epoch:",
-            activeEpochs[0].epochId
-          );
-        } else if (activeEpochs.length >= 2) {
-          // Multiple active epochs: select the latest created (highest epochId)
-          const latestEpoch = activeEpochs.reduce((latest, current) =>
-            parseInt(current.epochId) > parseInt(latest.epochId)
-              ? current
-              : latest
-          );
-          setSelectedEpochId(latestEpoch.epochId);
-          console.log(
-            "Auto-selected latest active epoch:",
-            latestEpoch.epochId
-          );
-        } else {
-          // No active epochs
-          setSelectedEpochId(undefined);
-          console.log("No active epochs found");
-        }
-      } catch (error) {
-        console.error("Failed to load epochs:", error);
-        toast.error(t("errorLoadingEpochs"));
-      } finally {
-        setIsLoadingEpochs(false);
-      }
-    };
-
-    initializeEpoch();
-  }, [getAllEpochs, t]);
+    if (activeEpochs.length === 1) {
+      // Only one active epoch: auto-select it
+      const epochId = activeEpochs[0].epochId;
+      setSelectedEpochId(epochId);
+      console.log("Auto-selected single active epoch:", epochId);
+    } else if (activeEpochs.length >= 2) {
+      // Multiple active epochs: select the latest created (highest epochId)
+      const latestEpoch = activeEpochs.reduce((latest, current) =>
+        parseInt(current.epochId) > parseInt(latest.epochId) ? current : latest
+      );
+      setSelectedEpochId(latestEpoch.epochId);
+      console.log("Auto-selected latest active epoch:", latestEpoch.epochId);
+    } else {
+      // No active epochs
+      setSelectedEpochId(undefined);
+      console.log("No active epochs found");
+    }
+  }, [activeEpochs, isLoadingEpochs, isError]);
 
   // Update epoch details when ID changes
   useEffect(() => {
-    const loadEpochDetails = async () => {
-      if (!selectedEpochId) {
-        setSelectedEpochDetails(null);
-        return;
-      }
+    if (!selectedEpochId || isLoadingEpochs) {
+      setSelectedEpochDetails(null);
+      return;
+    }
 
-      try {
-        const epochs = await getAllEpochs();
-        const epoch = epochs.find((e) => e.epochId === selectedEpochId);
-        if (epoch) {
-          setSelectedEpochDetails(epoch);
-        }
-      } catch (error) {
-        console.error("Failed to fetch epoch details:", error);
-        toast.error(t("errorLoadingEpochDetails"));
-      }
-    };
+    const epoch = epochs.find((e) => e.epochId === selectedEpochId);
+    if (epoch) {
+      setSelectedEpochDetails(epoch);
+    } else {
+      setSelectedEpochDetails(null);
+    }
+  }, [selectedEpochId, epochs, isLoadingEpochs]);
 
-    loadEpochDetails();
-  }, [selectedEpochId, getAllEpochs, t]);
+  // Show error toast if there's an error loading epochs
+  useEffect(() => {
+    if (isError) {
+      toast.error(t("errorLoadingEpochs"));
+    }
+  }, [isError, t]);
 
   return (
     <>

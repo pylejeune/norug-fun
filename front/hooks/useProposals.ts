@@ -31,3 +31,33 @@ export function useProposals(epochId?: string) {
     mutate, // Function to force refresh
   };
 }
+
+/**
+ * Hook to fetch and auto-refresh all epochs
+ */
+export function useEpochs() {
+  const { getAllEpochs } = useProgram();
+
+  const {
+    data: epochs,
+    error,
+    mutate,
+  } = useSWR(
+    "epochs",
+    async () => {
+      return getAllEpochs();
+    },
+    {
+      refreshInterval: 10000, // Refresh every 10 seconds
+      revalidateOnFocus: true, // Refresh when user returns to the page
+      dedupingInterval: 3000, // Prevent too frequent requests
+    }
+  );
+
+  return {
+    epochs: epochs || [],
+    isLoading: !error && !epochs,
+    isError: error,
+    mutate, // Function to force refresh
+  };
+}
