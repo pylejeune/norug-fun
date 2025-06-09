@@ -90,32 +90,6 @@
       "pumpFunReference": "Note: Tokens on Pump.fun always have a total supply of 1 billion."
     }
   },
-  "EpochManagement": {
-    "title": "Epoch Management",
-    "startEpoch": "Start New Epoch",
-    "endEpoch": "End Epoch",
-    "epochId": "Epoch ID",
-    "startTime": "Start Time",
-    "endTime": "End Time",
-    "statusLabel": "Status",
-    "statusType": {
-      "active": "Active",
-      "pending": "Pending",
-      "closed": "Closed"
-    },
-    "loading": "Loading epochs...",
-    "connectWalletMessage": "Please connect your wallet to view epochs",
-    "connectWallet": "Connect Wallet",
-    "noEpochsMessage": "No epochs found. Start your first epoch to begin!",
-    "startFirstEpoch": "Start First Epoch",
-    "sortById": "Sort by ID",
-    "sortByStart": "Sort by Start Date",
-    "sortByEnd": "Sort by End Date",
-    "endingEpoch": "Ending epoch...",
-    "endEpochSuccess": "Epoch ended successfully",
-    "endEpochError": "Failed to end epoch",
-    "fetchEpochsError": "Error loading epochs"
-  },
   "Home": {
     "currentEpoch": "Current Epoch",
     "timeLeft": "Time remaining",
