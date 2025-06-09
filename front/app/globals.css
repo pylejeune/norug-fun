@@ -121,12 +121,16 @@
 /* --- Début: Code fourni par l'utilisateur (basé sur le masquage) --- */
 
 @property --border-angle {
-  syntax: '<angle>';
+  syntax: "<angle>";
   inherits: false;
   initial-value: 0deg;
 }
 
-@keyframes bg-spin { to { --border-angle: 1turn; } }
+@keyframes bg-spin {
+  to {
+    --border-angle: 1turn;
+  }
+}
 
 /* Classe de base: UNIQUEMENT structure, PAS de ::before ni de couleurs par défaut */
 .gradient-border {
@@ -153,43 +157,46 @@
     linear-gradient(#fff 0 0) content-box,
     linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
-          mask-composite: exclude;
+  mask-composite: exclude;
   animation: bg-spin 8s linear infinite;
   z-index: 0;
 }
 
 /* Définition du conic-gradient pour chaque couleur */
 
-.gradient-border-green::before { /* Top 3 */
+.gradient-border-green::before {
+  /* Top 3 */
   background: conic-gradient(
     from var(--border-angle),
     rgba(71, 85, 105, 0.3) 80%,
-    rgb(16, 185, 129) 86%,    /* green-500 */
-    rgb(66, 222, 164) 90%,   /* green-400 */
-    rgb(16, 185, 129) 94%,    /* green-500 */
-    rgba(71, 85, 105, 0.3)
+    rgb(16, 185, 129) 86%,
+    /* green-500 */ rgb(66, 222, 164) 90%,
+    /* green-400 */ rgb(16, 185, 129) 94%,
+    /* green-500 */ rgba(71, 85, 105, 0.3)
   );
 }
 
-.gradient-border-blue::before { /* 4-7 - Test avec du bleu */
+.gradient-border-blue::before {
+  /* 4-7 - Test avec du bleu */
   background: conic-gradient(
     from var(--border-angle),
     rgba(71, 85, 105, 0.2) 80%,
-    rgb(1, 79, 32) 86%,      /* green-800 */
-    rgb(1, 111, 20) 90%,     /* green-900 */
-    rgb(2, 87, 32) 94%,      /* green-800 */
-    rgba(71, 85, 105, 0.2)
+    rgb(1, 79, 32) 86%,
+    /* green-800 */ rgb(1, 111, 20) 90%,
+    /* green-900 */ rgb(2, 87, 32) 94%,
+    /* green-800 */ rgba(71, 85, 105, 0.2)
   );
 }
 
-.gradient-border-orange::before { /* 8-10 */
+.gradient-border-orange::before {
+  /* 8-10 */
   background: conic-gradient(
     from var(--border-angle),
     rgba(71, 85, 105, 0.3) 80%,
-    rgb(234, 88, 12) 86%,     /* orange-600 */
-    rgb(247, 127, 42) 90%,    /* orange-500 */
-    rgb(234, 88, 12) 94%,     /* orange-600 */
-    rgba(71, 85, 105, 0.3)
+    rgb(234, 88, 12) 86%,
+    /* orange-600 */ rgb(247, 127, 42) 90%,
+    /* orange-500 */ rgb(234, 88, 12) 94%,
+    /* orange-600 */ rgba(71, 85, 105, 0.3)
   );
 }
 
@@ -208,6 +215,25 @@
 /* --- Fin du code --- */
 
 /* --- Custom styles for Solana WalletMultiButton --- */
+/* Hide scrollbars specifically for marquee */
+.rfm-marquee-container {
+  overflow: hidden !important;
+}
+
+.rfm-marquee {
+  overflow: hidden !important;
+  scrollbar-width: none !important; /* Firefox */
+  -ms-overflow-style: none !important; /* IE and Edge */
+}
+
+.rfm-marquee::-webkit-scrollbar {
+  display: none !important; /* Chrome, Safari, Opera */
+}
+
+.rfm-child {
+  overflow: hidden !important;
+}
+
 /* Augmenter la spécificité en ciblant via le header */
 header .wallet-adapter-button,
 header .wallet-adapter-button-trigger {
@@ -216,20 +242,27 @@ header .wallet-adapter-button-trigger {
 
   /* Military Theme - override direct */
   /* --wallet-adapter-button-background-color: oklch(0.45 0.1 120); */ /* Variable inefficace ici */
-  background-color: oklch(0.45 0.1 120) !important; /* Couleur de fond directe (+ !important pour être sûr) */
+  background-color: oklch(
+    0.45 0.1 120
+  ) !important; /* Couleur de fond directe (+ !important pour être sûr) */
   /* --wallet-adapter-button-text-color: oklch(0.95 0.02 110); */ /* Variable inefficace ici */
-  color: oklch(0.95 0.02 110) !important; /* Couleur texte directe (+ !important) */
+  color: oklch(
+    0.95 0.02 110
+  ) !important; /* Couleur texte directe (+ !important) */
 
   /* Bordure optionnelle */
   border: 1px solid oklch(0.35 0.08 120) !important; /* (+ !important) */
 
   /* Ajustements taille/padding (gardés via variables si possible) */
-   --wallet-adapter-button-padding: 0 1rem;
-   --wallet-adapter-button-height: 44px;
-   line-height: var(--wallet-adapter-button-height);
+  --wallet-adapter-button-padding: 0 1rem;
+  --wallet-adapter-button-height: 44px;
+  line-height: var(--wallet-adapter-button-height);
 
-   /* Transition */
-   transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  /* Transition */
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
 }
 
 /* Augmenter la spécificité pour le hover également et override direct */
@@ -237,7 +270,7 @@ header .wallet-adapter-button:hover,
 header .wallet-adapter-button-trigger:hover {
   /* --wallet-adapter-button-background-hover-color: #314a1e; */
   background-color: #314a1e !important; /* Kaki légèrement plus clair au survol */
-  color: #FFFFFF !important; /* Texte devient BLANC au survol */
+  color: #ffffff !important; /* Texte devient BLANC au survol */
 }
 
 /* Styles pour l'icône si nécessaire */
@@ -251,7 +284,9 @@ header .wallet-adapter-button-trigger:hover {
 header .wallet-adapter-button-trigger {
   /* Rounded corners - direct override */
   /* --wallet-adapter-button-border-radius: var(--radius-xl); */ /* Variable non fiable ? */
-  border-radius: var(--radius-xl) !important; /* Définition directe (+ !important) */
+  border-radius: var(
+    --radius-xl
+  ) !important; /* Définition directe (+ !important) */
 
   /* Military Theme - override direct - Darker Kaki */
   /* --wallet-adapter-button-background-color: #55552A; */
@@ -263,10 +298,13 @@ header .wallet-adapter-button-trigger {
   border: 1px solid #2c2c17 !important; /* Bordure encore plus sombre */
 
   /* Ajustements taille/padding (gardés via variables si possible) */
-   --wallet-adapter-button-padding: 0 1rem;
-   --wallet-adapter-button-height: 44px;
-   line-height: var(--wallet-adapter-button-height);
+  --wallet-adapter-button-padding: 0 1rem;
+  --wallet-adapter-button-height: 44px;
+  line-height: var(--wallet-adapter-button-height);
 
-   /* Transition */
-   transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  /* Transition */
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
 }
