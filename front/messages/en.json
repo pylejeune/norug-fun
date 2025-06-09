@@ -228,24 +228,6 @@
     "claimError": "Error claiming funds",
     "creationDate": "Creation date"
   },
-  "EpochForm": {
-    "title": "Create New Epoch",
-    "epochId": "Epoch ID",
-    "startTime": "Start Time",
-    "endTime": "End Time",
-    "submit": "Create Epoch",
-    "creating": "Creating...",
-    "epochCreated": "New epoch created successfully",
-    "errorCreating": "Error while creating epoch",
-    "epochIdRequired": "Please enter an epoch ID",
-    "startTimeRequired": "Please select a start time",
-    "endTimeRequired": "Please select an end time",
-    "endTimeAfterStart": "End time must be after start time",
-    "invalidDate": "Please enter a valid date",
-    "startTimeInPast": "Start time cannot be in the past",
-    "startTimeTooFar": "Start time cannot be more than 2 years in the future",
-    "endTimeTooFar": "End time cannot be more than 2 years in the future"
-  },
   "backButton": "Back",
   "HowItWorksPage": {
     "title": "How NoRug.fun Works",
