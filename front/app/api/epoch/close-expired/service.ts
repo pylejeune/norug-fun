@@ -7,7 +7,7 @@ import {
 } from "@/lib/utils";
 import { Connection, PublicKey, SystemProgram } from "@solana/web3.js";
 
-interface CloseEpochResult {
+interface CloseExpiredEpochsResult {
   success: boolean;
   message: string;
   closedEpochs?: {
@@ -25,9 +25,9 @@ interface CloseEpochResult {
 }
 
 /**
- * Close all active epochs
+ * Close only expired epochs and keep alive ones active
  */
-export async function closeAllEpochs(): Promise<CloseEpochResult> {
+export async function closeExpiredEpochs(): Promise<CloseExpiredEpochsResult> {
   const connection = new Connection(RPC_ENDPOINT);
   const adminKeypair = getAdminKeypair();
   const wallet = createAnchorWallet(adminKeypair);
@@ -37,7 +37,7 @@ export async function closeAllEpochs(): Promise<CloseEpochResult> {
     throw new Error("Program not initialized");
   }
 
-  console.log("🔍 Searching for active epochs...");
+  console.log("🔍 Searching for expired epochs...");
 
   try {
     // Get all epochs
@@ -56,25 +56,45 @@ export async function closeAllEpochs(): Promise<CloseEpochResult> {
       }
     });
 
-    console.log(`📊 Number of active epochs: ${activeEpochs.length}`);
-    console.log(`🔄 Will close ALL active epochs regardless of their end time`);
+    // Check and close expired epochs only
+    const now = Math.floor(Date.now() / 1000);
+    const expiredEpochs = activeEpochs.filter((epoch: any) => {
+      return epoch.account.endTime.toNumber() < now;
+    });
 
-    if (activeEpochs.length === 0) {
+    console.log(`📊 Number of active epochs: ${activeEpochs.length}`);
+    console.log(
+      `📊 Number of expired epochs to close: ${expiredEpochs.length}`
+    );
+
+    if (expiredEpochs.length === 0) {
+      // Return active epochs even if none are closed
+      const formattedActiveEpochs = activeEpochs.map((epoch: any) => ({
+        id: epoch.account.epochId.toString(),
+        startTime: new Date(
+          epoch.account.startTime.toNumber() * 1000
+        ).toISOString(),
+        endTime: new Date(
+          epoch.account.endTime.toNumber() * 1000
+        ).toISOString(),
+        status: "active",
+      }));
+
       return {
         success: true,
-        message: "No active epochs to close",
-        activeEpochs: [],
+        message: "No expired epochs to close",
+        activeEpochs: formattedActiveEpochs,
       };
     }
 
     const closedEpochs = [];
     const errors = [];
 
-    // Close ALL active epochs (regardless of end time)
-    for (const epoch of activeEpochs) {
+    // Close each expired epoch
+    for (const epoch of expiredEpochs) {
       try {
         const epochId = epoch.account.epochId;
-        console.log(`\n🔄 Force closing epoch ${epochId.toString()}...`);
+        console.log(`\n🔄 Closing expired epoch ${epochId.toString()}...`);
 
         // Derive PDA for epoch_management
         const [epochManagementPDA] = await PublicKey.findProgramAddressSync(
@@ -107,7 +127,7 @@ export async function closeAllEpochs(): Promise<CloseEpochResult> {
           .rpc();
 
         console.log(
-          `✅ Epoch ${epochId.toString()} force closed successfully! Signature: ${signature}`
+          `✅ Expired epoch ${epochId.toString()} closed successfully! Signature: ${signature}`
         );
 
         // Immediate verification
@@ -127,12 +147,12 @@ export async function closeAllEpochs(): Promise<CloseEpochResult> {
         });
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : String(error);
-        console.error(`❌ Error force closing epoch:`, errorMsg);
+        console.error(`❌ Error closing expired epoch:`, errorMsg);
         errors.push(`Epoch ${epoch.account.epochId.toString()}: ${errorMsg}`);
       }
     }
 
-    // Get remaining active epochs after closing (should be 0 if all went well)
+    // Get epochs that are still active after closing
     const updatedActiveEpochs = (
       await (program.account as any).epochManagement.all()
     ).filter((epoch: any) => {
@@ -158,18 +178,18 @@ export async function closeAllEpochs(): Promise<CloseEpochResult> {
 
     return {
       success: true,
-      message: `Force closing completed. ${closedEpochs.length} epoch(s) force closed, ${errors.length} error(s). ${formattedActiveEpochs.length} epoch(s) remain active.`,
+      message: `Cleanup completed. ${closedEpochs.length} expired epoch(s) closed, ${errors.length} error(s). ${formattedActiveEpochs.length} epoch(s) remain active.`,
       closedEpochs,
       activeEpochs: formattedActiveEpochs,
       error: errors.length > 0 ? errors.join("; ") : undefined,
     };
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error);
-    console.error("❌ Error force closing all epochs:", errorMsg);
+    console.error("❌ Error closing expired epochs:", errorMsg);
 
     return {
       success: false,
-      message: "Error force closing all epochs",
+      message: "Error closing expired epochs",
       error: errorMsg,
     };
   }
