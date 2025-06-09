@@ -69,14 +69,59 @@ export function ProposalsList({
   const totalPages = Math.ceil(sortedFilteredProposals.length / itemsPerPage);
 
   return (
-    <>
-      {/* --- Sort Controls --- */}
+    <div className="pt-8">
+      {/* --- Epoch Details and Sort Controls (Combined) --- */}
       {selectedEpochDetails && (
-        <div className="flex flex-col sm:flex-row justify-end items-center gap-4 mb-6">
-          <div className="flex flex-wrap gap-2">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-6 mb-6">
+          {/* Epoch Details Card */}
+          <div className="px-4 py-3 sm:px-6 sm:py-4 bg-gray-800/50 rounded-xl border border-gray-700 flex-shrink-0">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+              <div className="text-center">
+                <h3 className="text-xs sm:text-sm text-gray-400 mb-1">
+                  {t("epochStart")}
+                </h3>
+                <p className="text-sm sm:text-base font-semibold leading-tight">
+                  {format(
+                    new Date(selectedEpochDetails.startTime * 1000),
+                    "PPp",
+                    {
+                      locale: locale === "fr" ? fr : enUS,
+                    }
+                  )}
+                </p>
+              </div>
+
+              <div className="text-center">
+                <h3 className="text-xs sm:text-sm text-gray-400 mb-1">
+                  {t("epochEnd")}
+                </h3>
+                <p className="text-sm sm:text-base font-semibold leading-tight">
+                  {format(
+                    new Date(selectedEpochDetails.endTime * 1000),
+                    "PPp",
+                    {
+                      locale: locale === "fr" ? fr : enUS,
+                    }
+                  )}
+                </p>
+              </div>
+
+              <div className="text-center">
+                <h3 className="text-xs sm:text-sm text-gray-400 mb-1">
+                  {t("proposalsCount")}
+                </h3>
+                <p className="text-sm sm:text-base font-semibold leading-tight">
+                  {t("proposalCount", { count: proposals.length })}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Sort Controls */}
+          <div className="flex flex-wrap gap-2 justify-center sm:justify-end flex-shrink-0">
             <select
-              className="px-4 py-2 rounded-lg bg-gray-800/50 hover:bg-gray-800 
-                        text-gray-300 border border-gray-700 transition-colors"
+              className="px-3 py-2 sm:px-4 sm:py-2 rounded-lg bg-gray-800/50 hover:bg-gray-800 
+                        text-gray-300 border border-gray-700 transition-colors text-sm sm:text-base"
               value={sortBy}
               onChange={(e) =>
                 setSortBy(e.target.value as "sol" | "date" | "name")
@@ -87,8 +132,8 @@ export function ProposalsList({
               <option value="name">{t("sortByName")}</option>
             </select>
             <select
-              className="px-4 py-2 rounded-lg bg-gray-800/50 hover:bg-gray-800 
-                        text-gray-300 border border-gray-700 transition-colors"
+              className="px-3 py-2 sm:px-4 sm:py-2 rounded-lg bg-gray-800/50 hover:bg-gray-800 
+                        text-gray-300 border border-gray-700 transition-colors text-sm sm:text-base"
               value={sortOrder}
               onChange={(e) => setSortOrder(e.target.value as "asc" | "desc")}
             >
@@ -102,52 +147,6 @@ export function ProposalsList({
           </div>
         </div>
       )}
-
-      {/* --- Epoch Details Card --- */}
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-        {selectedEpochDetails && (
-          <div className="px-6 py-2 bg-gray-800/50 rounded-xl border border-gray-700 flex-grow md:flex-grow-0">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="text-center">
-                <h3 className="text-sm text-gray-400 mb-1">
-                  {t("epochStart")}
-                </h3>
-                <p className="text-lg font-semibold">
-                  {format(
-                    new Date(selectedEpochDetails.startTime * 1000),
-                    "PPp",
-                    {
-                      locale: locale === "fr" ? fr : enUS,
-                    }
-                  )}
-                </p>
-              </div>
-
-              <div className="text-center">
-                <h3 className="text-sm text-gray-400 mb-1">{t("epochEnd")}</h3>
-                <p className="text-lg font-semibold">
-                  {format(
-                    new Date(selectedEpochDetails.endTime * 1000),
-                    "PPp",
-                    {
-                      locale: locale === "fr" ? fr : enUS,
-                    }
-                  )}
-                </p>
-              </div>
-
-              <div className="text-center">
-                <h3 className="text-sm text-gray-400 mb-1">
-                  {t("proposalsCount")}
-                </h3>
-                <p className="text-lg font-semibold">
-                  {t("proposalCount", { count: proposals.length })}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
 
       {/* --- Proposals List --- */}
       {isLoadingEpochs ? (
@@ -266,6 +265,6 @@ export function ProposalsList({
             : t("selectEpochToViewProposals")}
         </div>
       )}
-    </>
+    </div>
   );
 }
