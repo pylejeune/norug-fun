@@ -1,4 +1,4 @@
-import EpochSelector from "@/components/epoch/EpochSelector";
+import Loading from "@/app/[locale]/loading";
 import { ProposalCard } from "@/components/home/ProposalCard";
 import { EpochState } from "@/context/ProgramContext";
 import { useProposals } from "@/hooks/useProposals";
@@ -12,14 +12,14 @@ type ProposalsListProps = {
   selectedEpochId?: string;
   selectedEpochDetails: EpochState | null;
   locale: string | undefined;
-  onSelectEpoch: (epochId: string) => void;
+  isLoadingEpochs: boolean;
 };
 
 export function ProposalsList({
   selectedEpochId,
   selectedEpochDetails,
   locale,
-  onSelectEpoch,
+  isLoadingEpochs,
 }: ProposalsListProps) {
   // --- Hooks and state ---
   const t = useTranslations("Home");
@@ -70,15 +70,9 @@ export function ProposalsList({
 
   return (
     <>
-      {/* --- Filters and Epoch Selection --- */}
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
-        <EpochSelector
-          selectedEpochId={selectedEpochId}
-          onSelect={onSelectEpoch}
-          activeOnly
-        />
-        {/* Sort controls */}
-        {selectedEpochDetails && (
+      {/* --- Sort Controls --- */}
+      {selectedEpochDetails && (
+        <div className="flex flex-col sm:flex-row justify-end items-center gap-4 mb-6">
           <div className="flex flex-wrap gap-2">
             <select
               className="px-4 py-2 rounded-lg bg-gray-800/50 hover:bg-gray-800 
@@ -106,8 +100,8 @@ export function ProposalsList({
               </option>
             </select>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* --- Epoch Details Card --- */}
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
@@ -156,7 +150,18 @@ export function ProposalsList({
       </div>
 
       {/* --- Proposals List --- */}
-      {isLoading ? (
+      {isLoadingEpochs ? (
+        <div className="flex justify-center py-16">
+          <Loading />
+        </div>
+      ) : !selectedEpochId ? (
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <div className="text-6xl mb-4">⏳</div>
+          <h2 className="text-2xl font-semibold mb-2 text-gray-300">
+            {t("noActiveEpochs")}
+          </h2>
+        </div>
+      ) : isLoading ? (
         <div className="flex justify-center py-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
         </div>

@@ -106,7 +106,6 @@
     "epochId": "Epoch",
     "noImage": "Pas d'image",
     "noProposalsInEpoch": "Aucune proposition dans cette époque",
-    "selectEpochToViewProposals": "Sélectionnez une époque pour voir les propositions",
     "totalContributions": "{count, plural, =0 {Aucune contribution} one {# contribution} other {# contributions}}",
     "viewDetails": "Voir les détails",
     "supportProject": "Soutenir",
@@ -128,6 +127,8 @@
       "rejected": "Rejetée"
     },
     "errorLoadingEpochs": "Erreur lors du chargement des epochs",
+    "errorLoadingEpochDetails": "Erreur lors du chargement des détails de l'époque",
+    "noActiveEpochs": "Aucune époque active pour le moment, veuillez patienter...",
     "pagination": {
       "showing": "Affichage de {start} à {end} sur {total} propositions",
       "previous": "Précédent",
@@ -225,12 +226,6 @@
     "phase2P1": "NoRug.fun gère le <strong>mint</strong>, la <strong>distribution des tokens</strong> (au créateur et aux investisseurs), et crée le <strong>pool de liquidité</strong> avec les SOL levés via Meteora.",
     "phase2P2": "Les investisseurs des propositions non sélectionnées peuvent <strong>récupérer leurs fonds</strong>.",
     "phase2P3": "Tout le monde peut ensuite échanger ces tokens normalement."
-  },
-  "EpochSelector": {
-    "loading": "Chargement des epochs...",
-    "selectEpoch": "Sélectionner une epoch",
-    "selectPlaceholder": "Choisir une epoch",
-    "epochOption": "Epoch #{id} ({startDate} - {endDate})"
   },
   "Privacy": {
     "title": "Politique de Confidentialité",

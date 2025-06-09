@@ -14,26 +14,53 @@ export default function Home() {
   const [selectedEpochId, setSelectedEpochId] = useState<string>();
   const [selectedEpochDetails, setSelectedEpochDetails] =
     useState<EpochState | null>(null);
+  const [isLoadingEpochs, setIsLoadingEpochs] = useState(true);
 
-  // Load and select the first active epoch
+  // Auto-select epoch based on rules:
+  // - If 1 active epoch: auto-select it
+  // - If 2+ active epochs: select the latest created one
+  // - If 0 active epochs: show message
   useEffect(() => {
     const initializeEpoch = async () => {
+      setIsLoadingEpochs(true);
       try {
         const epochs = await getAllEpochs();
         const activeEpochs = epochs.filter((epoch) => "active" in epoch.status);
-        if (activeEpochs.length > 0) {
+
+        if (activeEpochs.length === 1) {
+          // Only one active epoch: auto-select it
           setSelectedEpochId(activeEpochs[0].epochId);
+          console.log(
+            "Auto-selected single active epoch:",
+            activeEpochs[0].epochId
+          );
+        } else if (activeEpochs.length >= 2) {
+          // Multiple active epochs: select the latest created (highest epochId)
+          const latestEpoch = activeEpochs.reduce((latest, current) =>
+            parseInt(current.epochId) > parseInt(latest.epochId)
+              ? current
+              : latest
+          );
+          setSelectedEpochId(latestEpoch.epochId);
+          console.log(
+            "Auto-selected latest active epoch:",
+            latestEpoch.epochId
+          );
+        } else {
+          // No active epochs
+          setSelectedEpochId(undefined);
+          console.log("No active epochs found");
         }
       } catch (error) {
         console.error("Failed to load epochs:", error);
         toast.error(t("errorLoadingEpochs"));
+      } finally {
+        setIsLoadingEpochs(false);
       }
     };
 
-    if (!selectedEpochId) {
-      initializeEpoch();
-    }
-  }, [getAllEpochs, selectedEpochId, t]);
+    initializeEpoch();
+  }, [getAllEpochs, t]);
 
   // Update epoch details when ID changes
   useEffect(() => {
@@ -66,7 +93,7 @@ export default function Home() {
           selectedEpochId={selectedEpochId}
           selectedEpochDetails={selectedEpochDetails}
           locale={locale}
-          onSelectEpoch={setSelectedEpochId}
+          isLoadingEpochs={isLoadingEpochs}
         />
       </div>
     </>
