@@ -139,7 +139,7 @@ pub fn add_admin(
     // Max 3 admins
     require!(
         treasury_roles.authorities.len() < 3,
-        ErrorCode::CustomError // Could define a specific error if needed
+        ErrorCode::MaxAdminsReached // Could define a specific error if needed
     );
     treasury_roles.authorities.push(new_admin);
     Ok(())
