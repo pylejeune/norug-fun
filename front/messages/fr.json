@@ -90,32 +90,6 @@
       "pumpFunReference": "Note : Les tokens sur Pump.fun ont toujours une offre totale de 1 milliard."
     }
   },
-  "EpochManagement": {
-    "title": "Gestion des Epochs",
-    "startEpoch": "Démarrer un Nouvel Epoch",
-    "endEpoch": "Terminer l'Epoch",
-    "epochId": "ID de l'Epoch",
-    "startTime": "Date de début",
-    "endTime": "Date de fin",
-    "statusLabel": "Statut",
-    "statusType": {
-      "active": "Actif",
-      "pending": "En attente",
-      "closed": "Terminé"
-    },
-    "loading": "Chargement des epochs...",
-    "connectWalletMessage": "Veuillez connecter votre wallet pour voir les epochs",
-    "connectWallet": "Connecter le Wallet",
-    "noEpochsMessage": "Aucun epoch trouvé. Démarrez votre premier epoch pour commencer !",
-    "startFirstEpoch": "Démarrer le Premier Epoch",
-    "sortById": "Trier par ID",
-    "sortByStart": "Trier par date de début",
-    "sortByEnd": "Trier par date de fin",
-    "endingEpoch": "Fin de l'epoch en cours...",
-    "endEpochSuccess": "Epoch terminé avec succès",
-    "endEpochError": "Échec de la fin de l'epoch",
-    "fetchEpochsError": "Erreur lors du chargement des epochs"
-  },
   "Home": {
     "currentEpoch": "Epoch en cours",
     "timeLeft": "Temps restant",
@@ -132,7 +106,6 @@
     "epochId": "Epoch",
     "noImage": "Pas d'image",
     "noProposalsInEpoch": "Aucune proposition dans cette époque",
-    "selectEpochToViewProposals": "Sélectionnez une époque pour voir les propositions",
     "totalContributions": "{count, plural, =0 {Aucune contribution} one {# contribution} other {# contributions}}",
     "viewDetails": "Voir les détails",
     "supportProject": "Soutenir",
@@ -154,6 +127,8 @@
       "rejected": "Rejetée"
     },
     "errorLoadingEpochs": "Erreur lors du chargement des epochs",
+    "errorLoadingEpochDetails": "Erreur lors du chargement des détails de l'époque",
+    "noActiveEpochs": "Aucune époque active pour le moment, veuillez patienter...",
     "pagination": {
       "showing": "Affichage de {start} à {end} sur {total} propositions",
       "previous": "Précédent",
@@ -228,24 +203,6 @@
     "claimError": "Erreur lors de la récupération des fonds",
     "creationDate": "Date de création"
   },
-  "EpochForm": {
-    "title": "Créer un Nouvel Epoch",
-    "epochId": "ID de l'Epoch",
-    "startTime": "Heure de début",
-    "endTime": "Heure de fin",
-    "submit": "Créer l'Epoch",
-    "creating": "Création en cours...",
-    "epochCreated": "Nouvel epoch créé avec succès",
-    "errorCreating": "Erreur lors de la création de l'epoch",
-    "epochIdRequired": "Veuillez saisir un ID d'epoch",
-    "startTimeRequired": "Veuillez sélectionner une date de début",
-    "endTimeRequired": "Veuillez sélectionner une date de fin",
-    "endTimeAfterStart": "La date de fin doit être après la date de début",
-    "invalidDate": "Veuillez entrer une date valide",
-    "startTimeInPast": "La date de début ne peut pas être dans le passé",
-    "startTimeTooFar": "La date de début ne peut pas être à plus de 2 ans dans le futur",
-    "endTimeTooFar": "La date de fin ne peut pas être à plus de 2 ans dans le futur"
-  },
   "backButton": "Retour",
   "HowItWorksPage": {
     "title": "NoRug.fun : Comment ça marche ?",
@@ -269,12 +226,6 @@
     "phase2P1": "NoRug.fun gère le <strong>mint</strong>, la <strong>distribution des tokens</strong> (au créateur et aux investisseurs), et crée le <strong>pool de liquidité</strong> avec les SOL levés via Meteora.",
     "phase2P2": "Les investisseurs des propositions non sélectionnées peuvent <strong>récupérer leurs fonds</strong>.",
     "phase2P3": "Tout le monde peut ensuite échanger ces tokens normalement."
-  },
-  "EpochSelector": {
-    "loading": "Chargement des epochs...",
-    "selectEpoch": "Sélectionner une epoch",
-    "selectPlaceholder": "Choisir une epoch",
-    "epochOption": "Epoch #{id} ({startDate} - {endDate})"
   },
   "Privacy": {
     "title": "Politique de Confidentialité",
