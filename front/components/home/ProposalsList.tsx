@@ -147,7 +147,7 @@ export function ProposalsList({
   // Force grid view on mobile
   useEffect(() => {
     if (isMobile && viewMode !== "grid") setViewMode("grid");
-  }, [isMobile]);
+  }, [isMobile, viewMode]);
 
   // ============================================================================
   // RENDER HELPERS
