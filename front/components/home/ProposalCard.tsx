@@ -85,7 +85,7 @@ export function ProposalCard({
             {t("by")}{" "}
             <Link
               href={`/${locale}/profile/${proposal.creator.toString()}`}
-              className="hover:underline hover:text-[#e6d3ba] transition-colors"
+              className="hover:underline hover:text-[#e6d3ba] transition-colors relative z-10"
             >
               {proposal.creator.toString().slice(0, 4)}...
               {proposal.creator.toString().slice(-4)}
@@ -179,7 +179,7 @@ export function ProposalCard({
               {t("by")}{" "}
               <Link
                 href={`/${locale}/profile/${proposal.creator.toString()}`}
-                className="hover:underline hover:text-[#e6d3ba] transition-colors"
+                className="hover:underline hover:text-[#e6d3ba] transition-colors relative z-10"
               >
                 {proposal.creator.toString().slice(0, 4)}...
                 {proposal.creator.toString().slice(-4)}
