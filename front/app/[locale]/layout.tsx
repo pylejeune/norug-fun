@@ -88,7 +88,7 @@ export default async function RootLayout({ children, params }: Props) {
             <AppWalletProvider>
               <ProgramProvider>
                 <SidebarProvider defaultOpen={defaultOpen}>
-                  <div className="flex h-screen w-full max-w-screen overflow-hidden">
+                  <div className="flex w-full max-w-screen overflow-hidden">
                     <AltSidebar />
                     <div className="flex-1 overflow-hidden">
                       <Header />
