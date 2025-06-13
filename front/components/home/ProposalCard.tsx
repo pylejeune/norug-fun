@@ -137,13 +137,6 @@ export function ProposalCard({
     </>
   );
 
-  // ============================================================================
-  // RENDER LOGIC
-  // ============================================================================
-
-  // Check if gradient border is applied
-  const hasGradientBorder = className?.includes("gradient-border-");
-
   // Grid/Card View
   if (viewMode === "grid") {
     return (
