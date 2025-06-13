@@ -1,7 +1,12 @@
 import Loading from "@/app/[locale]/loading";
+import {
+  EpochCountdown,
+  LiveIndicator,
+} from "@/components/home/EpochCountdown";
 import { ProposalCard } from "@/components/home/ProposalCard";
 import { EpochState } from "@/context/ProgramContext";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useEpochCountdown } from "@/hooks/useEpochCountdown";
 import { useProposals } from "@/hooks/useSWRHooks";
 import { Filter, Grid, List, Search, X } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -35,6 +40,10 @@ export function ProposalsList({
   const t = useTranslations("Home");
   const { proposals, isLoading } = useProposals(selectedEpochId);
   const isMobile = useIsMobile();
+  const { isExpired } = useEpochCountdown(selectedEpochDetails?.endTime);
+
+  // Only show live indicator if we have epoch details and it's not expired
+  const shouldShowLive = selectedEpochDetails && !isExpired && !isLoadingEpochs;
 
   // Sorting and filtering state
   const [sortBy, setSortBy] = useState<"sol" | "date" | "name">("sol");
@@ -169,7 +178,7 @@ export function ProposalsList({
         {/* Phase Tabs */}
         <div className="flex gap-2 flex-shrink-0">
           <button
-            className={`px-6 py-2 rounded-full font-bold transition-colors whitespace-nowrap
+            className={`px-6 py-2 rounded-full font-bold transition-colors whitespace-nowrap flex items-center gap-2
               ${
                 activeTab === "phase1"
                   ? "bg-[#1e293b] text-[#e6d3ba] shadow"
@@ -178,7 +187,7 @@ export function ProposalsList({
             `}
             onClick={() => setActiveTab("phase1")}
           >
-            Phase 1
+            Phase 1{shouldShowLive && <LiveIndicator isExpired={isExpired} />}
           </button>
           <button
             className={`px-6 py-2 rounded-full font-bold transition-colors whitespace-nowrap
@@ -238,6 +247,14 @@ export function ProposalsList({
           </div>
         )}
       </div>
+
+      {/* Epoch Countdown Timer - Only shown for Phase 1 */}
+      {activeTab === "phase1" && selectedEpochDetails && (
+        <EpochCountdown
+          endTimestamp={selectedEpochDetails.endTime}
+          className="mb-6"
+        />
+      )}
 
       {/* ============================================================================ */}
       {/* FILTERS VIEW */}

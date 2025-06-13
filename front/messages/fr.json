@@ -145,7 +145,14 @@
     "itemsPerPage": "Éléments par page",
     "pageInfo": "{start}-{end} sur {total}",
     "previous": "Précédent",
-    "next": "Suivant"
+    "next": "Suivant",
+    "timeRemaining": "Temps restant",
+    "epochEnded": "Époque terminée",
+    "expired": "Expiré",
+    "days": "jours",
+    "hours": "h",
+    "minutes": "m",
+    "seconds": "s"
   },
   "Treasury": {
     "title": "Trésorerie",

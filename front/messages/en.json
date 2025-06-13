@@ -145,7 +145,14 @@
     "itemsPerPage": "Items per page",
     "pageInfo": "{start}-{end} of {total}",
     "previous": "Previous",
-    "next": "Next"
+    "next": "Next",
+    "timeRemaining": "Time Remaining",
+    "epochEnded": "Epoch Ended",
+    "expired": "Expired",
+    "creationDate": "Creation date",
+    "hours": "h",
+    "minutes": "m",
+    "seconds": "s"
   },
   "Treasury": {
     "title": "Treasury",
