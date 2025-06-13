@@ -1,4 +1,8 @@
 {
+  "name": "norug-fun-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "license": "ISC",
   "devDependencies": {
     "@types/bn.js": "^5.1.6"
   }

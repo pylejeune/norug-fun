@@ -3,7 +3,7 @@
 import ProposalSupportList from "@/components/proposal/ProposalSupportList";
 import BackButton from "@/components/ui/BackButton";
 import { useProgram } from "@/context/ProgramContext";
-import { useProposalDetails } from "@/hooks/useProposalDetails";
+import { useProposalDetails } from "@/hooks/useSWRHooks";
 import { ipfsToHttp } from "@/utils/ImageStorage";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey } from "@solana/web3.js";
