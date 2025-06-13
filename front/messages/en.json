@@ -134,7 +134,18 @@
       "previous": "Previous",
       "next": "Next",
       "itemsPerPage": "{count} per page"
-    }
+    },
+    "filters": "Filters",
+    "sortBy": "Sort by",
+    "sortOrder": "Order",
+    "searchPlaceholder": "Search...",
+    "phase1": "Phase 1",
+    "phase2": "Phase 2",
+    "noProposals": "No proposals found",
+    "itemsPerPage": "Items per page",
+    "pageInfo": "{start}-{end} of {total}",
+    "previous": "Previous",
+    "next": "Next"
   },
   "Treasury": {
     "title": "Treasury",

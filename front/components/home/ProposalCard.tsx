@@ -8,21 +8,33 @@ import { useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
 
-// --- Props type definition ---
+// ============================================================================
+// TYPE DEFINITIONS
+// ============================================================================
+
 type ProposalCardProps = {
   proposal: ProposalState;
   locale: string | undefined;
   className?: string; // Expects border classes (static or gradient)
+  viewMode?: "list" | "grid";
 };
+
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
 
 export function ProposalCard({
   proposal,
   locale,
   className,
+  viewMode = "list",
 }: ProposalCardProps) {
   const t = useTranslations("Home");
 
-  // --- Helper functions ---
+  // ============================================================================
+  // HELPER FUNCTIONS
+  // ============================================================================
+
   // Format relative date (e.g. "2 hours ago")
   const formatRelativeDate = (timestamp: number) => {
     const date = new Date(timestamp * 1000);
@@ -32,10 +44,13 @@ export function ProposalCard({
     });
   };
 
-  // --- Card Content Layout ---
+  // ============================================================================
+  // SHARED CARD CONTENT (used in list view)
+  // ============================================================================
+
   const CardContent = (
     <>
-      {/* Left: Project Image */}
+      {/* Project Image */}
       <div className="relative w-24 h-24 bg-gray-800 rounded-lg overflow-hidden">
         {proposal.imageUrl && proposal.imageUrl.length > 0 ? (
           <Image
@@ -59,7 +74,7 @@ export function ProposalCard({
         )}
       </div>
 
-      {/* Center: Project Info */}
+      {/* Project Information */}
       <div className="flex-grow mr-4 space-y-1 ml-2">
         <p className="font-bold text-lg text-gray-100">
           ${proposal.tokenSymbol}
@@ -84,15 +99,16 @@ export function ProposalCard({
         </div>
       </div>
 
-      {/* Right: Support Button and Stats */}
+      {/* Stats and Support Button */}
       <div className="flex flex-col sm:flex-row gap-4 ml-auto flex-shrink-0 min-w-[200px]">
-        {/* Stats Column */}
         <div className="flex flex-col items-end space-y-0.5 w-full">
+          {/* SOL Raised */}
           <span className="text-base w-full text-center sm:w-32 font-semibold text-gray-100 whitespace-nowrap">
             {t("solanaRaised", {
               amount: (proposal.solRaised / LAMPORTS_PER_SOL).toFixed(2),
             })}
           </span>
+          {/* Total Contributions */}
           <span className="text-xs w-full text-center sm:w-32 text-gray-400 whitespace-nowrap">
             {t("totalContributions", {
               count: proposal.totalContributions,
@@ -101,15 +117,17 @@ export function ProposalCard({
           {/* Support Button */}
           <Link
             href={`/${locale}/proposal/${proposal.publicKey.toString()}#support`}
+            aria-label={t("supportProject")}
             className={cn(
-              "px-4 py-2 mt-2",
+              "px-4 py-2 mt-2 cursor-pointer relative z-10",
               "bg-emerald-700",
               "text-white rounded-lg",
               "text-sm whitespace-nowrap",
               "hover:bg-emerald-500",
               "hover:shadow-lg hover:shadow-emerald-500/50",
               "transition-all duration-200",
-              "w-full text-center sm:w-32" // Fixed width on desktop
+              "w-full text-center sm:w-32",
+              "pointer-events-auto"
             )}
           >
             {t("supportProject")}
@@ -119,29 +137,105 @@ export function ProposalCard({
     </>
   );
 
-  // --- Card Border Styles ---
+  // ============================================================================
+  // RENDER LOGIC
+  // ============================================================================
+
+  // Check if gradient border is applied
   const hasGradientBorder = className?.includes("gradient-border-");
 
-  if (hasGradientBorder) {
-    // Gradient border version
+  // Grid/Card View
+  if (viewMode === "grid") {
     return (
       <div
         className={cn(
-          "gradient-border", // Base gradient effect class
-          className, // Color class (e.g. "gradient-border-green")
-          "bg-gray-800/50", // Card background
-          "rounded-xl", // Border radius
-          "flex items-center", // Layout
-          "px-4 py-1" // Internal padding
+          "bg-gray-800/50 rounded-xl overflow-hidden flex flex-col shadow-md hover:shadow-lg transition-all duration-200 hover:-translate-y-1 border border-gray-700",
+          className
         )}
       >
-        <div className="relative z-10 flex items-center w-full">
-          {CardContent}
+        {/* Top Image Section */}
+        <div className="relative w-full h-40 bg-gray-900">
+          {proposal.imageUrl && proposal.imageUrl.length > 0 ? (
+            <Image
+              src={ipfsToHttp(proposal.imageUrl)}
+              alt={proposal.tokenName}
+              fill
+              sizes="(max-width: 100%) 100vw, 320px"
+              priority={true}
+              className="object-cover rounded-t-xl"
+            />
+          ) : (
+            <div className="flex items-center justify-center h-full text-gray-400 text-sm">
+              {t("noImage")}
+            </div>
+          )}
+        </div>
+
+        {/* Card Content Section */}
+        <div className="flex flex-col flex-1 p-4 gap-2">
+          {/* Token Symbol */}
+          <p className="font-bold text-lg text-gray-100">
+            ${proposal.tokenSymbol}
+          </p>
+          {/* Token Name */}
+          <h3 className="text-md text-gray-200">{proposal.tokenName}</h3>
+
+          {/* Creator and Date Info */}
+          <div className="space-y-0.5">
+            <p className="text-xs text-gray-500">
+              {t("by")}{" "}
+              <Link
+                href={`/${locale}/profile/${proposal.creator.toString()}`}
+                className="hover:underline hover:text-[#e6d3ba] transition-colors"
+              >
+                {proposal.creator.toString().slice(0, 4)}...
+                {proposal.creator.toString().slice(-4)}
+              </Link>
+            </p>
+            <p className="text-xs text-gray-500">
+              {t("createdAgo", {
+                time: formatRelativeDate(proposal.creationTimestamp),
+              })}
+            </p>
+          </div>
+
+          {/* Stats and Action Section */}
+          <div className="flex flex-col gap-1 mt-2">
+            {/* SOL Raised */}
+            <span className="text-base font-semibold text-gray-100 whitespace-nowrap">
+              {t("solanaRaised", {
+                amount: (proposal.solRaised / LAMPORTS_PER_SOL).toFixed(2),
+              })}
+            </span>
+            {/* Total Contributions */}
+            <span className="text-xs text-gray-400 whitespace-nowrap">
+              {t("totalContributions", { count: proposal.totalContributions })}
+            </span>
+            {/* Support Button */}
+            <Link
+              href={`/${locale}/proposal/${proposal.publicKey.toString()}#support`}
+              aria-label={t("supportProject")}
+              className={cn(
+                "px-4 py-2 mt-2 cursor-pointer relative z-10",
+                "bg-emerald-700 text-white rounded-lg",
+                "text-sm whitespace-nowrap",
+                "hover:bg-emerald-500",
+                "hover:shadow-lg hover:shadow-emerald-500/50",
+                "transition-all duration-200",
+                "w-full text-center",
+                "pointer-events-auto"
+              )}
+            >
+              {t("supportProject")}
+            </Link>
+          </div>
         </div>
       </div>
     );
-  } else {
-    // Static border version
+  }
+
+  // List View
+  else {
     return (
       <div
         className={cn(
