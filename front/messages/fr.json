@@ -7,6 +7,11 @@
     "title": "NoRug.fun",
     "message": "Chargement"
   },
+  "SloganBanner": {
+    "before": "10 tokens qualifiés. Le reste ",
+    "highlight": "brûle",
+    "after": ". Choisissez votre camp."
+  },
   "Footer": {
     "copyright": "© NoRug.fun {year}",
     "privacy": "politique de confidentialité",

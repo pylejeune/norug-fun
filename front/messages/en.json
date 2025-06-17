@@ -7,6 +7,11 @@
     "title": "NoRug.fun",
     "message": "Loading"
   },
+  "SloganBanner": {
+    "before": "10 tokens rise. The rest ",
+    "highlight": "burn",
+    "after": ". Choose your side."
+  },
   "Footer": {
     "copyright": "© NoRug.fun {year}",
     "privacy": "privacy policy",
