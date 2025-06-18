@@ -54,7 +54,7 @@ export function MarketDashboard({
   const openFilters = () => setShowFilters(true);
 
   return (
-    <div className="pt-8">
+    <div className="pt-2">
       {/* Header Section - Phase Selector and Controls */}
       <div className="flex flex-col gap-2 mb-4 sm:flex-row sm:items-center sm:justify-between">
         {/* Phase Selector */}
