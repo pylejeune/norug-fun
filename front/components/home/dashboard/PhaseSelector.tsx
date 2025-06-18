@@ -14,7 +14,7 @@ export function PhaseSelector({
   isExpired,
 }: PhaseSelectorProps) {
   return (
-    <div className="flex gap-2 flex-shrink-0 mb-6">
+    <div className="flex gap-2 flex-shrink-0">
       <button
         className={`px-6 py-2 rounded-full font-bold transition-colors whitespace-nowrap flex items-center gap-2
           ${
