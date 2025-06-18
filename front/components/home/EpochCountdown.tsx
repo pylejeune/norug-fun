@@ -100,15 +100,9 @@ export function LiveIndicator({
   }
 
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
-      {/* Pulsing dot */}
-      <div className="relative">
-        <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-        <div className="absolute inset-0 w-3 h-3 bg-green-500 rounded-full animate-ping opacity-75"></div>
-      </div>
-      <span className="text-xs font-medium text-green-400 uppercase tracking-wide">
-        Live
-      </span>
+    <div className={`relative ${className}`}>
+      <div className="w-2.5 h-2.5 bg-green-600 rounded-full animate-pulse"></div>
+      <div className="absolute inset-0 w-2.5 h-2.5 bg-green-600 rounded-full animate-ping opacity-75"></div>
     </div>
   );
 }
