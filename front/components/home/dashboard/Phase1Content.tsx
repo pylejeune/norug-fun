@@ -148,7 +148,7 @@ export function Phase1Content({
       {selectedEpochDetails && (
         <EpochCountdown
           endTimestamp={selectedEpochDetails.endTime}
-          className="mb-6"
+          className="mb-4"
         />
       )}
 

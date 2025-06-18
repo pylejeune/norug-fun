@@ -56,7 +56,7 @@ export function MarketDashboard({
   return (
     <div className="pt-8">
       {/* Header Section - Phase Selector and Controls */}
-      <div className="flex flex-col gap-2 mb-6 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-2 mb-4 sm:flex-row sm:items-center sm:justify-between">
         {/* Phase Selector */}
         <PhaseSelector
           activePhase={activePhase}
