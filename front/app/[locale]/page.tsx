@@ -1,6 +1,6 @@
 "use client";
 
-import { ProposalsList } from "@/components/home/ProposalsList";
+import { MarketDashboard } from "@/components/home/MarketDashboard";
 import { SloganBanner } from "@/components/home/SloganBanner";
 import { EpochState } from "@/context/ProgramContext";
 import { useEpochs } from "@/hooks/useSWRHooks";
@@ -72,7 +72,7 @@ export default function Home() {
     <>
       <SloganBanner />
       <div className="container mx-auto px-4 pb-8">
-        <ProposalsList
+        <MarketDashboard
           selectedEpochId={selectedEpochId}
           selectedEpochDetails={selectedEpochDetails}
           locale={locale}
