@@ -2,6 +2,7 @@
 
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 import Marquee from "react-fast-marquee";
 
 type Props = {
@@ -10,12 +11,7 @@ type Props = {
 
 export function SloganBanner({ className }: Props) {
   const isMobile = useIsMobile();
-
-  const textData = {
-    before: "10 tokens rise. The rest ",
-    highlight: "burn",
-    after: ". Choose your side.",
-  };
+  const t = useTranslations("SloganBanner");
 
   return (
     <div className={cn("w-full py-0 px-0", className)}>
@@ -24,7 +20,7 @@ export function SloganBanner({ className }: Props) {
           <Marquee
             gradient={false}
             speed={isMobile ? 30 : 50}
-            pauseOnHover={true}
+            pauseOnHover={false}
             style={{
               overflow: "hidden",
               width: "1200px",
@@ -39,11 +35,9 @@ export function SloganBanner({ className }: Props) {
                   : "text-4xl font-medium whitespace-nowrap text-white"
               }
             >
-              {textData.before}
-              <span className="text-red-600 font-bold">
-                {textData.highlight}
-              </span>
-              {textData.after}
+              {t("before")}
+              <span className="text-red-600 font-bold">{t("highlight")}</span>
+              {t("after")}
             </span>
           </Marquee>
         </div>
