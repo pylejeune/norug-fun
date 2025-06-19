@@ -5,7 +5,7 @@ import {
   createSuccessResponse,
   createErrorResponse,
 } from "@/lib/utils";
-import { closeAllEpochs } from "./service";
+import { closeAllEpochs } from "../service";
 
 export async function GET(request: NextRequest): Promise<Response> {
   const requestId = randomUUID();
