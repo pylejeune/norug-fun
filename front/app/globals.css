@@ -214,6 +214,39 @@
 
 /* --- Fin du code --- */
 
+/* --- Hover-only gradient borders --- */
+.hover-gradient-border {
+  --border-size: 2px;
+  --border-angle: 0turn;
+  position: relative;
+}
+
+.hover-gradient-border:hover::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: var(--border-size);
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: bg-spin 8s linear infinite;
+  z-index: 0;
+  background: conic-gradient(
+    from var(--border-angle),
+    rgba(71, 85, 105, 0.3) 80%,
+    rgb(16, 185, 129) 86%,
+    /* green-500 */ rgb(66, 222, 164) 90%,
+    /* green-400 */ rgb(16, 185, 129) 94%,
+    /* green-500 */ rgba(71, 85, 105, 0.3)
+  );
+}
+
 /* --- Custom styles for Solana WalletMultiButton --- */
 /* Hide scrollbars specifically for marquee */
 .rfm-marquee-container {

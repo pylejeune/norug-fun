@@ -35,9 +35,10 @@ export function MarketDashboard({
   const [activePhase, setActivePhase] = useState<"phase1" | "phase2">("phase1");
   const isMobile = useIsMobile();
 
-  // Phase 1 filter states
+  // Shared filter states for both phases
   const [search, setSearch] = useState("");
   const [viewMode, setViewMode] = useState<"list" | "grid">("grid");
+  const [showFilters, setShowFilters] = useState(false);
 
   // Only show live indicator if we have epoch details and it's not expired
   const shouldShowLive = Boolean(
@@ -49,8 +50,7 @@ export function MarketDashboard({
     if (isMobile && viewMode !== "grid") setViewMode("grid");
   }, [isMobile, viewMode]);
 
-  // Handler for opening filters (will be passed to Phase1Content)
-  const [showFilters, setShowFilters] = useState(false);
+  // Handler for opening filters
   const openFilters = () => setShowFilters(true);
 
   return (
@@ -65,19 +65,17 @@ export function MarketDashboard({
           isExpired={isExpired}
         />
 
-        {/* Control Bar - Only shown for Phase 1 */}
-        {activePhase === "phase1" && (
-          <div className="w-full sm:w-auto mt-2 sm:mt-0">
-            <ProposalFilters
-              search={search}
-              onSearchChange={setSearch}
-              viewMode={viewMode}
-              onViewModeChange={setViewMode}
-              onOpenFilters={openFilters}
-              showViewModeToggle={true}
-            />
-          </div>
-        )}
+        {/* Control Bar - Shown for both phases */}
+        <div className="w-full sm:w-auto mt-2 sm:mt-0">
+          <ProposalFilters
+            search={search}
+            onSearchChange={setSearch}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            onOpenFilters={openFilters}
+            showViewModeToggle={true}
+          />
+        </div>
       </div>
 
       {/* Phase Content */}
@@ -93,7 +91,13 @@ export function MarketDashboard({
           onShowFiltersChange={setShowFilters}
         />
       ) : (
-        <Phase2Content locale={locale} />
+        <Phase2Content
+          locale={locale}
+          search={search}
+          viewMode={viewMode}
+          showFilters={showFilters}
+          onShowFiltersChange={setShowFilters}
+        />
       )}
     </div>
   );
