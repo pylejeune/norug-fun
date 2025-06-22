@@ -20,6 +20,26 @@ import { useParams } from "next/navigation";
 import { useState } from "react";
 
 // ============================================================================
+// SIMULATION CONFIG - Easy to modify
+// ============================================================================
+const SIMULATION_CONFIG = {
+  // Wallet balances
+  SOL_BALANCE: "2.3847",
+  TOKEN_BALANCE: "856",
+
+  // Quick amount suggestions for SOL
+  SOL_AMOUNTS: {
+    SMALL: "0.05",
+    MEDIUM: "0.25",
+    LARGE: "0.75",
+    MAX: "2.3847",
+  },
+
+  // Price conversion example (1 SOL = X tokens approximately)
+  SOL_TO_TOKEN_RATE: 1247 / 0.9485, // Based on current token price
+};
+
+// ============================================================================
 // MOCK DATA - Phase 2 Minted Tokens
 // ============================================================================
 // Mock data for minted tokens (same as Phase2Content)
@@ -218,6 +238,8 @@ export default function TokenPage() {
   const [tradeType, setTradeType] = useState<"buy" | "sell">("buy");
   const [amount, setAmount] = useState("");
   const [activeTab, setActiveTab] = useState<"info" | "trades">("info");
+  const [showTradePanel, setShowTradePanel] = useState(false);
+  const [inputCurrency, setInputCurrency] = useState<"SOL" | "TOKEN">("SOL");
 
   // Find the token by ID
   const token = MINTED_TOKENS.find((t) => t.id === tokenId);
@@ -285,9 +307,13 @@ export default function TokenPage() {
                 height={40}
                 className="rounded-full flex-shrink-0"
               />
-              <div className="flex-1 min-w-0">
-                <h1 className="text-lg font-bold">${token.symbol}</h1>
-                <p className="text-gray-400 text-sm">{token.name}</p>
+              <div className="flex-1 min-w-0 select-none">
+                <h1 className="text-lg font-bold cursor-default">
+                  ${token.symbol}
+                </h1>
+                <p className="text-gray-400 text-sm cursor-default">
+                  {token.name}
+                </p>
               </div>
               <div className="text-right flex-shrink-0">
                 <div className="text-lg font-bold">
@@ -296,7 +322,7 @@ export default function TokenPage() {
                 <div
                   className={cn(
                     "flex items-center justify-end gap-1 text-xs font-semibold",
-                    isPositiveChange ? "text-emerald-400" : "text-red-400"
+                    isPositiveChange ? "text-emerald-400" : "text-red-300"
                   )}
                 >
                   {isPositiveChange ? (
@@ -323,9 +349,11 @@ export default function TokenPage() {
                   height={48}
                   className="rounded-full flex-shrink-0"
                 />
-                <div>
-                  <h1 className="text-2xl font-bold">${token.symbol}</h1>
-                  <p className="text-gray-400">{token.name}</p>
+                <div className="select-none">
+                  <h1 className="text-2xl font-bold cursor-default">
+                    ${token.symbol}
+                  </h1>
+                  <p className="text-gray-400 cursor-default">{token.name}</p>
                 </div>
               </div>
               <div className="text-right">
@@ -335,7 +363,7 @@ export default function TokenPage() {
                 <div
                   className={cn(
                     "flex items-center justify-end gap-2 text-base font-semibold",
-                    isPositiveChange ? "text-emerald-400" : "text-red-400"
+                    isPositiveChange ? "text-emerald-400" : "text-red-300"
                   )}
                 >
                   {isPositiveChange ? (
@@ -352,7 +380,7 @@ export default function TokenPage() {
         </div>
       </div>
 
-      <div className="px-4 py-4 space-y-4">
+      <div className="px-4 py-4 space-y-4 pb-24 sm:pb-4">
         {/* ============================================================================ */}
         {/* MOBILE LAYOUT - Stats Cards & Chart */}
         {/* ============================================================================ */}
@@ -433,58 +461,150 @@ export default function TokenPage() {
             <div className="col-span-4 space-y-4">
               {/* Trading Section */}
               <div className="bg-gray-800/50 rounded-xl border border-gray-700 p-4">
-                <h3 className="text-lg font-bold mb-4">Quick Trade</h3>
                 <div className="space-y-4">
                   {/* Buy/Sell Tabs */}
-                  <div className="flex bg-gray-700/50 rounded-lg p-1">
+                  <div className="flex bg-gray-800 rounded-lg p-1">
                     <button
                       onClick={() => setTradeType("buy")}
                       className={cn(
-                        "flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors",
+                        "flex-1 py-3 px-4 rounded-md text-sm font-medium transition-colors",
                         tradeType === "buy"
                           ? "bg-emerald-600 text-white"
-                          : "text-gray-400 hover:text-gray-300"
+                          : "text-gray-400"
                       )}
                     >
-                      Buy
+                      buy
                     </button>
                     <button
                       onClick={() => setTradeType("sell")}
                       className={cn(
-                        "flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors",
+                        "flex-1 py-3 px-4 rounded-md text-sm font-medium transition-colors",
                         tradeType === "sell"
-                          ? "bg-red-800 text-white"
-                          : "text-gray-400 hover:text-gray-300"
+                          ? "bg-red-900 text-white"
+                          : "text-gray-400"
                       )}
                     >
-                      Sell
+                      sell
                     </button>
                   </div>
 
+                  {/* Switch Currency */}
+                  <button
+                    onClick={() =>
+                      setInputCurrency(
+                        inputCurrency === "SOL" ? "TOKEN" : "SOL"
+                      )
+                    }
+                    className="text-sm text-gray-400 hover:text-gray-300 transition-colors"
+                  >
+                    switch to {inputCurrency === "SOL" ? token.symbol : "SOL"}
+                  </button>
+
+                  {/* Balance */}
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400 text-sm">balance:</span>
+                    <span className="text-white font-medium text-sm">
+                      {inputCurrency === "SOL"
+                        ? `${SIMULATION_CONFIG.SOL_BALANCE} SOL`
+                        : `${SIMULATION_CONFIG.TOKEN_BALANCE} ${token.symbol}`}
+                    </span>
+                  </div>
+
                   {/* Amount Input */}
-                  <div>
-                    <label className="block text-sm text-gray-400 mb-2">
-                      Amount ({token.symbol})
-                    </label>
+                  <div className="relative">
                     <input
                       type="number"
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
-                      className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:border-emerald-500 focus:outline-none"
+                      className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white font-medium focus:border-emerald-500 focus:outline-none pr-16 resize-none"
                       placeholder="0.00"
+                      style={{ resize: "none" }}
                     />
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2 select-none pointer-events-none">
+                      <span className="text-gray-400 font-medium text-sm cursor-default">
+                        {inputCurrency === "SOL" ? "SOL" : token.symbol}
+                      </span>
+                      {inputCurrency === "SOL" ? (
+                        <div className="w-5 h-5 bg-gradient-to-r from-purple-500 to-cyan-500 rounded-full flex items-center justify-center">
+                          <span className="text-xs font-bold">≡</span>
+                        </div>
+                      ) : (
+                        <Image
+                          src={token.image}
+                          alt={token.symbol}
+                          width={20}
+                          height={20}
+                          className="rounded-full"
+                        />
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Quick Amount Buttons */}
+                  <div className="flex gap-2 flex-wrap">
+                    <button
+                      onClick={() => setAmount("")}
+                      className="px-3 py-2 bg-gray-700 text-gray-400 rounded-lg text-xs hover:bg-gray-600 transition-colors"
+                    >
+                      reset
+                    </button>
+                    {inputCurrency === "SOL" ? (
+                      <>
+                        <button
+                          onClick={() =>
+                            setAmount(SIMULATION_CONFIG.SOL_AMOUNTS.SMALL)
+                          }
+                          className="px-3 py-2 bg-gray-700 text-gray-400 rounded-lg text-xs hover:bg-gray-600 transition-colors"
+                        >
+                          {SIMULATION_CONFIG.SOL_AMOUNTS.SMALL} SOL
+                        </button>
+                        <button
+                          onClick={() =>
+                            setAmount(SIMULATION_CONFIG.SOL_AMOUNTS.MEDIUM)
+                          }
+                          className="px-3 py-2 bg-gray-700 text-gray-400 rounded-lg text-xs hover:bg-gray-600 transition-colors"
+                        >
+                          {SIMULATION_CONFIG.SOL_AMOUNTS.MEDIUM} SOL
+                        </button>
+                        <button
+                          onClick={() =>
+                            setAmount(SIMULATION_CONFIG.SOL_AMOUNTS.LARGE)
+                          }
+                          className="px-3 py-2 bg-gray-700 text-gray-400 rounded-lg text-xs hover:bg-gray-600 transition-colors"
+                        >
+                          {SIMULATION_CONFIG.SOL_AMOUNTS.LARGE} SOL
+                        </button>
+                        <button
+                          onClick={() =>
+                            setAmount(SIMULATION_CONFIG.SOL_AMOUNTS.MAX)
+                          }
+                          className="px-3 py-2 bg-gray-700 text-gray-400 rounded-lg text-xs hover:bg-gray-600 transition-colors"
+                        >
+                          max
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        onClick={() =>
+                          setAmount(SIMULATION_CONFIG.TOKEN_BALANCE)
+                        }
+                        className="px-3 py-2 bg-gray-700 text-gray-400 rounded-lg text-xs hover:bg-gray-600 transition-colors"
+                      >
+                        max
+                      </button>
+                    )}
                   </div>
 
                   {/* Trade Button */}
                   <button
                     className={cn(
-                      "w-full py-3 px-4 rounded-xl font-semibold transition-all duration-200",
+                      "w-full py-3 px-4 rounded-xl font-bold transition-all duration-200",
                       tradeType === "buy"
                         ? "bg-emerald-600 hover:bg-emerald-500 text-white"
-                        : "bg-red-800 hover:bg-red-900 text-white"
+                        : "bg-red-900 hover:bg-red-800 text-white"
                     )}
                   >
-                    log in to trade
+                    place trade
                   </button>
                 </div>
               </div>
@@ -655,7 +775,7 @@ export default function TokenPage() {
                                 "px-2 py-1 rounded text-xs font-medium",
                                 trade.type === "buy"
                                   ? "bg-emerald-600/20 text-emerald-400"
-                                  : "bg-red-600/20 text-red-400"
+                                  : "bg-red-900/30 text-red-300"
                               )}
                             >
                               {trade.type}
@@ -711,6 +831,192 @@ export default function TokenPage() {
           </div>
         </div>
       </div>
+
+      {/* ============================================================================ */}
+      {/* MOBILE FIXED BUY BUTTON */}
+      {/* ============================================================================ */}
+      <div className="block sm:hidden fixed bottom-16 left-0 right-0 z-50 bg-gray-900/95 backdrop-blur-sm border-t border-gray-800 p-4">
+        <button
+          onClick={() => setShowTradePanel(true)}
+          className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-lg rounded-xl transition-all duration-200"
+        >
+          buy
+        </button>
+      </div>
+
+      {/* ============================================================================ */}
+      {/* MOBILE TRADE PANEL - Sliding from bottom */}
+      {/* ============================================================================ */}
+      {showTradePanel && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/50 z-[55] sm:hidden"
+            onClick={() => setShowTradePanel(false)}
+          />
+
+          {/* Sliding Panel */}
+          <div className="fixed bottom-0 left-0 right-0 z-[60] bg-gray-900 rounded-t-2xl border-t border-gray-700 sm:hidden animate-slide-up">
+            <div className="p-4">
+              {/* Handle bar */}
+              <div className="w-12 h-1 bg-gray-600 rounded-full mx-auto mb-4" />
+
+              {/* Close button */}
+              <button
+                onClick={() => setShowTradePanel(false)}
+                className="absolute top-4 right-4 text-gray-400 hover:text-white"
+              >
+                ✕
+              </button>
+
+              {/* Buy/Sell Tabs */}
+              <div className="flex bg-gray-800 rounded-lg p-1 mb-4">
+                <button
+                  onClick={() => setTradeType("buy")}
+                  className={cn(
+                    "flex-1 py-3 px-4 rounded-md text-sm font-medium transition-colors",
+                    tradeType === "buy"
+                      ? "bg-emerald-600 text-white"
+                      : "text-gray-400"
+                  )}
+                >
+                  buy
+                </button>
+                <button
+                  onClick={() => setTradeType("sell")}
+                  className={cn(
+                    "flex-1 py-3 px-4 rounded-md text-sm font-medium transition-colors",
+                    tradeType === "sell"
+                      ? "bg-red-900 text-white"
+                      : "text-gray-400"
+                  )}
+                >
+                  sell
+                </button>
+              </div>
+
+              {/* Switch Currency */}
+              <button
+                onClick={() =>
+                  setInputCurrency(inputCurrency === "SOL" ? "TOKEN" : "SOL")
+                }
+                className="text-sm text-gray-400 hover:text-gray-300 mb-2 transition-colors"
+              >
+                switch to {inputCurrency === "SOL" ? token.symbol : "SOL"}
+              </button>
+
+              {/* Balance */}
+              <div className="flex justify-between items-center mb-4">
+                <span className="text-gray-400">balance:</span>
+                <span className="text-white font-medium">
+                  {inputCurrency === "SOL"
+                    ? `${SIMULATION_CONFIG.SOL_BALANCE} SOL`
+                    : `${SIMULATION_CONFIG.TOKEN_BALANCE} ${token.symbol}`}
+                </span>
+              </div>
+
+              {/* Amount Input */}
+              <div className="relative mb-4">
+                <input
+                  type="number"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  className="w-full px-4 py-4 bg-gray-800 border border-gray-600 rounded-xl text-white text-lg font-medium focus:border-emerald-500 focus:outline-none pr-20 resize-none"
+                  placeholder="0.00"
+                  style={{ resize: "none" }}
+                />
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2 select-none pointer-events-none">
+                  <span className="text-gray-400 font-medium cursor-default">
+                    {inputCurrency === "SOL" ? "SOL" : token.symbol}
+                  </span>
+                  {inputCurrency === "SOL" ? (
+                    <div className="w-6 h-6 bg-gradient-to-r from-purple-500 to-cyan-500 rounded-full flex items-center justify-center">
+                      <span className="text-xs font-bold">≡</span>
+                    </div>
+                  ) : (
+                    <Image
+                      src={token.image}
+                      alt={token.symbol}
+                      width={24}
+                      height={24}
+                      className="rounded-full"
+                    />
+                  )}
+                </div>
+              </div>
+
+              {/* Quick Amount Buttons */}
+              <div className="flex gap-2 mb-6">
+                <button
+                  onClick={() => setAmount("")}
+                  className="px-3 py-2 bg-gray-800 text-gray-400 rounded-lg text-sm"
+                >
+                  reset
+                </button>
+                {inputCurrency === "SOL" ? (
+                  <>
+                    <button
+                      onClick={() =>
+                        setAmount(SIMULATION_CONFIG.SOL_AMOUNTS.SMALL)
+                      }
+                      className="px-3 py-2 bg-gray-800 text-gray-400 rounded-lg text-sm"
+                    >
+                      {SIMULATION_CONFIG.SOL_AMOUNTS.SMALL} SOL
+                    </button>
+                    <button
+                      onClick={() =>
+                        setAmount(SIMULATION_CONFIG.SOL_AMOUNTS.MEDIUM)
+                      }
+                      className="px-3 py-2 bg-gray-800 text-gray-400 rounded-lg text-sm"
+                    >
+                      {SIMULATION_CONFIG.SOL_AMOUNTS.MEDIUM} SOL
+                    </button>
+                    <button
+                      onClick={() =>
+                        setAmount(SIMULATION_CONFIG.SOL_AMOUNTS.LARGE)
+                      }
+                      className="px-3 py-2 bg-gray-800 text-gray-400 rounded-lg text-sm"
+                    >
+                      {SIMULATION_CONFIG.SOL_AMOUNTS.LARGE} SOL
+                    </button>
+                    <button
+                      onClick={() =>
+                        setAmount(SIMULATION_CONFIG.SOL_AMOUNTS.MAX)
+                      }
+                      className="px-3 py-2 bg-gray-800 text-gray-400 rounded-lg text-sm"
+                    >
+                      max
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={() => setAmount(SIMULATION_CONFIG.TOKEN_BALANCE)}
+                    className="px-3 py-2 bg-gray-800 text-gray-400 rounded-lg text-sm"
+                  >
+                    max
+                  </button>
+                )}
+              </div>
+
+              {/* Place Trade Button */}
+              <button
+                className={cn(
+                  "w-full py-4 rounded-xl font-bold text-lg transition-all duration-200",
+                  tradeType === "buy"
+                    ? "bg-emerald-600 hover:bg-emerald-500 text-white"
+                    : "bg-red-900 hover:bg-red-800 text-white"
+                )}
+                onClick={() => setShowTradePanel(false)}
+              >
+                place trade
+              </button>
+
+              {/* Bottom padding for safe area */}
+              <div className="h-8" />
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

@@ -247,6 +247,41 @@
   );
 }
 
+/* --- Custom slide-up animation for mobile trade panel --- */
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out forwards;
+}
+
+/* --- Remove resize arrows and spinners from inputs --- */
+input[type="number"] {
+  resize: none !important;
+  -webkit-appearance: none;
+  -moz-appearance: textfield;
+  appearance: none;
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Remove resize handles globally */
+* {
+  resize: none !important;
+}
+
 /* --- Custom styles for Solana WalletMultiButton --- */
 /* Hide scrollbars specifically for marquee */
 .rfm-marquee-container {
