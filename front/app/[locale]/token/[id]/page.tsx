@@ -495,7 +495,7 @@ export default function TokenPage() {
                         inputCurrency === "SOL" ? "TOKEN" : "SOL"
                       )
                     }
-                    className="text-sm text-gray-400 hover:text-gray-300 transition-colors"
+                    className="text-sm text-gray-400 hover:text-gray-300 transition-colors border border-dashed border-gray-600 hover:border-gray-500 px-3 py-1 rounded-md"
                   >
                     switch to {inputCurrency === "SOL" ? token.symbol : "SOL"}
                   </button>
@@ -900,7 +900,7 @@ export default function TokenPage() {
                 onClick={() =>
                   setInputCurrency(inputCurrency === "SOL" ? "TOKEN" : "SOL")
                 }
-                className="text-sm text-gray-400 hover:text-gray-300 mb-2 transition-colors"
+                className="text-sm text-gray-400 hover:text-gray-300 mb-2 transition-colors border border-dashed border-gray-600 hover:border-gray-500 px-3 py-1 rounded-md"
               >
                 switch to {inputCurrency === "SOL" ? token.symbol : "SOL"}
               </button>
