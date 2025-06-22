@@ -415,17 +415,17 @@ export default function TokenPage() {
         {/* DESKTOP LAYOUT - Chart & Trading Sidebar */}
         {/* ============================================================================ */}
         <div className="hidden sm:block">
-          <div className="grid grid-cols-12 gap-6">
+          <div className="grid grid-cols-12 gap-6 items-start">
             {/* Main Chart - Takes most space */}
             <div className="col-span-8">
-              <div className="bg-gray-800/50 rounded-xl border border-gray-700 p-3 h-fit">
+              <div className="bg-gray-800/50 rounded-xl border border-gray-700 p-3">
                 <div className="flex items-center justify-between mb-3">
                   <h2 className="text-xl font-bold">Price Chart</h2>
                   <div className="text-sm text-gray-400">
                     Real-time data from TradingView
                   </div>
                 </div>
-                <TradingViewChart height={350} className="relative" />
+                <TradingViewChart height={480} className="relative" />
               </div>
             </div>
 
