@@ -1,6 +1,8 @@
 name: Notify Discord on Pull Request
 
 on:
+  pull_request:
+    types: [opened]
   pull_request_target:
     types: [opened]
 
@@ -12,13 +14,11 @@ jobs:
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
-          # Déterminer le type d'acteur (Dependabot ou utilisateur normal)
           if [[ "${{ github.actor }}" == "dependabot[bot]" ]]; then
             MESSAGE="🤖 Nouvelle pull request Dependabot ouverte : ${{ github.event.pull_request.html_url }}"
           else
             MESSAGE="📣 Nouvelle pull request ouverte par ${{ github.actor }} : ${{ github.event.pull_request.html_url }}"
           fi
-
           curl -H "Content-Type: application/json" \
                -X POST \
                -d "{\"content\": \"$MESSAGE\"}" \
