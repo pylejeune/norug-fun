@@ -1,7 +1,7 @@
 name: Notify Discord on Review Request
 
 on:
-  pull_request:
+  pull_request_target:
     types: [review_requested]
 
 jobs:
@@ -12,7 +12,16 @@ jobs:
         env:
           DISCORD_WEBHOOK_URL_REVIEWER: ${{ secrets.DISCORD_WEBHOOK_URL_REVIEWER }}
         run: |
+          # Déterminer le type d'acteur et le destinataire de la review
+          REVIEWER="${{ github.event.requested_reviewer.login || github.event.requested_team.name }}"
+
+          if [[ "${{ github.actor }}" == "dependabot[bot]" ]]; then
+            MESSAGE="🤖👀 Revue demandée automatiquement par Dependabot à $REVIEWER pour la PR : ${{ github.event.pull_request.title }} - ${{ github.event.pull_request.html_url }}"
+          else
+            MESSAGE="👀 Revue demandée par ${{ github.actor }} à $REVIEWER pour la PR : ${{ github.event.pull_request.title }} - ${{ github.event.pull_request.html_url }}"
+          fi
+
           curl -H "Content-Type: application/json" \
                -X POST \
-               -d "{\"content\": \"👀 Revue demandée par ${{ github.actor }} à ${{ github.event.requested_reviewer.login || github.event.requested_team.name }} pour la PR : ${{ github.event.pull_request.title }}\"}" \
-               $DISCORD_WEBHOOK_URL_REVIEWER 
+               -d "{\"content\": \"$MESSAGE\"}" \
+               $DISCORD_WEBHOOK_URL_REVIEWER
