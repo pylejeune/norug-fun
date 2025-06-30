@@ -732,10 +732,13 @@ export default function TokenPage() {
                       />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="font-mono text-sm truncate">
+                          <Link
+                            href={`/${locale}/profile/${token.creator.address}`}
+                            className="font-mono text-sm truncate hover:text-emerald-400 transition-colors"
+                          >
                             {token.creator.address.slice(0, 8)}...
                             {token.creator.address.slice(-8)}
-                          </span>
+                          </Link>
                         </div>
                         <div className="text-sm text-gray-400">
                           Token Creator
@@ -770,10 +773,13 @@ export default function TokenPage() {
                         />
                         <div>
                           <div className="flex items-center gap-2">
-                            <span className="font-mono text-xs text-gray-400">
+                            <Link
+                              href={`/${locale}/profile/${trade.account.address}`}
+                              className="font-mono text-xs text-gray-400 hover:text-emerald-400 transition-colors"
+                            >
                               {trade.account.address.slice(0, 6)}...
                               {trade.account.address.slice(-4)}
-                            </span>
+                            </Link>
                             <span
                               className={cn(
                                 "px-2 py-1 rounded text-xs font-medium",
