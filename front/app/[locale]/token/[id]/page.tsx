@@ -3,6 +3,7 @@
 import { MintedToken } from "@/components/home/TokenCard";
 import { TradingViewChart } from "@/components/TradingViewChart";
 import BackButton from "@/components/ui/BackButton";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { enUS, fr } from "date-fns/locale";
@@ -470,7 +471,7 @@ export default function TokenPage() {
                     <button
                       onClick={() => setTradeType("buy")}
                       className={cn(
-                        "flex-1 py-3 px-4 rounded-md text-sm font-medium transition-colors",
+                        "flex-1 py-3 px-4 rounded-md text-sm font-medium transition-colors cursor-pointer",
                         tradeType === "buy"
                           ? "bg-emerald-600 text-white"
                           : "text-gray-400"
@@ -481,7 +482,7 @@ export default function TokenPage() {
                     <button
                       onClick={() => setTradeType("sell")}
                       className={cn(
-                        "flex-1 py-3 px-4 rounded-md text-sm font-medium transition-colors",
+                        "flex-1 py-3 px-4 rounded-md text-sm font-medium transition-colors cursor-pointer",
                         tradeType === "sell"
                           ? "bg-red-900 text-white"
                           : "text-gray-400"
@@ -498,7 +499,7 @@ export default function TokenPage() {
                         inputCurrency === "SOL" ? "TOKEN" : "SOL"
                       )
                     }
-                    className="text-sm text-gray-400 hover:text-gray-300 transition-colors border border-dashed border-gray-600 hover:border-gray-500 px-3 py-1 rounded-md"
+                    className="text-sm text-gray-400 hover:text-gray-300 transition-colors border border-dashed border-gray-600 hover:border-gray-500 px-3 py-1 rounded-md cursor-pointer"
                   >
                     switch to {inputCurrency === "SOL" ? token.symbol : "SOL"}
                   </button>
@@ -547,7 +548,7 @@ export default function TokenPage() {
                   <div className="flex gap-2 flex-wrap">
                     <button
                       onClick={() => setAmount("")}
-                      className="px-3 py-2 bg-gray-700 text-gray-400 rounded-lg text-xs hover:bg-gray-600 transition-colors"
+                      className="px-3 py-2 bg-gray-700 text-gray-400 rounded-lg text-xs hover:bg-gray-600 transition-colors cursor-pointer"
                     >
                       reset
                     </button>
@@ -557,7 +558,7 @@ export default function TokenPage() {
                           onClick={() =>
                             setAmount(SIMULATION_CONFIG.SOL_AMOUNTS.SMALL)
                           }
-                          className="px-3 py-2 bg-gray-700 text-gray-400 rounded-lg text-xs hover:bg-gray-600 transition-colors"
+                          className="px-3 py-2 bg-gray-700 text-gray-400 rounded-lg text-xs hover:bg-gray-600 transition-colors cursor-pointer"
                         >
                           {SIMULATION_CONFIG.SOL_AMOUNTS.SMALL} SOL
                         </button>
@@ -565,7 +566,7 @@ export default function TokenPage() {
                           onClick={() =>
                             setAmount(SIMULATION_CONFIG.SOL_AMOUNTS.MEDIUM)
                           }
-                          className="px-3 py-2 bg-gray-700 text-gray-400 rounded-lg text-xs hover:bg-gray-600 transition-colors"
+                          className="px-3 py-2 bg-gray-700 text-gray-400 rounded-lg text-xs hover:bg-gray-600 transition-colors cursor-pointer"
                         >
                           {SIMULATION_CONFIG.SOL_AMOUNTS.MEDIUM} SOL
                         </button>
@@ -573,7 +574,7 @@ export default function TokenPage() {
                           onClick={() =>
                             setAmount(SIMULATION_CONFIG.SOL_AMOUNTS.LARGE)
                           }
-                          className="px-3 py-2 bg-gray-700 text-gray-400 rounded-lg text-xs hover:bg-gray-600 transition-colors"
+                          className="px-3 py-2 bg-gray-700 text-gray-400 rounded-lg text-xs hover:bg-gray-600 transition-colors cursor-pointer"
                         >
                           {SIMULATION_CONFIG.SOL_AMOUNTS.LARGE} SOL
                         </button>
@@ -581,7 +582,7 @@ export default function TokenPage() {
                           onClick={() =>
                             setAmount(SIMULATION_CONFIG.SOL_AMOUNTS.MAX)
                           }
-                          className="px-3 py-2 bg-gray-700 text-gray-400 rounded-lg text-xs hover:bg-gray-600 transition-colors"
+                          className="px-3 py-2 bg-gray-700 text-gray-400 rounded-lg text-xs hover:bg-gray-600 transition-colors cursor-pointer"
                         >
                           max
                         </button>
@@ -591,7 +592,7 @@ export default function TokenPage() {
                         onClick={() =>
                           setAmount(SIMULATION_CONFIG.TOKEN_BALANCE)
                         }
-                        className="px-3 py-2 bg-gray-700 text-gray-400 rounded-lg text-xs hover:bg-gray-600 transition-colors"
+                        className="px-3 py-2 bg-gray-700 text-gray-400 rounded-lg text-xs hover:bg-gray-600 transition-colors cursor-pointer"
                       >
                         max
                       </button>
@@ -599,7 +600,7 @@ export default function TokenPage() {
                   </div>
 
                   {/* Trade Button */}
-                  <button
+                  <Button
                     className={cn(
                       "w-full py-3 px-4 rounded-xl font-bold transition-all duration-200",
                       tradeType === "buy"
@@ -608,7 +609,7 @@ export default function TokenPage() {
                     )}
                   >
                     place trade
-                  </button>
+                  </Button>
                 </div>
               </div>
 
@@ -839,12 +840,12 @@ export default function TokenPage() {
       {/* MOBILE FIXED BUY BUTTON */}
       {/* ============================================================================ */}
       <div className="block sm:hidden fixed bottom-16 left-0 right-0 z-50 bg-gray-900/95 backdrop-blur-sm border-t border-gray-800 p-4">
-        <button
+        <Button
           onClick={() => setShowTradePanel(true)}
           className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-lg rounded-xl transition-all duration-200"
         >
           buy
-        </button>
+        </Button>
       </div>
 
       {/* ============================================================================ */}
@@ -867,7 +868,7 @@ export default function TokenPage() {
               {/* Close button */}
               <button
                 onClick={() => setShowTradePanel(false)}
-                className="absolute top-4 right-4 text-gray-400 hover:text-white"
+                className="absolute top-4 right-4 text-gray-400 hover:text-white cursor-pointer"
               >
                 ✕
               </button>
@@ -877,7 +878,7 @@ export default function TokenPage() {
                 <button
                   onClick={() => setTradeType("buy")}
                   className={cn(
-                    "flex-1 py-3 px-4 rounded-md text-sm font-medium transition-colors",
+                    "flex-1 py-3 px-4 rounded-md text-sm font-medium transition-colors cursor-pointer",
                     tradeType === "buy"
                       ? "bg-emerald-600 text-white"
                       : "text-gray-400"
@@ -888,7 +889,7 @@ export default function TokenPage() {
                 <button
                   onClick={() => setTradeType("sell")}
                   className={cn(
-                    "flex-1 py-3 px-4 rounded-md text-sm font-medium transition-colors",
+                    "flex-1 py-3 px-4 rounded-md text-sm font-medium transition-colors cursor-pointer",
                     tradeType === "sell"
                       ? "bg-red-900 text-white"
                       : "text-gray-400"
@@ -903,7 +904,7 @@ export default function TokenPage() {
                 onClick={() =>
                   setInputCurrency(inputCurrency === "SOL" ? "TOKEN" : "SOL")
                 }
-                className="text-sm text-gray-400 hover:text-gray-300 mb-2 transition-colors border border-dashed border-gray-600 hover:border-gray-500 px-3 py-1 rounded-md"
+                className="text-sm text-gray-400 hover:text-gray-300 mb-2 transition-colors border border-dashed border-gray-600 hover:border-gray-500 px-3 py-1 rounded-md cursor-pointer"
               >
                 switch to {inputCurrency === "SOL" ? token.symbol : "SOL"}
               </button>
@@ -952,7 +953,7 @@ export default function TokenPage() {
               <div className="flex gap-2 mb-6">
                 <button
                   onClick={() => setAmount("")}
-                  className="px-3 py-2 bg-gray-800 text-gray-400 rounded-lg text-sm"
+                  className="px-3 py-2 bg-gray-800 text-gray-400 rounded-lg text-sm cursor-pointer"
                 >
                   reset
                 </button>
@@ -962,7 +963,7 @@ export default function TokenPage() {
                       onClick={() =>
                         setAmount(SIMULATION_CONFIG.SOL_AMOUNTS.SMALL)
                       }
-                      className="px-3 py-2 bg-gray-800 text-gray-400 rounded-lg text-sm"
+                      className="px-3 py-2 bg-gray-800 text-gray-400 rounded-lg text-sm cursor-pointer"
                     >
                       {SIMULATION_CONFIG.SOL_AMOUNTS.SMALL} SOL
                     </button>
@@ -970,7 +971,7 @@ export default function TokenPage() {
                       onClick={() =>
                         setAmount(SIMULATION_CONFIG.SOL_AMOUNTS.MEDIUM)
                       }
-                      className="px-3 py-2 bg-gray-800 text-gray-400 rounded-lg text-sm"
+                      className="px-3 py-2 bg-gray-800 text-gray-400 rounded-lg text-sm cursor-pointer"
                     >
                       {SIMULATION_CONFIG.SOL_AMOUNTS.MEDIUM} SOL
                     </button>
@@ -978,7 +979,7 @@ export default function TokenPage() {
                       onClick={() =>
                         setAmount(SIMULATION_CONFIG.SOL_AMOUNTS.LARGE)
                       }
-                      className="px-3 py-2 bg-gray-800 text-gray-400 rounded-lg text-sm"
+                      className="px-3 py-2 bg-gray-800 text-gray-400 rounded-lg text-sm cursor-pointer"
                     >
                       {SIMULATION_CONFIG.SOL_AMOUNTS.LARGE} SOL
                     </button>
@@ -986,7 +987,7 @@ export default function TokenPage() {
                       onClick={() =>
                         setAmount(SIMULATION_CONFIG.SOL_AMOUNTS.MAX)
                       }
-                      className="px-3 py-2 bg-gray-800 text-gray-400 rounded-lg text-sm"
+                      className="px-3 py-2 bg-gray-800 text-gray-400 rounded-lg text-sm cursor-pointer"
                     >
                       max
                     </button>
@@ -994,7 +995,7 @@ export default function TokenPage() {
                 ) : (
                   <button
                     onClick={() => setAmount(SIMULATION_CONFIG.TOKEN_BALANCE)}
-                    className="px-3 py-2 bg-gray-800 text-gray-400 rounded-lg text-sm"
+                    className="px-3 py-2 bg-gray-800 text-gray-400 rounded-lg text-sm cursor-pointer"
                   >
                     max
                   </button>
@@ -1002,7 +1003,7 @@ export default function TokenPage() {
               </div>
 
               {/* Place Trade Button */}
-              <button
+              <Button
                 className={cn(
                   "w-full py-4 rounded-xl font-bold text-lg transition-all duration-200",
                   tradeType === "buy"
@@ -1012,7 +1013,7 @@ export default function TokenPage() {
                 onClick={() => setShowTradePanel(false)}
               >
                 place trade
-              </button>
+              </Button>
 
               {/* Bottom padding for safe area */}
               <div className="h-8" />

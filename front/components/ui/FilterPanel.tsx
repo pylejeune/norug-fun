@@ -3,6 +3,7 @@
 import { ChevronDown, X } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { useEffect, useState } from 'react'
+import { Button } from './button'
 
 export type SortBy = 'sol' | 'date' | 'name' | 'marketcap' | 'volume' | 'holders' | 'lasttrade'
 export type SortOrder = 'asc' | 'desc'
@@ -38,7 +39,7 @@ function CustomSelect({ label, value, options, onChange }: CustomSelectProps) {
 
       {/* Custom Select Button */}
       <button
-        className="w-full bg-gray-900/50 backdrop-blur-sm border border-gray-700/50 rounded-lg p-3 text-left text-gray-200 hover:border-[#e6d3ba]/50 transition-all duration-300 focus:ring-2 focus:ring-[#e6d3ba]/30 focus:border-[#e6d3ba] flex items-center justify-between"
+        className="w-full bg-gray-900/50 backdrop-blur-sm border border-gray-700/50 rounded-lg p-3 text-left text-gray-200 hover:border-[#e6d3ba]/50 transition-all duration-300 focus:ring-2 focus:ring-[#e6d3ba]/30 focus:border-[#e6d3ba] flex items-center justify-between cursor-pointer"
         onClick={() => setIsOpen(!isOpen)}
       >
         <span>{selectedOption?.label}</span>
@@ -58,7 +59,7 @@ function CustomSelect({ label, value, options, onChange }: CustomSelectProps) {
             {options.map((option) => (
               <button
                 key={option.value}
-                className={`w-full px-3 py-3 text-left transition-all duration-200 hover:bg-[#e6d3ba]/10 hover:text-[#e6d3ba] ${
+                className={`w-full px-3 py-3 text-left transition-all duration-200 hover:bg-[#e6d3ba]/10 hover:text-[#e6d3ba] cursor-pointer ${
                   value === option.value
                     ? 'bg-[#e6d3ba]/20 text-[#e6d3ba] border-l-2 border-[#e6d3ba]'
                     : 'text-gray-200'
@@ -174,7 +175,7 @@ export function FilterPanel({
           <span className="text-lg font-bold text-[#e6d3ba]">{t('filters') || 'Filtres'}</span>
           <button
             onClick={handleClose}
-            className="p-2 rounded-full hover:bg-gray-700/50 transition-all duration-200 hover:scale-110"
+            className="p-2 rounded-full hover:bg-gray-700/50 transition-all duration-200 hover:scale-110 cursor-pointer"
           >
             <X className="w-6 h-6 text-gray-400 hover:text-[#e6d3ba] transition-colors" />
           </button>
@@ -201,18 +202,19 @@ export function FilterPanel({
 
         {/* Panel Actions */}
         <div className="mt-8 flex gap-3">
-          <button
-            className="flex-1 py-3 rounded-lg bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 text-gray-300 font-medium hover:bg-gray-700/50 hover:border-gray-600/50 hover:text-gray-200 transition-all duration-200 hover:scale-[1.02]"
+          <Button
+            variant="outline"
+            className="flex-1 py-3 bg-gray-800/50 backdrop-blur-sm border-gray-700/50 text-gray-300 hover:bg-gray-700/50 hover:border-gray-600/50 hover:text-gray-200"
             onClick={onReset}
           >
             Reset
-          </button>
-          <button
-            className="flex-1 py-3 rounded-lg bg-gradient-to-r from-[#e6d3ba] to-[#d6c3a0] text-[#1e293b] font-bold hover:from-[#d6c3a0] hover:to-[#c6b390] transition-all duration-200 hover:scale-[1.02] shadow-lg hover:shadow-xl"
+          </Button>
+          <Button
+            className="flex-1 py-3 bg-gradient-to-r from-[#e6d3ba] to-[#d6c3a0] text-[#1e293b] font-bold hover:from-[#d6c3a0] hover:to-[#c6b390] shadow-lg hover:shadow-xl"
             onClick={onApply}
           >
             Apply
-          </button>
+          </Button>
         </div>
       </div>
     </div>
