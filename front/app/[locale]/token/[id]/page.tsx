@@ -59,6 +59,7 @@ const MINTED_TOKENS: MintedToken[] = [
     volume24h: 89420,
     holders: 1247,
     createdAt: new Date(Date.now() - 3600000),
+    lastTradeAt: new Date(Date.now() - 120000), // 2 minutes ago
     description:
       "Revolutionary DeFi protocol bringing next-gen yield farming to Solana",
     liquidity: 445000,
@@ -79,6 +80,7 @@ const MINTED_TOKENS: MintedToken[] = [
     volume24h: 67200,
     holders: 892,
     createdAt: new Date(Date.now() - 7200000),
+    lastTradeAt: new Date(Date.now() - 300000), // 5 minutes ago
     description: "Cross-chain infrastructure for seamless Web3 experiences",
     liquidity: 320000,
     fdv: 1780000,
@@ -98,6 +100,7 @@ const MINTED_TOKENS: MintedToken[] = [
     volume24h: 124500,
     holders: 2134,
     createdAt: new Date(Date.now() - 1800000),
+    lastTradeAt: new Date(Date.now() - 60000), // 1 minute ago
     description: "AI-powered analytics platform for DeFi trading strategies",
     liquidity: 675000,
     fdv: 4290000,

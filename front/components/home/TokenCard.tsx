@@ -26,6 +26,7 @@ export type MintedToken = {
   volume24h: number;
   holders: number;
   createdAt: Date;
+  lastTradeAt: Date;
   description: string;
   liquidity: number;
   fdv: number;

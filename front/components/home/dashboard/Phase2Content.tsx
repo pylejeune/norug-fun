@@ -1,6 +1,6 @@
 "use client";
 
-import { FilterPanel } from "@/components/ui/FilterPanel";
+import { FilterPanel, SortBy, SortOrder } from "@/components/ui/FilterPanel";
 import { Pagination } from "@/components/ui/Pagination";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
@@ -31,6 +31,7 @@ const MINTED_TOKENS = [
     volume24h: 89420,
     holders: 1247,
     createdAt: new Date(Date.now() - 3600000), // il y a 1 heure
+    lastTradeAt: new Date(Date.now() - 120000), // il y a 2 minutes
     description:
       "Revolutionary DeFi protocol bringing next-gen yield farming to Solana",
     liquidity: 445000,
@@ -51,6 +52,7 @@ const MINTED_TOKENS = [
     volume24h: 67200,
     holders: 892,
     createdAt: new Date(Date.now() - 7200000), // il y a 2 heures
+    lastTradeAt: new Date(Date.now() - 300000), // il y a 5 minutes
     description: "Cross-chain infrastructure for seamless Web3 experiences",
     liquidity: 320000,
     fdv: 1780000,
@@ -70,6 +72,7 @@ const MINTED_TOKENS = [
     volume24h: 124500,
     holders: 2134,
     createdAt: new Date(Date.now() - 1800000), // il y a 30 minutes
+    lastTradeAt: new Date(Date.now() - 60000), // il y a 1 minute
     description: "AI-powered analytics platform for DeFi trading strategies",
     liquidity: 675000,
     fdv: 4290000,
@@ -90,16 +93,17 @@ export function Phase2Content({
   // ============================================================================
 
   // Sorting and filtering state
-  const [sortBy, setSortBy] = useState<"sol" | "date" | "name">("sol");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [sortBy, setSortBy] = useState<SortBy>("sol");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState<number>(12);
 
   // Pending filter state (for filters view)
-  const [pendingSortBy, setPendingSortBy] = useState(sortBy);
-  const [pendingSortOrder, setPendingSortOrder] = useState(sortOrder);
+  const [pendingSortBy, setPendingSortBy] = useState<SortBy>(sortBy);
+  const [pendingSortOrder, setPendingSortOrder] =
+    useState<SortOrder>(sortOrder);
 
   // ============================================================================
   // DATA PROCESSING AND FILTERING
@@ -129,6 +133,32 @@ export function Phase2Content({
           sortOrder === "desc"
             ? b.name.localeCompare(a.name)
             : a.name.localeCompare(b.name)
+        );
+        break;
+      case "marketcap":
+        sorted.sort((a, b) =>
+          sortOrder === "desc"
+            ? b.marketCap - a.marketCap
+            : a.marketCap - b.marketCap
+        );
+        break;
+      case "volume":
+        sorted.sort((a, b) =>
+          sortOrder === "desc"
+            ? b.volume24h - a.volume24h
+            : a.volume24h - b.volume24h
+        );
+        break;
+      case "holders":
+        sorted.sort((a, b) =>
+          sortOrder === "desc" ? b.holders - a.holders : a.holders - b.holders
+        );
+        break;
+      case "lasttrade":
+        sorted.sort((a, b) =>
+          sortOrder === "desc"
+            ? b.lastTradeAt.getTime() - a.lastTradeAt.getTime()
+            : a.lastTradeAt.getTime() - b.lastTradeAt.getTime()
         );
         break;
       default: // "sol" - treated as market cap for tokens
@@ -207,6 +237,7 @@ export function Phase2Content({
         onPendingSortOrderChange={setPendingSortOrder}
         onApply={applyFilters}
         onReset={resetFilters}
+        phase="phase2"
       />
 
       {/* Main Content Area */}
