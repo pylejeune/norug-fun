@@ -159,7 +159,7 @@
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   animation: bg-spin 8s linear infinite;
-  z-index: 0;
+  z-index: 5;
 }
 
 /* Définition du conic-gradient pour chaque couleur */
@@ -236,7 +236,7 @@
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   animation: bg-spin 8s linear infinite;
-  z-index: 0;
+  z-index: 10;
   background: conic-gradient(
     from var(--border-angle),
     rgba(71, 85, 105, 0.3) 80%,
