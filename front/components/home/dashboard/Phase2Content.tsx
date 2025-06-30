@@ -2,6 +2,7 @@
 
 import { FilterPanel, SortBy, SortOrder } from "@/components/ui/FilterPanel";
 import { Pagination } from "@/components/ui/Pagination";
+import { MINTED_TOKENS } from "@/lib/mockData";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
 import { TokenGrid } from "./TokenGrid";
@@ -13,71 +14,6 @@ type Phase2ContentProps = {
   showFilters: boolean;
   onShowFiltersChange: (show: boolean) => void;
 };
-
-// Mock data pour les tokens mintés
-const MINTED_TOKENS = [
-  {
-    id: "alpha-token",
-    symbol: "ALPHA",
-    name: "Alpha Protocol",
-    image: "/tokenDemo/alpha.png",
-    creator: {
-      address: "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgHrv",
-      avatar: "/images/default-profile.png",
-    },
-    marketCap: 1247000,
-    price: 0.0247,
-    priceChange24h: 15.32,
-    volume24h: 89420,
-    holders: 1247,
-    createdAt: new Date(Date.now() - 3600000), // il y a 1 heure
-    lastTradeAt: new Date(Date.now() - 120000), // il y a 2 minutes
-    description:
-      "Revolutionary DeFi protocol bringing next-gen yield farming to Solana",
-    liquidity: 445000,
-    fdv: 2470000,
-  },
-  {
-    id: "beta-token",
-    symbol: "BETA",
-    name: "Beta Networks",
-    image: "/tokenDemo/beta.png",
-    creator: {
-      address: "9xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgHrv",
-      avatar: "/images/default-profile.png",
-    },
-    marketCap: 892000,
-    price: 0.0178,
-    priceChange24h: -8.47,
-    volume24h: 67200,
-    holders: 892,
-    createdAt: new Date(Date.now() - 7200000), // il y a 2 heures
-    lastTradeAt: new Date(Date.now() - 300000), // il y a 5 minutes
-    description: "Cross-chain infrastructure for seamless Web3 experiences",
-    liquidity: 320000,
-    fdv: 1780000,
-  },
-  {
-    id: "gamma-token",
-    symbol: "GAMMA",
-    name: "Gamma Vision",
-    image: "/tokenDemo/gamma.png",
-    creator: {
-      address: "5xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgHrv",
-      avatar: "/images/default-profile.png",
-    },
-    marketCap: 2145000,
-    price: 0.0429,
-    priceChange24h: 24.78,
-    volume24h: 124500,
-    holders: 2134,
-    createdAt: new Date(Date.now() - 1800000), // il y a 30 minutes
-    lastTradeAt: new Date(Date.now() - 60000), // il y a 1 minute
-    description: "AI-powered analytics platform for DeFi trading strategies",
-    liquidity: 675000,
-    fdv: 4290000,
-  },
-];
 
 export function Phase2Content({
   locale,
