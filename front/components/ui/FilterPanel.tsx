@@ -4,7 +4,7 @@ import { ChevronDown, X } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { useEffect, useState } from 'react'
 
-export type SortBy = 'sol' | 'date' | 'name'
+export type SortBy = 'sol' | 'date' | 'name' | 'marketcap' | 'volume' | 'holders' | 'lasttrade'
 export type SortOrder = 'asc' | 'desc'
 
 type FilterPanelProps = {
@@ -18,6 +18,7 @@ type FilterPanelProps = {
   onPendingSortOrderChange: (value: SortOrder) => void
   onApply: () => void
   onReset: () => void
+  phase?: 'phase1' | 'phase2'
 }
 
 type CustomSelectProps = {
@@ -88,6 +89,7 @@ export function FilterPanel({
   onPendingSortOrderChange,
   onApply,
   onReset,
+  phase = 'phase1',
 }: FilterPanelProps) {
   const t = useTranslations('Home')
   const [isAnimating, setIsAnimating] = useState(false)
@@ -126,11 +128,23 @@ export function FilterPanel({
 
   if (!shouldRender) return null
 
-  const sortByOptions = [
-    { value: 'sol', label: t('sortBySolana') || 'Trier par SOL levés' },
-    { value: 'date', label: t('sortByDate') || 'Trier par date' },
-    { value: 'name', label: t('sortByName') || 'Trier par nom' },
-  ]
+  // Conditional sorting options based on phase
+  const sortByOptions =
+    phase === 'phase1'
+      ? [
+          { value: 'sol', label: t('sortBySolana') || 'Trier par SOL levés' },
+          { value: 'date', label: t('sortByDate') || 'Trier par date' },
+          { value: 'name', label: t('sortByName') || 'Trier par nom' },
+        ]
+      : [
+          { value: 'sol', label: t('sortBySolana') || 'Trier par SOL levés' },
+          { value: 'date', label: t('sortByDate') || 'Trier par date' },
+          { value: 'name', label: t('sortByName') || 'Trier par nom' },
+          { value: 'marketcap', label: t('sortByMarketCap') || 'Trier par Market Cap' },
+          { value: 'volume', label: t('sortByVolume') || 'Trier par Volume' },
+          { value: 'holders', label: t('sortByHolders') || 'Trier par Holders' },
+          { value: 'lasttrade', label: t('sortByLastTrade') || 'Trier par Last Trade' },
+        ]
 
   const sortOrderOptions = [
     { value: 'desc', label: t('sortByDesc') || 'Plus élevé' },

@@ -2,7 +2,7 @@
 
 import Loading from "@/app/[locale]/loading";
 import { EpochCountdown } from "@/components/home/EpochCountdown";
-import { FilterPanel } from "@/components/ui/FilterPanel";
+import { FilterPanel, SortBy, SortOrder } from "@/components/ui/FilterPanel";
 import { Pagination } from "@/components/ui/Pagination";
 import { EpochState } from "@/context/ProgramContext";
 import { useProposals } from "@/hooks/useSWRHooks";
@@ -39,16 +39,17 @@ export function Phase1Content({
   // ============================================================================
 
   // Sorting and filtering state
-  const [sortBy, setSortBy] = useState<"sol" | "date" | "name">("sol");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [sortBy, setSortBy] = useState<SortBy>("sol");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState<number>(20);
 
   // Pending filter state (for filters view)
-  const [pendingSortBy, setPendingSortBy] = useState(sortBy);
-  const [pendingSortOrder, setPendingSortOrder] = useState(sortOrder);
+  const [pendingSortBy, setPendingSortBy] = useState<SortBy>(sortBy);
+  const [pendingSortOrder, setPendingSortOrder] =
+    useState<SortOrder>(sortOrder);
 
   // ============================================================================
   // DATA PROCESSING AND FILTERING
@@ -164,6 +165,7 @@ export function Phase1Content({
         onPendingSortOrderChange={setPendingSortOrder}
         onApply={applyFilters}
         onReset={resetFilters}
+        phase="phase1"
       />
 
       {/* Main Content Area */}
