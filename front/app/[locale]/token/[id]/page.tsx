@@ -798,13 +798,21 @@ export default function TokenPage() {
                           </div>
                         </div>
                       </div>
-                      <div className="text-right">
+                      <div className="flex flex-col items-end gap-1">
                         <div className="text-sm font-medium">
                           {trade.solPrice.toFixed(4)} SOL
                         </div>
                         <div className="text-xs text-gray-400">
                           {trade.tokenAmount.toFixed(2)} {token.symbol}
                         </div>
+                        <Link
+                          href={`https://solscan.io/tx/${trade.txHash}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-mono text-xs text-gray-400 hover:text-emerald-400 transition-colors"
+                        >
+                          {trade.txHash.slice(0, 6)}...
+                        </Link>
                       </div>
                     </div>
                   ))}
