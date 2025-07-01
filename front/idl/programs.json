@@ -9,16 +9,7 @@
   "instructions": [
     {
       "name": "add_admin",
-      "discriminator": [
-        177,
-        236,
-        33,
-        205,
-        124,
-        152,
-        55,
-        186
-      ],
+      "discriminator": [177, 236, 33, 205, 124, 152, 55, 186],
       "accounts": [
         {
           "name": "treasury_roles",
@@ -38,29 +29,16 @@
     },
     {
       "name": "add_treasury_role",
-      "discriminator": [
-        250,
-        167,
-        53,
-        191,
-        17,
-        177,
-        200,
-        116
-      ],
+      "discriminator": [250, 167, 53, 191, 17, 177, 200, 116],
       "accounts": [
         {
           "name": "treasury_roles",
-          "docs": [
-            "The TreasuryRoles account (must be mutable)"
-          ],
+          "docs": ["The TreasuryRoles account (must be mutable)"],
           "writable": true
         },
         {
           "name": "authority",
-          "docs": [
-            "The admin authority (must be present in authorities)"
-          ],
+          "docs": ["The admin authority (must be present in authorities)"],
           "signer": true
         }
       ],
@@ -93,16 +71,7 @@
     },
     {
       "name": "create_proposal",
-      "discriminator": [
-        132,
-        116,
-        68,
-        174,
-        216,
-        160,
-        198,
-        22
-      ],
+      "discriminator": [132, 116, 68, 174, 216, 160, 198, 22],
       "accounts": [
         {
           "name": "creator",
@@ -116,16 +85,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  112,
-                  114,
-                  111,
-                  112,
-                  111,
-                  115,
-                  97,
-                  108
-                ]
+                "value": [112, 114, 111, 112, 111, 115, 97, 108]
               },
               {
                 "kind": "account",
@@ -153,16 +113,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  116,
-                  114,
-                  101,
-                  97,
-                  115,
-                  117,
-                  114,
-                  121
-                ]
+                "value": [116, 114, 101, 97, 115, 117, 114, 121]
               }
             ]
           }
@@ -207,35 +158,8 @@
     },
     {
       "name": "end_epoch",
-      "discriminator": [
-        195,
-        166,
-        17,
-        226,
-        105,
-        210,
-        96,
-        216
-      ],
+      "discriminator": [195, 166, 17, 226, 105, 210, 96, 216],
       "accounts": [
-        {
-          "name": "program_config",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
-        },
         {
           "name": "epoch_management",
           "writable": true,
@@ -243,13 +167,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  101,
-                  112,
-                  111,
-                  99,
-                  104
-                ]
+                "value": [101, 112, 111, 99, 104]
               },
               {
                 "kind": "arg",
@@ -277,31 +195,13 @@
     },
     {
       "name": "initialize",
-      "discriminator": [
-        175,
-        175,
-        109,
-        31,
-        13,
-        152,
-        155,
-        237
-      ],
+      "discriminator": [175, 175, 109, 31, 13, 152, 155, 237],
       "accounts": [],
       "args": []
     },
     {
       "name": "initialize_program_config",
-      "discriminator": [
-        6,
-        131,
-        61,
-        237,
-        40,
-        110,
-        83,
-        124
-      ],
+      "discriminator": [6, 131, 61, 237, 40, 110, 83, 124],
       "accounts": [
         {
           "name": "program_config",
@@ -310,14 +210,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
+                "value": [99, 111, 110, 102, 105, 103]
               }
             ]
           }
@@ -341,16 +234,7 @@
     },
     {
       "name": "initialize_treasury",
-      "discriminator": [
-        124,
-        186,
-        211,
-        195,
-        85,
-        165,
-        129,
-        166
-      ],
+      "discriminator": [124, 186, 211, 195, 85, 165, 129, 166],
       "accounts": [
         {
           "name": "treasury",
@@ -359,16 +243,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  116,
-                  114,
-                  101,
-                  97,
-                  115,
-                  117,
-                  114,
-                  121
-                ]
+                "value": [116, 114, 101, 97, 115, 117, 114, 121]
               }
             ]
           }
@@ -392,16 +267,7 @@
     },
     {
       "name": "initialize_treasury_roles",
-      "discriminator": [
-        127,
-        138,
-        198,
-        114,
-        99,
-        90,
-        115,
-        181
-      ],
+      "discriminator": [127, 138, 198, 114, 99, 90, 115, 181],
       "accounts": [
         {
           "name": "treasury_roles",
@@ -411,19 +277,7 @@
               {
                 "kind": "const",
                 "value": [
-                  116,
-                  114,
-                  101,
-                  97,
-                  115,
-                  117,
-                  114,
-                  121,
-                  95,
-                  114,
-                  111,
-                  108,
-                  101,
+                  116, 114, 101, 97, 115, 117, 114, 121, 95, 114, 111, 108, 101,
                   115
                 ]
               }
@@ -451,16 +305,7 @@
     },
     {
       "name": "mark_epoch_processed",
-      "discriminator": [
-        210,
-        48,
-        251,
-        209,
-        224,
-        55,
-        71,
-        59
-      ],
+      "discriminator": [210, 48, 251, 209, 224, 55, 71, 59],
       "accounts": [
         {
           "name": "authority",
@@ -473,14 +318,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
+                "value": [99, 111, 110, 102, 105, 103]
               }
             ]
           }
@@ -494,16 +332,7 @@
     },
     {
       "name": "reclaim_support",
-      "discriminator": [
-        23,
-        123,
-        152,
-        130,
-        171,
-        255,
-        2,
-        10
-      ],
+      "discriminator": [23, 123, 152, 130, 171, 255, 2, 10],
       "accounts": [
         {
           "name": "user",
@@ -517,16 +346,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  112,
-                  114,
-                  111,
-                  112,
-                  111,
-                  115,
-                  97,
-                  108
-                ]
+                "value": [112, 114, 111, 112, 111, 115, 97, 108]
               },
               {
                 "kind": "account",
@@ -553,15 +373,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  115,
-                  117,
-                  112,
-                  112,
-                  111,
-                  114,
-                  116
-                ]
+                "value": [115, 117, 112, 112, 111, 114, 116]
               },
               {
                 "kind": "account",
@@ -585,13 +397,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  101,
-                  112,
-                  111,
-                  99,
-                  104
-                ]
+                "value": [101, 112, 111, 99, 104]
               },
               {
                 "kind": "account",
@@ -610,16 +416,7 @@
     },
     {
       "name": "remove_admin",
-      "discriminator": [
-        74,
-        202,
-        71,
-        106,
-        252,
-        31,
-        72,
-        183
-      ],
+      "discriminator": [74, 202, 71, 106, 252, 31, 72, 183],
       "accounts": [
         {
           "name": "treasury_roles",
@@ -639,29 +436,16 @@
     },
     {
       "name": "remove_treasury_role",
-      "discriminator": [
-        90,
-        106,
-        204,
-        106,
-        66,
-        58,
-        239,
-        74
-      ],
+      "discriminator": [90, 106, 204, 106, 66, 58, 239, 74],
       "accounts": [
         {
           "name": "treasury_roles",
-          "docs": [
-            "The TreasuryRoles account (must be mutable)"
-          ],
+          "docs": ["The TreasuryRoles account (must be mutable)"],
           "writable": true
         },
         {
           "name": "authority",
-          "docs": [
-            "The admin authority (must be present in authorities)"
-          ],
+          "docs": ["The admin authority (must be present in authorities)"],
           "signer": true
         }
       ],
@@ -682,39 +466,12 @@
     },
     {
       "name": "start_epoch",
-      "discriminator": [
-        204,
-        248,
-        232,
-        82,
-        251,
-        45,
-        164,
-        113
-      ],
+      "discriminator": [204, 248, 232, 82, 251, 45, 164, 113],
       "accounts": [
         {
           "name": "authority",
           "writable": true,
           "signer": true
-        },
-        {
-          "name": "program_config",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
         },
         {
           "name": "epoch_management",
@@ -723,13 +480,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  101,
-                  112,
-                  111,
-                  99,
-                  104
-                ]
+                "value": [101, 112, 111, 99, 104]
               },
               {
                 "kind": "arg",
@@ -760,16 +511,7 @@
     },
     {
       "name": "support_proposal",
-      "discriminator": [
-        95,
-        239,
-        233,
-        199,
-        201,
-        62,
-        90,
-        27
-      ],
+      "discriminator": [95, 239, 233, 199, 201, 62, 90, 27],
       "accounts": [
         {
           "name": "user",
@@ -790,15 +532,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  115,
-                  117,
-                  112,
-                  112,
-                  111,
-                  114,
-                  116
-                ]
+                "value": [115, 117, 112, 112, 111, 114, 116]
               },
               {
                 "kind": "account",
@@ -823,16 +557,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  116,
-                  114,
-                  101,
-                  97,
-                  115,
-                  117,
-                  114,
-                  121
-                ]
+                "value": [116, 114, 101, 97, 115, 117, 114, 121]
               }
             ]
           }
@@ -851,16 +576,7 @@
     },
     {
       "name": "update_proposal_status",
-      "discriminator": [
-        9,
-        171,
-        178,
-        233,
-        228,
-        50,
-        167,
-        206
-      ],
+      "discriminator": [9, 171, 178, 233, 228, 50, 167, 206],
       "accounts": [
         {
           "name": "authority",
@@ -890,29 +606,16 @@
     },
     {
       "name": "update_treasury_role",
-      "discriminator": [
-        76,
-        67,
-        55,
-        141,
-        212,
-        110,
-        148,
-        140
-      ],
+      "discriminator": [76, 67, 55, 141, 212, 110, 148, 140],
       "accounts": [
         {
           "name": "treasury_roles",
-          "docs": [
-            "The TreasuryRoles account (must be mutable)"
-          ],
+          "docs": ["The TreasuryRoles account (must be mutable)"],
           "writable": true
         },
         {
           "name": "authority",
-          "docs": [
-            "The admin authority (must be present in authorities)"
-          ],
+          "docs": ["The admin authority (must be present in authorities)"],
           "signer": true
         }
       ],
@@ -947,96 +650,33 @@
   "accounts": [
     {
       "name": "EpochManagement",
-      "discriminator": [
-        182,
-        45,
-        141,
-        215,
-        61,
-        70,
-        49,
-        206
-      ]
+      "discriminator": [182, 45, 141, 215, 61, 70, 49, 206]
     },
     {
       "name": "ProgramConfig",
-      "discriminator": [
-        196,
-        210,
-        90,
-        231,
-        144,
-        149,
-        140,
-        63
-      ]
+      "discriminator": [196, 210, 90, 231, 144, 149, 140, 63]
     },
     {
       "name": "TokenProposal",
-      "discriminator": [
-        192,
-        42,
-        4,
-        79,
-        215,
-        17,
-        144,
-        39
-      ]
+      "discriminator": [192, 42, 4, 79, 215, 17, 144, 39]
     },
     {
       "name": "Treasury",
-      "discriminator": [
-        238,
-        239,
-        123,
-        238,
-        89,
-        1,
-        168,
-        253
-      ]
+      "discriminator": [238, 239, 123, 238, 89, 1, 168, 253]
     },
     {
       "name": "TreasuryRoles",
-      "discriminator": [
-        68,
-        16,
-        45,
-        143,
-        74,
-        61,
-        98,
-        193
-      ]
+      "discriminator": [68, 16, 45, 143, 74, 61, 98, 193]
     },
     {
       "name": "UserProposalSupport",
-      "discriminator": [
-        255,
-        187,
-        213,
-        25,
-        93,
-        16,
-        197,
-        155
-      ]
+      "discriminator": [255, 187, 213, 25, 93, 16, 197, 155]
     }
   ],
   "events": [
     {
       "name": "EpochEnded",
-      "discriminator": [
-        111,
-        40,
-        102,
-        241,
-        173,
-        233,
-        164,
-        252
-      ]
+      "discriminator": [111, 40, 102, 241, 173, 233, 164, 252]
     }
   ],
   "errors": [
