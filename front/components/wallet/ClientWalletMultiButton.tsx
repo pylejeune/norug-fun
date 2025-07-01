@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { Check, ChevronDown, Copy, LogOut, User } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -46,18 +47,18 @@ export default function ClientWalletMultiButton() {
 
   if (!publicKey) {
     return (
-      <button
+      <Button
         onClick={() => setVisible(true)}
         className="px-4 py-2 bg-[#213a0e] hover:bg-[#2d4f14] text-[#e6d3ba] rounded-lg transition-colors font-medium"
       >
         {t("connect")}
-      </button>
+      </Button>
     );
   }
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <button
+      <Button
         onClick={() => setIsOpen(!isOpen)}
         className="px-4 py-2 bg-[#213a0e] hover:bg-[#2d4f14] text-[#e6d3ba] rounded-lg transition-colors font-medium flex items-center gap-2"
       >
@@ -68,37 +69,44 @@ export default function ClientWalletMultiButton() {
           size={16}
           className={`transition-transform ${isOpen ? "rotate-180" : ""}`}
         />
-      </button>
+      </Button>
 
       {/* Dropdown Menu */}
       {isOpen && (
         <div className="absolute right-0 mt-2 w-48 rounded-lg bg-[#1f2714] border border-[#4a5334] shadow-xl z-[100]">
           <div className="p-1">
-            <button
+            <Button
+              variant="ghost"
               onClick={handleCopyAddress}
-              className="flex items-center gap-2 w-full p-2 text-[#e6d3ba] hover:bg-[#2d3720] rounded-lg transition-colors"
+              className="flex items-center gap-2 w-full p-2 text-[#e6d3ba] hover:bg-[#2d3720] rounded-lg transition-colors justify-start h-auto"
             >
               {isCopied ? <Check size={16} /> : <Copy size={16} />}
               <span>{t("copyAddress")}</span>
-            </button>
-            <Link
-              href={`/${locale}/profile/${publicKey.toBase58()}`}
-              onClick={() => setIsOpen(false)}
-              className="flex items-center gap-2 w-full p-2 text-[#e6d3ba] hover:bg-[#2d3720] rounded-lg transition-colors"
+            </Button>
+            <Button
+              variant="ghost"
+              asChild
+              className="flex items-center gap-2 w-full p-2 text-[#e6d3ba] hover:bg-[#2d3720] rounded-lg transition-colors justify-start h-auto"
             >
-              <User size={16} />
-              <span>{t("viewProfile")}</span>
-            </Link>
-            <button
+              <Link
+                href={`/${locale}/profile/${publicKey.toBase58()}`}
+                onClick={() => setIsOpen(false)}
+              >
+                <User size={16} />
+                <span>{t("viewProfile")}</span>
+              </Link>
+            </Button>
+            <Button
+              variant="ghost"
               onClick={() => {
                 disconnect();
                 setIsOpen(false);
               }}
-              className="flex items-center gap-2 w-full p-2 text-red-400 hover:bg-[#2d3720] rounded-lg transition-colors"
+              className="flex items-center gap-2 w-full p-2 text-red-400 hover:bg-[#2d3720] rounded-lg transition-colors justify-start h-auto"
             >
               <LogOut size={16} />
               <span>{t("disconnect")}</span>
-            </button>
+            </Button>
           </div>
         </div>
       )}

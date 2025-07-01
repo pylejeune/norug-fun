@@ -1,6 +1,7 @@
 import { useIsMobile } from '@/hooks/use-mobile'
 import { Filter, Grid, List, Search } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { Button } from './button'
 
 type ProposalFiltersProps = {
   search: string
@@ -27,24 +28,32 @@ export function ProposalFilters({
       {/* View Mode Toggle (Hidden on mobile or when disabled) */}
       {showViewModeToggle && (
         <div className={`flex gap-1 ${isMobile ? 'hidden' : ''}`}>
-          <button
-            className={`p-2 rounded-lg transition-colors ${
-              viewMode === 'grid' ? 'bg-[#e6d3ba] text-[#1e293b]' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-            }`}
+          <Button
+            variant={viewMode === 'grid' ? 'default' : 'outline'}
+            size="icon"
             onClick={() => onViewModeChange('grid')}
             aria-label="Grid View"
+            className={
+              viewMode === 'grid'
+                ? 'bg-[#e6d3ba] text-[#1e293b] hover:bg-[#d6c3a0]'
+                : 'bg-gray-800 text-gray-300 hover:bg-gray-700 border-gray-700'
+            }
           >
             <Grid className="w-5 h-5" />
-          </button>
-          <button
-            className={`p-2 rounded-lg transition-colors ${
-              viewMode === 'list' ? 'bg-[#e6d3ba] text-[#1e293b]' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-            }`}
+          </Button>
+          <Button
+            variant={viewMode === 'list' ? 'default' : 'outline'}
+            size="icon"
             onClick={() => onViewModeChange('list')}
             aria-label="List View"
+            className={
+              viewMode === 'list'
+                ? 'bg-[#e6d3ba] text-[#1e293b] hover:bg-[#d6c3a0]'
+                : 'bg-gray-800 text-gray-300 hover:bg-gray-700 border-gray-700'
+            }
           >
             <List className="w-5 h-5" />
-          </button>
+          </Button>
         </div>
       )}
 
@@ -61,13 +70,15 @@ export function ProposalFilters({
       </div>
 
       {/* Filters Button */}
-      <button
-        className="p-2 rounded-lg bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700 flex-shrink-0"
+      <Button
+        variant="outline"
+        size="icon"
         onClick={onOpenFilters}
         aria-label="Open Filters"
+        className="bg-gray-800 text-gray-300 hover:bg-gray-700 border-gray-700 flex-shrink-0"
       >
         <Filter className="w-5 h-5" />
-      </button>
+      </Button>
     </div>
   )
 }
