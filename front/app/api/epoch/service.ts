@@ -5,6 +5,7 @@ import {
   getAdminKeypairProgramConfig,
   getProgram,
   RPC_ENDPOINT,
+  connectionConfig,
 } from "@/lib/utils";
 import { BN } from "@coral-xyz/anchor";
 import { Connection, PublicKey, SystemProgram } from "@solana/web3.js";
@@ -29,7 +30,7 @@ interface EpochResult {
 export async function createEpoch(
   durationMinutes: number
 ): Promise<EpochResult> {
-  const connection = new Connection(RPC_ENDPOINT);
+  const connection = new Connection(RPC_ENDPOINT, connectionConfig);
   const adminKeypair = getAdminKeypairProgramConfig();
   const wallet = createAnchorWallet(adminKeypair);
   const program = getProgram(connection, CRON_IDL, wallet);
@@ -147,7 +148,7 @@ interface CloseEpochResult {
  * Close all active epochs
  */
 export async function closeAllEpochs(): Promise<CloseEpochResult> {
-  const connection = new Connection(RPC_ENDPOINT);
+  const connection = new Connection(RPC_ENDPOINT, connectionConfig);
   const adminKeypair = getAdminKeypairProgramConfig();
   const wallet = createAnchorWallet(adminKeypair);
   const program = getProgram(connection, CRON_IDL, wallet);
