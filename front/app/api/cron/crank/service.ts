@@ -17,10 +17,10 @@ class RateLimiter {
 
   async waitForSlot(): Promise<void> {
     const now = Date.now();
-    
+
     // Nettoyer les anciennes requêtes
-    this.queue = this.queue.filter(time => now - time < this.timeWindow);
-    
+    this.queue = this.queue.filter((time) => now - time < this.timeWindow);
+
     // Si on a atteint la limite, attendre
     if (this.queue.length >= this.maxRequests) {
       const oldestRequest = this.queue[0];
@@ -32,9 +32,11 @@ class RateLimiter {
         await delay(waitTime);
       }
       // Nettoyer à nouveau après l'attente
-      this.queue = this.queue.filter(time => Date.now() - time < this.timeWindow);
+      this.queue = this.queue.filter(
+        (time) => Date.now() - time < this.timeWindow
+      );
     }
-    
+
     // Ajouter la nouvelle requête
     this.queue.push(Date.now());
   }
@@ -43,7 +45,7 @@ class RateLimiter {
 const rateLimiter = new RateLimiter();
 
 // Fonction utilitaire pour ajouter un délai
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // Fonction pour gérer les erreurs 429 avec retry
 async function withRetry<T>(
@@ -60,9 +62,14 @@ async function withRetry<T>(
       return await operation();
     } catch (error: any) {
       lastError = error;
-      if (error.message?.includes("429") || error.message?.includes("Too Many Requests")) {
-        console.log(`Rate limit atteint, attente de ${delay}ms avant nouvelle tentative...`);
-        await new Promise(resolve => setTimeout(resolve, delay));
+      if (
+        error.message?.includes("429") ||
+        error.message?.includes("Too Many Requests")
+      ) {
+        console.log(
+          `Rate limit atteint, attente de ${delay}ms avant nouvelle tentative...`
+        );
+        await new Promise((resolve) => setTimeout(resolve, delay));
         delay *= 2; // Double le délai à chaque tentative
       } else {
         throw error; // Si ce n'est pas une erreur 429, on propage l'erreur
@@ -75,7 +82,7 @@ async function withRetry<T>(
 // Configuration de la connexion avec des paramètres optimisés
 const connectionConfig = {
   commitment: "confirmed" as Commitment,
-  confirmTransactionInitialTimeout: 60000
+  confirmTransactionInitialTimeout: 60000,
 };
 
 // --- Définition des interfaces ---
