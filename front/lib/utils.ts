@@ -1,5 +1,11 @@
 import { AnchorProvider, Program } from "@coral-xyz/anchor";
-import { Connection, Keypair, PublicKey, Transaction } from "@solana/web3.js";
+import {
+  Connection,
+  Keypair,
+  PublicKey,
+  Transaction,
+  Commitment,
+} from "@solana/web3.js";
 import { ClassValue, clsx } from "clsx";
 import { randomUUID } from "crypto";
 import { NextRequest } from "next/server";
@@ -15,7 +21,14 @@ export function cn(...inputs: ClassValue[]) {
 
 // Configuration simple
 export const RPC_ENDPOINT =
-  process.env.SOLANA_RPC_ENDPOINT || "https://api.devnet.solana.com";
+  process.env.SOLANA_RPC_ENDPOINT || "http://localhost:8888";
+
+// Configuration de la connexion avec WebSocket désactivé
+export const connectionConfig = {
+  commitment: "confirmed" as Commitment,
+  wsEndpoint: undefined,
+  disableRetryOnRateLimit: true,
+};
 
 // Note: La structure de l'IDL peut différer
 export const idlAddress =

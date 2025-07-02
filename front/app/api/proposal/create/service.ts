@@ -4,6 +4,7 @@ import {
   getAdminKeypair,
   getProgram,
   idl as SHARED_IDL,
+  connectionConfig,
 } from "@/lib/utils";
 import * as anchor from "@coral-xyz/anchor";
 import { PublicKey, Connection } from "@solana/web3.js";
@@ -25,7 +26,7 @@ export async function createProposal(params: ProposalCreateParams) {
     params
   );
 
-  const connection = new Connection(RPC_ENDPOINT);
+  const connection = new Connection(RPC_ENDPOINT, connectionConfig);
   const adminKeypair = getAdminKeypair();
   const wallet = createAnchorWallet(adminKeypair);
   const program = getProgram(connection, SHARED_IDL, wallet);

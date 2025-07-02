@@ -5,11 +5,11 @@ import {
   createSuccessResponse,
   createErrorResponse,
 } from "@/lib/utils";
-import { closeAllEpochs } from "../service";
+import { createScenario } from "./service";
 
 export async function GET(request: NextRequest): Promise<Response> {
   const requestId = randomUUID();
-  console.log(`[${requestId}] 🚀 Fermeture de toutes les époques actives...`);
+  console.log(`[${requestId}] 🚀 Démarrage de la création du scénario...`);
 
   // Vérification du token d'authentification
   if (!verifyAuthToken(request)) {
@@ -25,13 +25,13 @@ export async function GET(request: NextRequest): Promise<Response> {
   }
 
   try {
-    const result = await closeAllEpochs();
+    const result = await createScenario();
     console.log(`[${requestId}] ✅ Opération terminée: ${result.message}`);
 
     return createSuccessResponse(requestId, result);
   } catch (error) {
     console.error(
-      `[${requestId}] ❌ Erreur lors de la fermeture des époques:`,
+      `[${requestId}] ❌ Erreur lors de la création du scénario:`,
       error
     );
     return createErrorResponse(requestId, error);
