@@ -11,8 +11,7 @@ import {
   RPC_ENDPOINT,
   idl as CRON_IDL,
 } from "@/lib/utils";
-import { closeAllEpochs } from "../../epoch/close-all/service";
-import { createEpoch } from "../../epoch/service";
+import { createEpoch, closeAllEpochs } from "../../epoch/service";
 
 export async function GET(request: NextRequest): Promise<Response> {
   const requestId = randomUUID();

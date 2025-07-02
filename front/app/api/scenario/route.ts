@@ -36,4 +36,4 @@ export async function GET(request: NextRequest): Promise<Response> {
     );
     return createErrorResponse(requestId, error);
   }
-} 
+}
