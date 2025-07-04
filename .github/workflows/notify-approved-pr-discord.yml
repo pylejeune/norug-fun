@@ -16,4 +16,4 @@ jobs:
           curl -H "Content-Type: application/json" \
                -X POST \
                -d "{\"embeds\": [{\"title\": \"✅ PR Approuvée\", \"description\": \"Une PR a été approuvée !\", \"color\": 5814783, \"fields\": [{\"name\": \"PR\", \"value\": \"[#${{ github.event.pull_request.number }} - ${{ github.event.pull_request.title }}] \", \"inline\": true}, {\"name\": \"Auteur\", \"value\": \"${{ github.event.pull_request.user.login }}\", \"inline\": true}, {\"name\": \"Approuvé par\", \"value\": \"${{ github.event.review.user.login }}\", \"inline\": true}], \"timestamp\": \"${{ github.event.review.submitted_at }}\"}]}" \
-               $DISCORD_WEBHOOK_URL_REVIEWER github.event.review.user.login }}\", \"inline\": true}], \"timestamp\": \"${{ github.event.review.submitted_at }}\"}]}" \
+               $DISCORD_WEBHOOK_URL_REVIEWER
