@@ -6,16 +6,14 @@ on:
 
 jobs:
   notify-discord:
-    if: github.event.review.state == 'approved' && github.actor != 'dependabot[bot]' && github.actor != 'dependabot'
+    if: github.event.review.state == 'approved'
     runs-on: ubuntu-latest
     steps:
       - name: Send notification to Discord
         env:
           DISCORD_WEBHOOK_URL_REVIEWER: ${{ secrets.DISCORD_WEBHOOK_URL_REVIEWER }}
-        # Only run if webhook URL is available
-        if: env.DISCORD_WEBHOOK_URL_REVIEWER != ''
         run: |
           curl -H "Content-Type: application/json" \
                -X POST \
                -d "{\"embeds\": [{\"title\": \"✅ PR Approuvée\", \"description\": \"Une PR a été approuvée !\", \"color\": 5814783, \"fields\": [{\"name\": \"PR\", \"value\": \"[#${{ github.event.pull_request.number }} - ${{ github.event.pull_request.title }}] \", \"inline\": true}, {\"name\": \"Auteur\", \"value\": \"${{ github.event.pull_request.user.login }}\", \"inline\": true}, {\"name\": \"Approuvé par\", \"value\": \"${{ github.event.review.user.login }}\", \"inline\": true}], \"timestamp\": \"${{ github.event.review.submitted_at }}\"}]}" \
-               $DISCORD_WEBHOOK_URL_REVIEWER
+               $DISCORD_WEBHOOK_URL_REVIEWER github.event.review.user.login }}\", \"inline\": true}], \"timestamp\": \"${{ github.event.review.submitted_at }}\"}]}" \
