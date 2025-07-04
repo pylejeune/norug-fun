@@ -15,4 +15,4 @@ jobs:
           curl -H "Content-Type: application/json" \
                -X POST \
                -d "{\"content\": \"👀 Revue demandée par ${{ github.actor }} à ${{ github.event.requested_reviewer.login || github.event.requested_team.name }} pour la PR : ${{ github.event.pull_request.title }}\"}" \
-               $DISCORD_WEBHOOK_URL_REVIEWER 
+               $DISCORD_WEBHOOK_URL_REVIEWER

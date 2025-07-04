@@ -7,10 +7,12 @@ on:
 jobs:
   notify:
     runs-on: ubuntu-latest
+    if: github.actor != 'dependabot[bot]' && github.actor != 'dependabot'
     steps:
       - name: Send notification to Discord
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        if: env.DISCORD_WEBHOOK_URL != ''
         run: |
           curl -H "Content-Type: application/json" \
                -X POST \
