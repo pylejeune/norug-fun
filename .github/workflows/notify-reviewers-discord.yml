@@ -7,14 +7,10 @@ on:
 jobs:
   notify:
     runs-on: ubuntu-latest
-    # Skip notification if the actor is Dependabot or if no webhook URL is available
-    if: github.actor != 'dependabot[bot]' && github.actor != 'dependabot'
     steps:
       - name: Send notification to Discord
         env:
           DISCORD_WEBHOOK_URL_REVIEWER: ${{ secrets.DISCORD_WEBHOOK_URL_REVIEWER }}
-        # Only run if webhook URL is available
-        if: env.DISCORD_WEBHOOK_URL_REVIEWER != ''
         run: |
           curl -H "Content-Type: application/json" \
                -X POST \
