@@ -6,7 +6,84 @@ import {
   idl as CRON_IDL,
 } from "@/lib/utils";
 import * as anchor from "@coral-xyz/anchor";
-import { PublicKey, Connection } from "@solana/web3.js";
+import { PublicKey, Connection, Commitment } from "@solana/web3.js";
+
+// Rate limiter pour garantir max 5 requêtes par seconde (plus conservateur)
+class RateLimiter {
+  private queue: number[] = [];
+  private readonly maxRequests: number = 5; // Réduit à 5 requêtes par seconde
+  private readonly timeWindow: number = 1000; // 1 seconde en millisecondes
+  private readonly minDelay: number = 200; // Délai minimum entre les requêtes
+
+  async waitForSlot(): Promise<void> {
+    const now = Date.now();
+
+    // Nettoyer les anciennes requêtes
+    this.queue = this.queue.filter((time) => now - time < this.timeWindow);
+
+    // Si on a atteint la limite, attendre
+    if (this.queue.length >= this.maxRequests) {
+      const oldestRequest = this.queue[0];
+      const waitTime = Math.max(
+        this.timeWindow - (now - oldestRequest),
+        this.minDelay
+      );
+      if (waitTime > 0) {
+        await delay(waitTime);
+      }
+      // Nettoyer à nouveau après l'attente
+      this.queue = this.queue.filter(
+        (time) => Date.now() - time < this.timeWindow
+      );
+    }
+
+    // Ajouter la nouvelle requête
+    this.queue.push(Date.now());
+  }
+}
+
+const rateLimiter = new RateLimiter();
+
+// Fonction utilitaire pour ajouter un délai
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// Fonction pour gérer les erreurs 429 avec retry
+async function withRetry<T>(
+  operation: () => Promise<T>,
+  maxRetries: number = 3,
+  initialDelay: number = 1000
+): Promise<T> {
+  let lastError: any;
+  let delay = initialDelay;
+
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      await rateLimiter.waitForSlot();
+      return await operation();
+    } catch (error: any) {
+      lastError = error;
+      if (
+        error.message?.includes("429") ||
+        error.message?.includes("Too Many Requests")
+      ) {
+        console.log(
+          `Rate limit atteint, attente de ${delay}ms avant nouvelle tentative...`
+        );
+        await new Promise((resolve) => setTimeout(resolve, delay));
+        delay *= 2; // Double le délai à chaque tentative
+      } else {
+        throw error; // Si ce n'est pas une erreur 429, on propage l'erreur
+      }
+    }
+  }
+  throw lastError;
+}
+
+// Configuration de la connexion avec des paramètres optimisés
+const connectionConfig = {
+  commitment: "confirmed" as Commitment,
+  confirmTransactionInitialTimeout: 60000,
+};
 
 // --- Définition des interfaces ---
 interface EpochManagementAccountInfo {
@@ -60,9 +137,10 @@ export async function runCrankLogic(): Promise<{
   details?: any;
 }> {
   console.log("⚙️ Exécution de runCrankLogic...");
+  console.log("🌐 Utilisation du RPC:", RPC_ENDPOINT);
 
   try {
-    const connection = new Connection(RPC_ENDPOINT);
+    const connection = new Connection(RPC_ENDPOINT, connectionConfig);
     let adminKeypair;
 
     try {
@@ -149,8 +227,9 @@ async function findClosedUntreatedEpochs(
   // Cast des comptes du programme pour avoir des types corrects
   const programAccounts = program.account as unknown as ProgramAccounts;
 
-  const allEpochs: EpochManagementAccountInfo[] =
-    await programAccounts.epochManagement.all();
+  const allEpochs: EpochManagementAccountInfo[] = await withRetry(() =>
+    programAccounts.epochManagement.all()
+  );
   console.log(`   Found ${allEpochs.length} total epochs.`);
 
   const closedUntreatedEpochs = allEpochs.filter(
@@ -166,16 +245,18 @@ async function findClosedUntreatedEpochs(
       `   Checking epoch ${epochInfo.account.epochId.toString()} for active proposals...`
     );
 
-    const proposals = await programAccounts.tokenProposal.all([
-      {
-        memcmp: {
-          offset: 8,
-          bytes: anchor.utils.bytes.bs58.encode(
-            epochInfo.account.epochId.toBuffer("le", 8)
-          ),
+    const proposals = await withRetry(() =>
+      programAccounts.tokenProposal.all([
+        {
+          memcmp: {
+            offset: 8,
+            bytes: anchor.utils.bytes.bs58.encode(
+              epochInfo.account.epochId.toBuffer("le", 8)
+            ),
+          },
         },
-      },
-    ]);
+      ])
+    );
     console.log(`      Found ${proposals.length} proposals for this epoch.`);
 
     const hasActiveProposal = proposals.some(
@@ -191,8 +272,6 @@ async function findClosedUntreatedEpochs(
       console.log(
         `      -> Epoch ${epochInfo.account.epochId.toString()} has no active proposals. Needs marking processed.`
       );
-      // Important : Inclure aussi les époques sans proposition active
-      // car processEpoch va maintenant les gérer et appeler markEpochProcessed.
       epochsToProcess.push(epochInfo);
     }
   }
@@ -228,6 +307,7 @@ async function processEpoch(
   try {
     // 1. Récupérer les propositions actives
     console.log(`      Fetching proposals for epoch ${epochId.toString()}...`);
+    await rateLimiter.waitForSlot();
     const proposals = await programAccounts.tokenProposal.all([
       {
         memcmp: {
@@ -267,6 +347,7 @@ async function processEpoch(
           `         -> Updating ${proposalInfo.publicKey.toBase58()} to Validated`
         );
         try {
+          await rateLimiter.waitForSlot();
           // Utiliser any pour éviter les problèmes de typage profond
           const updateMethod = program.methods.updateProposalStatus({
             validated: {},
@@ -288,6 +369,7 @@ async function processEpoch(
             err.message
           );
           errorCount++;
+          await delay(500); // Délai plus long en cas d'erreur
         }
       }
       for (const proposalInfo of others) {
@@ -295,6 +377,7 @@ async function processEpoch(
           `         -> Updating ${proposalInfo.publicKey.toBase58()} to Rejected`
         );
         try {
+          await rateLimiter.waitForSlot();
           // Utiliser any pour éviter les problèmes de typage profond
           const updateMethod = program.methods.updateProposalStatus({
             rejected: {},
@@ -316,6 +399,7 @@ async function processEpoch(
             err.message
           );
           errorCount++;
+          await delay(500); // Délai plus long en cas d'erreur
         }
       }
     }
@@ -327,19 +411,17 @@ async function processEpoch(
       `      ❌ Error during proposal processing for epoch ${epochId.toString()}:`,
       err
     );
-    processingError = err; // Sauvegarder l'erreur pour le retour
+    processingError = err;
   }
 
-  // 4. Marquer l'époque comme traitée (même s'il y a eu des erreurs sur les props, mais pas si la récupération a échoué)
-  // On essaie de marquer si l'étape de processing a pu démarrer (pas d'erreur avant)
+  // 4. Marquer l'époque comme traitée
   let markedProcessed = false;
   if (!processingError) {
-    // On marque même si errorCount > 0, car on ne veut pas retraiter indéfiniment.
-    // La condition `errorCount < activeProposals.length` était peut-être trop stricte.
     console.log(
       `      Attempting to mark epoch ${epochId.toString()} as processed...`
     );
     try {
+      await rateLimiter.waitForSlot();
       // Utiliser any pour éviter les problèmes de typage profond
       const markMethod = program.methods.markEpochProcessed() as any;
       const tx = await markMethod
@@ -358,7 +440,7 @@ async function processEpoch(
         `         ❌ Failed to mark epoch ${epochId.toString()} as processed:`,
         err.message
       );
-      processingError = processingError || err; // Garder la première erreur ou celle du marquage
+      processingError = processingError || err;
     }
   } else {
     console.warn(
@@ -378,7 +460,7 @@ async function processEpoch(
     return {
       success: false,
       message: `Failed to mark epoch ${epochId.toString()} as processed, but proposals might be updated.`,
-    }; // Cas étrange
+    };
   } else {
     return {
       success: true,

@@ -5,10 +5,11 @@ import {
   createAnchorWallet,
   RPC_ENDPOINT,
   idl as SHARED_IDL,
+  connectionConfig,
 } from "@/lib/utils";
 
 export async function fetchTreasuryBalance() {
-  const connection = new Connection(RPC_ENDPOINT);
+  const connection = new Connection(RPC_ENDPOINT, connectionConfig);
   const adminKeypair = getAdminKeypair();
   const wallet = createAnchorWallet(adminKeypair);
   const program = getProgram(connection, SHARED_IDL, wallet);
